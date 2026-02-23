@@ -3,24 +3,143 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Calendar brown & white theme */
+  --calendar-brown: #5D4037;
+  --calendar-brown-light: #8D6E63;
+  --calendar-brown-pale: #FFF8E7;
+  --calendar-muted: #6D5D54;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-calendar-brown: var(--calendar-brown);
+  --color-calendar-brown-light: var(--calendar-brown-light);
+  --color-calendar-brown-pale: var(--calendar-brown-pale);
+  --color-calendar-muted: var(--calendar-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #fff;
+  color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Calendar brown & white theme – FullCalendar: grid visible in light and dark mode */
+.calendar-theme .fc {
+  --fc-page-bg: #fff;
+  --fc-border-color: #E8E0D9;
+  --fc-neutral-bg-color: #faf8f6;
+  --fc-list-event-hover-bg-color: var(--calendar-brown-pale);
+}
+.calendar-theme .fc .fc-toolbar-title { font-weight: 600; color: var(--calendar-brown); }
+.calendar-theme .fc .fc-button-primary { background: var(--calendar-brown); border-color: var(--calendar-brown); color: #fff; }
+.calendar-theme .fc .fc-button-primary:hover { background: var(--calendar-brown-light); border-color: var(--calendar-brown-light); color: #fff; }
+.calendar-theme .fc .fc-button-primary:not(:disabled).fc-button-active { background: var(--calendar-brown-light); border-color: var(--calendar-brown); color: #fff; }
+.calendar-theme .fc .fc-col-header-cell-cushion { color: var(--calendar-brown); }
+.calendar-theme .fc .fc-daygrid-day-number { color: var(--calendar-muted); }
+.calendar-theme .fc .fc-list-event:hover td { background: var(--calendar-brown-pale); }
+.calendar-theme .fc-theme-standard td, .calendar-theme .fc-theme-standard th { border-color: #E8E0D9; }
+.calendar-theme .fc-scrollgrid { background: #fff; }
+.calendar-theme .fc .fc-daygrid-day { background: #fff; }
+.calendar-theme .fc .fc-daygrid-day-frame { min-height: 100px; }
+.calendar-theme .fc .fc-day-other .fc-daygrid-day-number { color: #b0a090; }
+/* Vista Settimana: 24 righe orarie visibili (una per ogni ora), caselle verticali */
+.calendar-theme .fc .fc-timegrid-slots { min-height: 960px; }
+.calendar-theme .fc .fc-timegrid-slots table { min-height: 960px !important; height: 960px !important; }
+.calendar-theme .fc .fc-timegrid-axis-chunk table { min-height: 960px !important; height: 960px !important; }
+.calendar-theme .fc .fc-timegrid-slot { background: #fff; height: 40px; min-height: 40px; }
+.calendar-theme .fc .fc-timegrid-axis { background: #f5f1ed; width: 4.5em; }
+.calendar-theme .fc .fc-timegrid-slot-label { border-bottom: 1px solid #E8E0D9; padding: 0.35rem 0.5rem; font-size: 0.8rem; font-weight: 500; color: var(--calendar-brown); height: 40px; min-height: 40px; box-sizing: border-box; }
+.calendar-theme .fc .fc-timegrid-axis .fc-timegrid-slot-label-frame { display: block; }
+.calendar-theme .fc .fc-timegrid-slot-minor { height: 40px; min-height: 40px; border-top: 1px solid #E8E0D9; }
+.calendar-theme .fc .fc-timegrid-divider { background: var(--calendar-brown-pale); }
+/* Colonne giorni: altezza piena così i bordi verticali scendono per tutta la griglia (tabella ora×giorno) */
+.calendar-theme .fc .fc-timegrid-cols { min-height: 960px; }
+.calendar-theme .fc .fc-timegrid-cols table { min-height: 960px !important; height: 960px !important; }
+.calendar-theme .fc .fc-timegrid-cols tbody tr { height: 100%; min-height: 960px; }
+.calendar-theme .fc .fc-timegrid-col { border-right: 1px solid #E8E0D9; height: 100%; min-height: 960px; vertical-align: top; }
+.calendar-theme .fc .fc-timegrid-col-frame { min-height: 960px; height: 100%; border-right: 1px solid #E8E0D9; }
+.calendar-theme .fc .fc-timegrid-col-bg { min-height: 960px; border-right: 1px solid #E8E0D9; }
+.calendar-theme .fc .fc-timegrid-slot-lane { border-bottom: 1px solid #E8E0D9; }
+.calendar-theme .fc .fc-timegrid-body .fc-timegrid-slot { min-height: 40px; height: 40px; }
+.calendar-theme .fc .fc-timegrid .fc-scrollgrid-sync-table { min-height: 960px; }
+.calendar-theme .fc .fc-view-harness { min-height: 400px; }
+/* Vista Mese: niente scroll, tutte le 6 settimane visibili (righe compatte) */
+.calendar-theme .fc .fc-daygrid-day-frame { min-height: 100px; }
+.calendar-theme .fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events { min-height: 1px; }
+.calendar-theme .fc-daygrid-view .fc-scrollgrid-sync-table { height: 1px !important; }
+.calendar-theme .fc-daygrid-view .fc-daygrid-body { overflow: visible !important; }
+.calendar-theme .fc-daygrid-view .fc-scrollgrid-section-body table { height: auto !important; }
+/* Disabilita scroll nella vista Mese: scroller e harness si espandono col contenuto */
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scroller { overflow: visible !important; height: auto !important; max-height: none !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scroller-harness { height: auto !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-view-harness { height: auto !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scrollgrid { overflow: visible !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-daygrid-body { height: auto !important; min-height: 600px; overflow: visible !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scrollgrid-section { overflow: visible !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scrollgrid-section-body { overflow: visible !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view .fc-scroller-harness-liquid { height: auto !important; }
+.calendar-theme .calendar-month-container .fc-daygrid-view table.fc-scrollgrid-sync-table { min-height: 600px !important; }
+.calendar-theme .calendar-month-container { display: flex; flex-direction: column; min-height: 0; }
+.calendar-theme .calendar-month-container .fc { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.calendar-theme .calendar-month-container .fc .fc-view-harness { flex: 1 1 auto; min-height: 0; }
+.calendar-theme .calendar-month-container .fc .fc-view-harness-active { flex: 1 1 auto; }
+.calendar-theme .text-calendar-muted { color: var(--calendar-muted); }
+.calendar-theme .text-calendar-sub-event-icon { color: var(--calendar-brown-light); }
+
+/* Eventi: contrasto maggiore e testo dentro il box/giorno */
+.calendar-theme .fc-event { overflow: hidden; }
+.calendar-theme .fc-event .fc-event-main { overflow: hidden; }
+.calendar-theme .fc-event .fc-event-main-frame { overflow: hidden; display: flex; align-items: center; min-height: 0; }
+.calendar-theme .fc-event .fc-event-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-theme .fc-event .fc-event-title-container { overflow: hidden; min-width: 0; }
+.calendar-theme .fc-daygrid-event { overflow: hidden; }
+.calendar-theme .fc-daygrid-event-harness { overflow: hidden; }
+.calendar-theme .fc-daygrid-day-events { overflow: hidden; }
+.calendar-theme .fc-daygrid-day-frame { overflow: hidden; }
+.calendar-theme .fc .fc-daygrid-event .fc-event-title { font-weight: 600; color: #fff; text-shadow: 0 0 1px rgba(0,0,0,0.3); }
+.calendar-theme .fc .fc-daygrid-event .fc-event-time { color: rgba(255,255,255,0.95); }
+
+/* Modale evento: sempre sfondo chiaro, niente barre nere */
+.event-modal-light input { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
+.event-modal-light [data-radix-select-trigger],
+.event-modal-light [role="combobox"] { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
+.event-modal-light label { color: #3f3f46; }
+/* Tab: barra e tab sempre chiare */
+.event-modal-light [role="tablist"] { background-color: #f4f4f5 !important; color: #52525b !important; }
+.event-modal-light [role="tab"] { color: #52525b !important; }
+.event-modal-light [role="tab"][data-state="active"] { background-color: #fff !important; color: #18181b !important; }
+/* Pulsanti footer: Annulla = bianco/bordo, Salva = marrone calendario */
+.event-modal-light .dialog-footer-light button { background-color: #fff !important; color: #171717 !important; border: 1px solid #e4e4e7 !important; }
+.event-modal-light .dialog-footer-light button:hover { background-color: #f4f4f5 !important; }
+.event-modal-light .dialog-footer-light button.btn-save-primary { background-color: var(--calendar-brown) !important; color: #fff !important; border: none !important; }
+.event-modal-light .dialog-footer-light button.btn-save-primary:hover { background-color: var(--calendar-brown-light) !important; }
+.event-modal-light .dialog-footer-light button.btn-save-primary:disabled { opacity: 0.7; }
+.event-modal-light .dialog-footer-light button.btn-delete-confirm { background-color: #dc2626 !important; color: #fff !important; border: none !important; }
+.event-modal-light .dialog-footer-light button.btn-delete-confirm:hover { background-color: #b91c1c !important; }
+/* Pulsanti outline nella modale (es. Aggiungi tag): sempre bianco */
+.event-modal-light button[type="button"].bg-white { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
+.event-modal-light button[type="button"].bg-white:hover { background-color: var(--calendar-brown-pale) !important; }
+/* Menu a tendina (Select/Combobox): contenuto sempre bianco anche se aperto da modale (Portal) */
+[role="listbox"] { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
+[role="listbox"] [role="option"] { color: #171717 !important; }
+[role="listbox"] [role="option"]:hover,
+[role="listbox"] [role="option"][data-highlighted] { background-color: #f4f4f5 !important; color: #171717 !important; }
+[role="listbox"] [data-radix-select-viewport] { background: #fff; }
+
+/* Vista Settimana: intestazioni giorno come riferimento (numero in blu, nome giorno in nero) */
+.calendar-theme .fc .fc-timegrid .fc-col-header-cell-cushion { padding: 0.5rem; font-size: 0.875rem; }
+.calendar-theme .fc .fc-timegrid .fc-col-header-cell { background: #fff; border-bottom: 1px solid #E8E0D9; }
+.calendar-theme .fc .fc-timegrid .fc-scrollgrid-sync-inner { background: #fff; }
+.calendar-theme .fc .fc-timegrid-slot-label { font-variant-numeric: tabular-nums; }
+.calendar-theme .fc .fc-timegrid .fc-day-num { color: #2563eb; font-weight: 600; }
+.calendar-theme .fc .fc-timegrid .fc-day-name { color: #171717; margin-left: 0.25rem; }
+/* Riga "Tutto il giorno" e indice ore: ogni ora ben visibile a sinistra */
+.calendar-theme .fc .fc-timegrid .fc-timegrid-axis-cushion { font-size: 0.8rem; color: var(--calendar-muted); }
+.calendar-theme .fc .fc-timegrid .fc-timegrid-slot-label-cushion { font-variant-numeric: tabular-nums; }
+.calendar-theme .fc .fc-timegrid-axis .fc-timegrid-slot-label.fc-scrollgrid-shrink-cushion { padding: 0.5rem; font-weight: 500; color: var(--calendar-brown); }
+.calendar-theme .fc .fc-timegrid .fc-timegrid-all-day { background: #faf8f6; }
+.calendar-theme .fc .fc-timegrid .fc-timegrid-divider .fc-timegrid-slot-label { background: #f5f1ed; font-weight: 600; color: var(--calendar-brown); }

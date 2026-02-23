@@ -6,6 +6,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultReminderOffsets: [7, 1],
   weekendHandling: undefined,
   holidays: undefined,
+  defaultTimeForDeadlines: "18:00",
+  defaultReminderOffsetsAtto: [-30, -7, -1],
+  notificaEsteroDefault: false,
+  termineComparizioneCitazioneItalia: 120,
+  termineComparizioneCitazioneEstero: 150,
 };
 
 const SETTINGS_KEY = "app_settings";

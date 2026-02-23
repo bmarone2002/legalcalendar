@@ -3,9 +3,10 @@ import { get, register } from "./registry";
 import { reminderRule } from "./plugins/reminder";
 import { genericDeadlineRule } from "./plugins/generic-deadline";
 import { checklistRule } from "./plugins/checklist";
+import { attoGiuridicoRule } from "./plugins/atto-giuridico";
 
 // Register built-in rules (side-effect on module load)
-[reminderRule, genericDeadlineRule, checklistRule].forEach((r) => register(r));
+[reminderRule, genericDeadlineRule, checklistRule, attoGiuridicoRule].forEach((r) => register(r));
 
 export function runRule(ruleId: string, input: RuleInput): RuleOutput {
   const rule = get(ruleId);

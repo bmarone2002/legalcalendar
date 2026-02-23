@@ -3,8 +3,17 @@ import type { Event, SubEventKind, SubEventStatus } from "@/types";
 export interface AppSettings {
   defaultReminderTime: string; // "09:00"
   defaultReminderOffsets: number[]; // [7, 1] days
-  weekendHandling?: string; // placeholder
-  holidays?: string[]; // placeholder, ISO dates
+  weekendHandling?: string;
+  holidays?: string[];
+  /** Per ATTO_GIURIDICO: orario default per scadenze (es. 18:00) */
+  defaultTimeForDeadlines: string;
+  /** Promemoria prima di ogni termine hard: es. [-30, -7, -1] */
+  defaultReminderOffsetsAtto: number[];
+  notificaEsteroDefault: boolean;
+  /** Giorni tra notifica citazione e udienza (Italia) */
+  termineComparizioneCitazioneItalia: number;
+  /** Giorni tra notifica citazione e udienza (estero) */
+  termineComparizioneCitazioneEstero: number;
 }
 
 export interface RuleInput {

@@ -22,19 +22,33 @@ function parseRuleParams(ruleParams: string | null): Record<string, unknown> | n
   }
 }
 
+function parseInputs(inputs: string | null): Record<string, unknown> | null {
+  if (inputs == null) return null;
+  try {
+    return JSON.parse(inputs) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 function toEvent(r: {
   id: string;
   title: string;
   description: string | null;
   startAt: Date;
   endAt: Date;
-  type: EventType;
+  type: string;
   tags: string;
   caseId: string | null;
   notes: string | null;
   generateSubEvents: boolean;
   ruleTemplateId: string | null;
   ruleParams: string | null;
+  macroType?: string | null;
+  actionType?: string | null;
+  actionMode?: string | null;
+  inputs?: string | null;
+  color?: string | null;
   createdAt: Date;
   updatedAt: Date;
   subEvents?: Array<{
@@ -67,6 +81,11 @@ function toEvent(r: {
     generateSubEvents: r.generateSubEvents,
     ruleTemplateId: r.ruleTemplateId,
     ruleParams: parseRuleParams(r.ruleParams),
+    macroType: r.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+    actionType: r.actionType ?? undefined,
+    actionMode: r.actionMode ?? undefined,
+    inputs: parseInputs(r.inputs ?? null),
+    color: r.color ?? null,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     ...(r.subEvents && {
@@ -102,6 +121,11 @@ const createEventSchema = z.object({
   generateSubEvents: z.boolean().optional(),
   ruleTemplateId: z.string().nullable().optional(),
   ruleParams: z.record(z.unknown()).nullable().optional(),
+  macroType: z.enum(["ATTO_GIURIDICO"]).nullable().optional(),
+  actionType: z.string().nullable().optional(),
+  actionMode: z.string().nullable().optional(),
+  inputs: z.record(z.unknown()).nullable().optional(),
+  color: z.string().nullable().optional(),
 });
 
 const updateEventSchema = createEventSchema.partial();
@@ -113,7 +137,7 @@ export type ActionResult<T = void> =
 export async function createEvent(data: CreateEventInput): Promise<ActionResult<Event>> {
   const parsed = createEventSchema.safeParse(data);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.flatten().message as unknown as string };
+    return { success: false, error: parsed.error.message };
   }
   const p = parsed.data;
   try {
@@ -123,13 +147,18 @@ export async function createEvent(data: CreateEventInput): Promise<ActionResult<
         description: p.description ?? null,
         startAt: p.startAt,
         endAt: p.endAt,
-        type: (p.type ?? "altro") as "udienza" | "notifica" | "deposito" | "scadenza" | "altro",
+        type: p.type ?? "altro",
         tags: JSON.stringify(p.tags ?? []),
         caseId: p.caseId ?? null,
         notes: p.notes ?? null,
         generateSubEvents: p.generateSubEvents ?? false,
         ruleTemplateId: p.ruleTemplateId ?? null,
         ruleParams: p.ruleParams != null ? JSON.stringify(p.ruleParams) : null,
+        macroType: p.macroType ?? null,
+        actionType: p.actionType ?? null,
+        actionMode: p.actionMode ?? null,
+        inputs: p.inputs != null ? JSON.stringify(p.inputs) : null,
+        color: p.color ?? null,
       },
     });
     return { success: true, data: toEvent(event) };
@@ -147,7 +176,7 @@ export async function updateEvent(
 ): Promise<ActionResult<Event>> {
   const parsed = updateEventSchema.safeParse(data);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.flatten().message as unknown as string };
+    return { success: false, error: parsed.error.message };
   }
   const p = parsed.data;
   try {
@@ -167,6 +196,13 @@ export async function updateEvent(
         ...(p.ruleParams !== undefined && {
           ruleParams: p.ruleParams != null ? JSON.stringify(p.ruleParams) : null,
         }),
+        ...(p.macroType !== undefined && { macroType: p.macroType }),
+        ...(p.actionType !== undefined && { actionType: p.actionType }),
+        ...(p.actionMode !== undefined && { actionMode: p.actionMode }),
+        ...(p.inputs !== undefined && {
+          inputs: p.inputs != null ? JSON.stringify(p.inputs) : null,
+        }),
+        ...(p.color !== undefined && { color: p.color ?? null }),
       },
     });
     return { success: true, data: toEvent(event) };
@@ -192,11 +228,18 @@ export async function deleteEvent(id: string): Promise<ActionResult<void>> {
 
 export async function getEvents(start: Date, end: Date): Promise<ActionResult<Event[]>> {
   try {
+    const rangeStart = new Date(start);
+    rangeStart.setUTCDate(rangeStart.getUTCDate() - 2);
+    const rangeEnd = new Date(end);
+    rangeEnd.setUTCDate(rangeEnd.getUTCDate() + 2);
     const events = await prisma.event.findMany({
       where: {
-        startAt: { gte: start },
-        endAt: { lte: end },
+        OR: [
+          { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
+          { subEvents: { some: { dueAt: { gte: rangeStart, lte: rangeEnd } } } },
+        ],
       },
+      include: { subEvents: { orderBy: { dueAt: "asc" } } },
       orderBy: { startAt: "asc" },
     });
     return { success: true, data: events.map(toEvent) };

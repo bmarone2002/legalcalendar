@@ -6,6 +6,66 @@ import { runRulesForEvent } from "../rules/engine";
 import type { Event, SubEvent } from "@/types";
 import type { ActionResult } from "./events";
 
+export interface PreviewSubEventInput {
+  title: string;
+  startAt: string;
+  endAt: string;
+  type: Event["type"];
+  tags: string[];
+  ruleTemplateId: string;
+  /** Per ruleTemplateId "atto-giuridico" */
+  macroType?: string | null;
+  actionType?: string | null;
+  actionMode?: string | null;
+  inputs?: Record<string, unknown> | null;
+}
+
+export async function getSubEventsPreview(
+  input: PreviewSubEventInput
+): Promise<ActionResult<Array<{ title: string; dueAt: string; explanation: string }>>> {
+  try {
+    const settings = await getSettings();
+    const eventForRule: Event = {
+      id: "",
+      title: input.title,
+      description: null,
+      startAt: new Date(input.startAt),
+      endAt: new Date(input.endAt),
+      type: input.type,
+      tags: input.tags,
+      caseId: null,
+      notes: null,
+      generateSubEvents: true,
+      ruleTemplateId: input.ruleTemplateId,
+      ruleParams: null,
+      macroType: input.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+      actionType: input.actionType ?? undefined,
+      actionMode: input.actionMode ?? undefined,
+      inputs: input.inputs ?? undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const candidates = runRulesForEvent(input.ruleTemplateId, {
+      event: eventForRule,
+      settings,
+      userSelections: input.inputs ?? {},
+    });
+    return {
+      success: true,
+      data: candidates.map((c) => ({
+        title: c.title,
+        dueAt: c.dueAt.toISOString(),
+        explanation: c.explanation,
+      })),
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Errore preview sottoeventi",
+    };
+  }
+}
+
 function parseRuleParams(ruleParams: string | null): Record<string, unknown> | null {
   if (ruleParams == null) return null;
   try {
@@ -82,6 +142,7 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
     }
 
     const settings = await getSettings();
+    const inputsParsed = parent.inputs ? (JSON.parse(parent.inputs) as Record<string, unknown>) : {};
     const eventForRule: Event = {
       id: parent.id,
       title: parent.title,
@@ -95,14 +156,15 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
       generateSubEvents: parent.generateSubEvents,
       ruleTemplateId: parent.ruleTemplateId,
       ruleParams: parseRuleParams(parent.ruleParams),
+      macroType: parent.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+      actionType: parent.actionType ?? undefined,
+      actionMode: parent.actionMode ?? undefined,
+      inputs: inputsParsed,
       createdAt: parent.createdAt,
       updatedAt: parent.updatedAt,
     };
 
-    const userSelections = (JSON.parse(parent.ruleParams || "{}") || {}) as Record<
-      string,
-      unknown
-    >;
+    const userSelections = (parent.ruleTemplateId === "atto-giuridico" ? inputsParsed : (JSON.parse(parent.ruleParams || "{}") || {})) as Record<string, unknown>;
     const candidates = runRulesForEvent(parent.ruleTemplateId, {
       event: eventForRule,
       settings,
