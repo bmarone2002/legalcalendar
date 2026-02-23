@@ -150,10 +150,14 @@ export function CalendarView() {
     const isListView = (arg.view.type === "list" || arg.view.type === "listWeek" || arg.view.type === "listDay" || arg.view.type === "listMonth" || arg.view.type === "listFromToday");
 
     if (isSub && isListView) {
+      const borderColor = arg.event.borderColor as string | undefined;
       return (
-        <div className="fc-event-main-frame flex items-center gap-2">
+        <div
+          className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1"
+          style={{ borderLeftColor: borderColor ?? undefined }}
+        >
           <span className="fc-list-event-dot" style={{ borderColor: arg.event.backgroundColor }} />
-          <span className="fc-list-event-title flex-1 truncate">{arg.event.title}</span>
+          <span className="fc-list-event-title flex-1 truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
           {kind && (
             <span className="text-calendar-muted text-xs shrink-0">{kind}</span>
           )}
@@ -166,19 +170,23 @@ export function CalendarView() {
       );
     }
     if (isSub) {
+      const borderColor = arg.event.borderColor as string | undefined;
       return (
-        <div className="fc-event-main-frame flex items-center gap-1">
+        <div
+          className="fc-event-main-frame flex items-center gap-1 rounded border-l-4 pl-0.5"
+          style={{ borderLeftColor: borderColor ?? undefined }}
+        >
           <span className="text-calendar-sub-event-icon shrink-0" aria-hidden>↳</span>
-          <span className="truncate">{arg.event.title}</span>
+          <span className="truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
         </div>
       );
     }
-    // Evento madre in vista Agenda: render esplicito così compare sempre insieme ai sottoeventi
+    // Evento madre in vista Agenda: render esplicito, testo bianco su sfondo colore
     if (isListView) {
       return (
         <div className="fc-event-main-frame flex items-center gap-2">
           <span className="fc-list-event-dot" style={{ borderColor: arg.event.backgroundColor }} />
-          <span className="fc-list-event-title flex-1 truncate">{arg.event.title}</span>
+          <span className="fc-list-event-title flex-1 truncate font-medium" style={{ color: "#ffffff", textShadow: "0 0 1px rgba(0,0,0,0.4)" }}>{arg.event.title}</span>
         </div>
       );
     }
@@ -186,7 +194,7 @@ export function CalendarView() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col gap-2 calendar-theme">
+    <div className="flex h-full flex-col gap-2 sm:gap-3 calendar-theme">
       <div className="flex items-center justify-end">
         <div className="rounded-lg border-2 border-[var(--calendar-brown)] bg-[var(--calendar-brown-pale)] px-3 py-1.5">
           <Button
@@ -199,7 +207,7 @@ export function CalendarView() {
           </Button>
         </div>
       </div>
-      <div className="flex-1 w-full min-h-0 calendar-month-container" style={{ minHeight: 'calc(100vh - 11rem)' }}>
+      <div className="flex-1 w-full min-h-0 calendar-month-container" style={{ minHeight: 'min(600px, calc(100vh - 10rem))' }}>
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
@@ -258,6 +266,7 @@ export function CalendarView() {
           eventClick={handleEventClick}
           eventDrop={handleEventDrop}
           eventContent={renderEventContent}
+          eventClassNames={(arg) => (arg.event.extendedProps.isSubEvent as boolean) ? ["fc-event-sub"] : ["fc-event-madre"]}
           height="100%"
           expandRows={true}
           slotMinTime="00:00:00"

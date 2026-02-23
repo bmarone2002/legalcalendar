@@ -110,7 +110,7 @@ function toEvent(r: {
 }
 
 const createEventSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().min(1, "Inserire un titolo evento"),
   description: z.string().nullable().optional(),
   startAt: z.coerce.date(),
   endAt: z.coerce.date(),
@@ -134,10 +134,16 @@ export type ActionResult<T = void> =
   | { success: true; data: T }
   | { success: false; error: string };
 
+function formatValidationError(err: z.ZodError): string {
+  const first = err.errors[0];
+  if (first?.path?.[0] === "title" && first?.code === "too_small") return "Inserire un titolo evento";
+  return err.errors.map((e) => e.message).filter(Boolean).join(". ") || err.message;
+}
+
 export async function createEvent(data: CreateEventInput): Promise<ActionResult<Event>> {
   const parsed = createEventSchema.safeParse(data);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.message };
+    return { success: false, error: formatValidationError(parsed.error) };
   }
   const p = parsed.data;
   try {
@@ -176,7 +182,7 @@ export async function updateEvent(
 ): Promise<ActionResult<Event>> {
   const parsed = updateEventSchema.safeParse(data);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.message };
+    return { success: false, error: formatValidationError(parsed.error) };
   }
   const p = parsed.data;
   try {

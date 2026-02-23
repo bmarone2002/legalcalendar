@@ -83,6 +83,41 @@ function usesCalculationDateOnly(macroType: "ATTO_GIURIDICO" | null): boolean {
   return macroType != null && MACRO_TYPES_WITH_CALCULATION_DATE_ONLY.includes(macroType);
 }
 
+/** Serializza inputs per Server Actions: Date → ISO string così il server riceve valori validi. */
+function serializeInputsForServer(inputs: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(inputs)) {
+    out[k] = v instanceof Date ? v.toISOString() : v;
+  }
+  return out;
+}
+
+/** Normalizza l'errore da Server Action: se arriva l'array Zod (es. JSON), mostra messaggio utente. */
+function normalizeDisplayError(err: unknown): string {
+  if (typeof err === "string") {
+    const t = err.trim();
+    if (t.startsWith("[") && (t.includes("too_small") || t.includes("at least 1")) && t.includes("title")) return "Inserire un titolo evento";
+    try {
+      const parsed = JSON.parse(err) as unknown;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const first = parsed[0] as { path?: unknown[]; code?: string };
+        if (first?.path?.[0] === "title" && first?.code === "too_small") return "Inserire un titolo evento";
+      }
+    } catch {
+      // non è JSON, usa la stringa
+    }
+    return err;
+  }
+  if (Array.isArray(err) && err.length > 0) {
+    const first = err[0] as { path?: unknown[]; code?: string };
+    if (first?.path?.[0] === "title" && first?.code === "too_small") return "Inserire un titolo evento";
+    const msg = (first as { message?: string })?.message;
+    return typeof msg === "string" ? msg : "Errore di validazione";
+  }
+  if (err && typeof err === "object" && "message" in err && typeof (err as { message: unknown }).message === "string") return (err as { message: string }).message;
+  return "Si è verificato un errore";
+}
+
 /** Restituisce la prima data valida dagli inputs (per Atto Giuridico) da usare come start/end nel preview. */
 function getPrimaryDateFromInputs(inputs: Record<string, unknown>): Date | null {
   const dateKeys = [
@@ -186,7 +221,7 @@ export function EventModal({
           macroType: "ATTO_GIURIDICO",
           actionType: form.actionType,
           actionMode: form.actionMode,
-          inputs: form.inputs,
+          inputs: serializeInputsForServer(form.inputs),
         }),
       };
       const result = await getSubEventsPreview(payload);
@@ -240,7 +275,7 @@ export function EventModal({
           macroType: "ATTO_GIURIDICO",
           actionType: form.actionType,
           actionMode: form.actionMode,
-          inputs: form.inputs,
+          inputs: serializeInputsForServer(form.inputs),
         }),
       };
       const result = await getSubEventsPreview(payload);
@@ -255,7 +290,7 @@ export function EventModal({
         setError(null);
       } else {
         setPreviewSubEvents([]);
-        setError(!result.success ? result.error : "Impossibile calcolare i sottoeventi");
+        setError(!result.success ? normalizeDisplayError(result.error) : "Impossibile calcolare i sottoeventi");
       }
       setActiveTab("regole");
     } finally {
@@ -292,7 +327,7 @@ export function EventModal({
           macroType: form.macroType ?? undefined,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
-          inputs: form.macroType ? form.inputs : undefined,
+          inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
           color: form.color ?? undefined,
         });
         if (!result.success) {
@@ -300,7 +335,11 @@ export function EventModal({
           return;
         }
         if (result.data && form.generateSubEvents) {
-          await regenerateSubEvents(result.data.id);
+          const regen = await regenerateSubEvents(result.data.id);
+          if (!regen.success) {
+            setError(regen.error ?? "Errore creazione sottoeventi. Riprova o rigenera dalla tab Regole.");
+            return;
+          }
         }
       } else if (eventId) {
         const result = await updateEvent(eventId, {
@@ -316,15 +355,19 @@ export function EventModal({
           macroType: form.macroType ?? undefined,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
-          inputs: form.macroType ? form.inputs : undefined,
+          inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
           color: form.color ?? undefined,
         });
         if (!result.success) {
-          setError(result.error);
+          setError(normalizeDisplayError(result.error));
           return;
         }
         if (form.generateSubEvents) {
-          await regenerateSubEvents(eventId);
+          const regen = await regenerateSubEvents(eventId);
+          if (!regen.success) {
+            setError(normalizeDisplayError(regen.error) ?? "Errore rigenerazione sottoeventi.");
+            return;
+          }
           const subResult = await getEventById(eventId);
           if (subResult.success && subResult.data?.subEvents) {
             setSubEvents(subResult.data.subEvents);
@@ -364,18 +407,18 @@ export function EventModal({
         macroType: form.macroType ?? undefined,
         actionType: form.macroType ? form.actionType : undefined,
         actionMode: form.macroType ? form.actionMode : undefined,
-        inputs: form.macroType ? form.inputs : undefined,
+        inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
         color: form.color ?? undefined,
       });
       if (!up.success) {
-        setError(up.error);
+        setError(normalizeDisplayError(up.error));
         return;
       }
       const result = await regenerateSubEvents(eventId);
       if (result.success && result.data) {
         setSubEvents(result.data);
       } else if (!result.success) {
-        setError(result.error ?? "Errore rigenerazione");
+        setError(normalizeDisplayError(result.error) ?? "Errore rigenerazione");
       }
     } finally {
       setSaving(false);
@@ -392,7 +435,7 @@ export function EventModal({
         setShowDeleteConfirm(false);
         onClose();
       } else {
-        setError(result.error ?? "Errore durante l'eliminazione");
+        setError(normalizeDisplayError(result.error) ?? "Errore durante l'eliminazione");
       }
     } finally {
       setSaving(false);
