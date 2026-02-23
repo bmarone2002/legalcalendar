@@ -255,7 +255,7 @@ export function EventModal({
         setError(null);
       } else {
         setPreviewSubEvents([]);
-        setError(result.error ?? "Impossibile calcolare i sottoeventi");
+        setError(!result.success ? result.error : "Impossibile calcolare i sottoeventi");
       }
       setActiveTab("regole");
     } finally {
