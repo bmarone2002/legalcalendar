@@ -1,0 +1,84 @@
+// Legal Calendar - Prisma schema
+// SQLite for local/personal use
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  udienza
+  notifica
+  deposito
+  scadenza
+  altro
+}
+
+enum SubEventKind {
+  termine
+  promemoria
+  attivita
+}
+
+enum SubEventStatus {
+  pending
+  done
+  cancelled
+}
+
+enum CreatedBy {
+  manuale
+  automatico
+}
+
+model Event {
+  id                String    @id @default(cuid())
+  title             String
+  description       String?
+  startAt           DateTime
+  endAt             DateTime
+  type              EventType @default(altro)
+  tags              String    @default("[]") // JSON array of strings
+  caseId            String?
+  notes             String?
+  generateSubEvents Boolean   @default(false)
+  ruleTemplateId    String?
+  ruleParams        String?   // JSON
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  subEvents SubEvent[]
+
+  @@index([startAt])
+  @@index([endAt])
+}
+
+model SubEvent {
+  id            String        @id @default(cuid())
+  parentEventId String
+  parentEvent   Event         @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
+  title         String
+  kind          SubEventKind
+  dueAt         DateTime
+  status        SubEventStatus @default(pending)
+  priority      Int           @default(0)
+  ruleId        String?
+  ruleParams    String?       // JSON
+  explanation   String?
+  createdBy     CreatedBy    @default(automatico)
+  locked        Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([parentEventId])
+  @@index([dueAt])
+}
+
+model Setting {
+  id    String @id
+  value String // JSON
+}
