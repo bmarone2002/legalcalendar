@@ -57,27 +57,28 @@ Da questo momento: **ogni modifica che fai in Cursor** la metti online con `git 
 3. Scegli il repo **legal-calendar** (autorizza Railway su GitHub se richiesto).
 4. Railway crea un “service” collegato al repo.
 
-### 3.2 Configura il servizio
+### 3.2 Aggiungi il database PostgreSQL
 
-1. Clicca sul servizio (il riquadro del progetto).
-2. Vai su **Settings** (o **Variables**).
+1. Nel **progetto** Railway (non dentro il servizio app), clicca **+ New** (o **Add Service**).
+2. Scegli **Database** → **PostgreSQL**.
+3. Railway crea un servizio PostgreSQL e ti assegna variabili (es. `DATABASE_URL`, `PGHOST`, ecc.).
+4. Clicca sul servizio **PostgreSQL** → **Variables** (o **Connect**): copia la **`DATABASE_URL`** (formato `postgresql://postgres:xxx@xxx.railway.app:5432/railway`).
 
-**Variables – aggiungi:**
+### 3.3 Collega il database all’app (obbligatorio)
 
-| Nome            | Valore                    |
-|-----------------|---------------------------|
-| `DATABASE_URL`  | `file:/data/dev.db`       |
+1. Clicca sul **servizio dell’app** (Legal Calendar), **non** sul servizio PostgreSQL.
+2. Vai su **Variables** (o **Settings** → **Variables**).
+3. **+ New Variable** e aggiungi:
+   - **Name:** `DATABASE_URL`
+   - **Value (scegli uno):**
+     - **Riferimento (consigliato):** `${{Postgres.DATABASE_URL}}`  
+       (sostituisci `Postgres` con il nome esatto del tuo servizio PostgreSQL se diverso)
+     - **Oppure** copia il valore di `DATABASE_URL` dal servizio PostgreSQL e incollalo qui.
+4. Salva. Railway farà un nuovo deploy.
 
-(La useremo con il volume al passo 3.3.)
+Se manca questa variabile vedi errore "Environment variable not found: DATABASE_URL". Vedi anche **RAILWAY-DATABASE.md** per i dettagli.
 
-### 3.3 Volume per il database (SQLite persistente)
-
-1. Nella stessa pagina del servizio, cerca **Volumes** (o **Persistent Storage**).
-2. **Add Volume** (o **Mount Volume**).
-3. **Mount Path:** `/data`.
-4. Salva.
-
-In questo modo il file `dev.db` sarà in `/data/dev.db` e non verrà perso ai riavvii.
+I dati restano nel database PostgreSQL gestito da Railway (nessun volume da configurare).
 
 ### 3.4 Comandi di build e avvio
 
@@ -126,7 +127,7 @@ Nessun bisogno di rifare a mano i passi 3.1–3.5: basta push da Cursor.
 | Codice e modifiche      | Cursor (cartella `legal-calendar`) |
 | Versione online         | GitHub (repo `legal-calendar`) |
 | App online              | Railway (URL generato al passo 3.5) |
-| Database                | SQLite su volume Railway (`/data/dev.db`) |
+| Database                | PostgreSQL gestito Railway (servizio Database) |
 | Aggiornare il sito      | `git add .` → `git commit -m "..."` → `git push` |
 
 ---
@@ -134,7 +135,7 @@ Nessun bisogno di rifare a mano i passi 3.1–3.5: basta push da Cursor.
 ## Problemi comuni
 
 - **Errore “DATABASE_URL” o “prisma migrate”:**  
-  Controlla che la variable `DATABASE_URL=file:/data/dev.db` sia impostata e che il volume sia montato su `/data`.
+  Controlla che il servizio **PostgreSQL** sia stato aggiunto e che nel servizio **app** la variable `DATABASE_URL` contenga la URL di connessione al database (copiata dalle Variables del servizio PostgreSQL).
 
 - **Build fallisce:**  
   In **Deployments** clicca sull’ultimo deploy e leggi i log. Di solito è un errore di `npm run build` o di `prisma generate`; correggi in Cursor, commit e push.

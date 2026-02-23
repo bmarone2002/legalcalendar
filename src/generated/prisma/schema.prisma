@@ -1,5 +1,5 @@
 // Legal Calendar - Prisma schema
-// SQLite: no native enums, use String
+// PostgreSQL su Railway (database gestito)
 
 generator client {
   provider = "prisma-client-js"
@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -24,10 +24,11 @@ model Event {
   generateSubEvents Boolean  @default(false)
   ruleTemplateId    String?
   ruleParams        String?
-  macroType         String? // "ATTO_GIURIDICO"
-  actionType        String? // CITAZIONE | RICORSO_OPPOSIZIONE | ...
-  actionMode        String? // COSTITUZIONE | DA_NOTIFICARE
-  inputs            String? // JSON: date e selezioni per regole
+  macroType         String?  // "ATTO_GIURIDICO"
+  actionType        String?  // CITAZIONE | RICORSO_OPPOSIZIONE | ...
+  actionMode        String?  // COSTITUZIONE | DA_NOTIFICARE
+  inputs            String?  // JSON: date e selezioni per regole
+  color             String?  // hex colore tag (evento + sottoeventi)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -42,12 +43,12 @@ model SubEvent {
   parentEventId String
   parentEvent   Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
   title         String
-  kind          String // termine | promemoria | attivita
+  kind          String   // termine | promemoria | attivita
   dueAt         DateTime
   status        String   @default("pending") // pending | done | cancelled
   priority      Int      @default(0)
   ruleId        String?
-  ruleParams    String? // JSON
+  ruleParams    String?  // JSON
   explanation   String?
   createdBy     String   @default("automatico") // manuale | automatico
   locked        Boolean  @default(false)

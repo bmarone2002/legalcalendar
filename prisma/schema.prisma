@@ -1,5 +1,5 @@
 // Legal Calendar - Prisma schema
-// SQLite: no native enums, use String
+// PostgreSQL su Railway (database gestito)
 
 generator client {
   provider = "prisma-client-js"
@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

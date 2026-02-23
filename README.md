@@ -5,7 +5,7 @@ Calendario personale per avvocato con interfaccia stile Outlook: viste Mese/Sett
 ## Stack
 
 - **Next.js 14+** (App Router), **React**, **TypeScript**
-- **Prisma** + **SQLite**
+- **Prisma** + **PostgreSQL**
 - **FullCalendar** (viste month/week, drag & drop)
 - **shadcn/ui** (Dialog, Tabs, Select, Input, ecc.)
 
@@ -16,11 +16,13 @@ Calendario personale per avvocato con interfaccia stile Outlook: viste Mese/Sett
 
 ## Installazione e avvio
 
+1. Copia `.env.example` in `.env` e imposta `DATABASE_URL` con la URL del tuo PostgreSQL (locale o Railway).
+2. Dalla cartella `legal-calendar`:
+
 ```bash
-# Dalla cartella legal-calendar
 npm install
 npx prisma generate
-npx prisma migrate dev --name init   # crea il DB e le tabelle
+npx prisma migrate dev   # crea le tabelle sul DB
 npm run dev
 ```
 
@@ -91,7 +93,7 @@ Unit test: `npm run test:calcoli`.
 - `src/lib/rules/` – rule engine e plugin (reminder, generic-deadline, checklist, **atto-giuridico**)
 - `src/types/atto-giuridico.ts` – tipi e enum per ATTO GIURIDICO (actionType, actionMode, inputs)
 - `src/lib/settings.ts` – impostazioni (promemoria, defaultTimeForDeadlines, termini 120/150, ecc.)
-- `prisma/` – schema e migrazioni SQLite
+- `prisma/` – schema e migrazioni PostgreSQL
 
 ## Estendibilità
 

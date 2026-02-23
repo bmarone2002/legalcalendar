@@ -85,6 +85,9 @@ Prisma.NullTypes = {
  * Enums
  */
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -137,6 +140,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
@@ -186,7 +194,7 @@ const config = {
   "datasourceNames": [
     "db"
   ],
-  "activeProvider": "sqlite",
+  "activeProvider": "postgresql",
   "postinstall": false,
   "inlineDatasources": {
     "db": {
@@ -196,8 +204,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// Legal Calendar - Prisma schema\n// SQLite: no native enums, use String\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Event {\n  id                String   @id @default(cuid())\n  title             String\n  description       String?\n  startAt           DateTime\n  endAt             DateTime\n  type              String   @default(\"altro\")\n  tags              String   @default(\"[]\")\n  caseId            String?\n  notes             String?\n  generateSubEvents Boolean  @default(false)\n  ruleTemplateId    String?\n  ruleParams        String?\n  macroType         String? // \"ATTO_GIURIDICO\"\n  actionType        String? // CITAZIONE | RICORSO_OPPOSIZIONE | ...\n  actionMode        String? // COSTITUZIONE | DA_NOTIFICARE\n  inputs            String? // JSON: date e selezioni per regole\n  color             String? // hex colore tag (evento + sottoeventi)\n  createdAt         DateTime @default(now())\n  updatedAt         DateTime @updatedAt\n\n  subEvents SubEvent[]\n\n  @@index([startAt])\n  @@index([endAt])\n}\n\nmodel SubEvent {\n  id            String   @id @default(cuid())\n  parentEventId String\n  parentEvent   Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)\n  title         String\n  kind          String // termine | promemoria | attivita\n  dueAt         DateTime\n  status        String   @default(\"pending\") // pending | done | cancelled\n  priority      Int      @default(0)\n  ruleId        String?\n  ruleParams    String? // JSON\n  explanation   String?\n  createdBy     String   @default(\"automatico\") // manuale | automatico\n  locked        Boolean  @default(false)\n  createdAt     DateTime @default(now())\n  updatedAt     DateTime @updatedAt\n\n  @@index([parentEventId])\n  @@index([dueAt])\n}\n\nmodel Setting {\n  id    String @id\n  value String // JSON\n}\n",
-  "inlineSchemaHash": "38eee56a211f7c823f33f90ec472ba98305ad9c545f2295ee436e54966e0bcde",
+  "inlineSchema": "// Legal Calendar - Prisma schema\n// PostgreSQL su Railway (database gestito)\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Event {\n  id                String   @id @default(cuid())\n  title             String\n  description       String?\n  startAt           DateTime\n  endAt             DateTime\n  type              String   @default(\"altro\")\n  tags              String   @default(\"[]\")\n  caseId            String?\n  notes             String?\n  generateSubEvents Boolean  @default(false)\n  ruleTemplateId    String?\n  ruleParams        String?\n  macroType         String? // \"ATTO_GIURIDICO\"\n  actionType        String? // CITAZIONE | RICORSO_OPPOSIZIONE | ...\n  actionMode        String? // COSTITUZIONE | DA_NOTIFICARE\n  inputs            String? // JSON: date e selezioni per regole\n  color             String? // hex colore tag (evento + sottoeventi)\n  createdAt         DateTime @default(now())\n  updatedAt         DateTime @updatedAt\n\n  subEvents SubEvent[]\n\n  @@index([startAt])\n  @@index([endAt])\n}\n\nmodel SubEvent {\n  id            String   @id @default(cuid())\n  parentEventId String\n  parentEvent   Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)\n  title         String\n  kind          String // termine | promemoria | attivita\n  dueAt         DateTime\n  status        String   @default(\"pending\") // pending | done | cancelled\n  priority      Int      @default(0)\n  ruleId        String?\n  ruleParams    String? // JSON\n  explanation   String?\n  createdBy     String   @default(\"automatico\") // manuale | automatico\n  locked        Boolean  @default(false)\n  createdAt     DateTime @default(now())\n  updatedAt     DateTime @updatedAt\n\n  @@index([parentEventId])\n  @@index([dueAt])\n}\n\nmodel Setting {\n  id    String @id\n  value String // JSON\n}\n",
+  "inlineSchemaHash": "9ca269daa17a25c7d84aabc6af5a5fae1a0f025483b1c3b21d8913ac82391fa4",
   "copyEngine": true
 }
 
