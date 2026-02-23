@@ -31,3 +31,32 @@ Così Railway copia automaticamente la URL dal database all’app e non devi inc
 ---
 
 **Nota:** La variabile va impostata nel **servizio dell’applicazione**, non solo in quello del database. I due servizi hanno variabili separate.
+
+---
+
+## Errore: "The table `public.Event` does not exist"
+
+Significa che il database è connesso ma **le migrazioni non sono state applicate**: le tabelle non esistono ancora.
+
+### 1. Controlla il comando di avvio
+
+Nel **servizio App** su Railway → **Settings** → cerca **Start Command** (o **Deploy**).
+
+- Deve essere: **`npm run start:prod`**
+- Se è `npm start` o vuoto, le migrazioni non partono. Imposta `npm run start:prod`, salva e fai **Redeploy**.
+
+Dopo il deploy, all'avvio l'app esegue `prisma migrate deploy` e crea le tabelle.
+
+### 2. Eseguire le migrazioni una volta da locale (alternativa)
+
+Se vuoi creare le tabelle subito senza aspettare un nuovo deploy:
+
+1. Copia la **`DATABASE_URL`** dal servizio PostgreSQL su Railway (Variables).
+2. Dalla cartella **legal-calendar** nel terminale (PowerShell):
+
+```powershell
+$env:DATABASE_URL="incolla_qui_la_url_completa"
+npx prisma migrate deploy
+```
+
+3. Quando vedi "Applied 1 migration", le tabelle sono state create. Ricarica l'app sul browser e riprova ad aggiungere l'evento.

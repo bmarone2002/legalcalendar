@@ -1,0 +1,9 @@
+# Railway: comandi letti dal repo (non serve impostarli a mano nel dashboard)
+# Al deploy: build → poi start che esegue le migrazioni e avvia Next.js
+
+[build]
+builder = "nixpacks"
+buildCommand = "npm install && npx prisma generate && npm run build"
+
+[deploy]
+startCommand = "npm run start:prod"
