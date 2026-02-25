@@ -28,6 +28,15 @@ npm run dev
 
 Apri [http://localhost:3000](http://localhost:3000).
 
+### Configurazione Railway
+
+- **DATABASE_URL**: nella dashboard Railway del servizio App (Legal Calendar) vai in **Variables** e aggiungi `DATABASE_URL` copiando la connection string dal servizio PostgreSQL (sezione **Variables** o **Connect** del database).
+- **Clerk**:
+  - Crea una nuova applicazione in Clerk per `legal-calendar`.
+  - Copia `Publishable key` in `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` nelle **Variables** dell’app Railway.
+  - Copia `Secret key` in `CLERK_SECRET_KEY`.
+  - Imposta le URL di redirect in Clerk (Sign-in/Sign-up) a `https://<railway-app-url>/sign-in` e `https://<railway-app-url>/sign-up`.
+
 ### Seed (opzionale)
 
 Per avere un evento di esempio con sottoeventi:
@@ -94,6 +103,16 @@ Unit test: `npm run test:calcoli`.
 - `src/types/atto-giuridico.ts` – tipi e enum per ATTO GIURIDICO (actionType, actionMode, inputs)
 - `src/lib/settings.ts` – impostazioni (promemoria, defaultTimeForDeadlines, termini 120/150, ecc.)
 - `prisma/` – schema e migrazioni PostgreSQL
+
+## Multi-tenant e Fase 2 (Organizations)
+
+- **Fase 1 – 1 utente = 1 tenant**
+  - Ogni utente Clerk viene sincronizzato nella tabella `User` (campo `clerkUserId`) alla prima richiesta autenticata (`getOrCreateDbUser`).
+  - Gli eventi (`Event`) hanno il campo `userId` obbligatorio e tutte le query/mutazioni filtrano sempre per `userId`, quindi ogni utente vede solo il proprio calendario.
+- **Preparazione Fase 2 – Organizations**
+  - Il modello `Event` espone anche `orgId` opzionale, pensato per future organizzazioni (studio legale) come tenant principale.
+  - In Fase 2 si possono aggiungere i modelli Prisma `Organization` (mirror di Clerk Organizations, con `clerkOrganizationId`) e `Membership` (user-org-role).
+  - Lato Clerk si userà l’`organizationId` attiva (da `auth()`/`getAuth()`) per risolvere il tenant: se presente, le query useranno `orgId`; altrimenti continueranno a usare `userId` (fallback fase 1).
 
 ## Estendibilità
 

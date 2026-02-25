@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "../db";
 import type { Event, CreateEventInput, UpdateEventInput, EventType } from "@/types";
+import { getOrCreateDbUser } from "@/lib/db/user";
 
 function parseTags(tags: string): string[] {
   try {
@@ -147,8 +148,10 @@ export async function createEvent(data: CreateEventInput): Promise<ActionResult<
   }
   const p = parsed.data;
   try {
+    const dbUser = await getOrCreateDbUser();
     const event = await prisma.event.create({
       data: {
+        userId: dbUser.id,
         title: p.title,
         description: p.description ?? null,
         startAt: p.startAt,
@@ -186,6 +189,15 @@ export async function updateEvent(
   }
   const p = parsed.data;
   try {
+    const dbUser = await getOrCreateDbUser();
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+    if (!existing || existing.userId !== dbUser.id) {
+      return { success: false, error: "Evento non trovato" };
+    }
+
     const event = await prisma.event.update({
       where: { id },
       data: {
@@ -222,6 +234,15 @@ export async function updateEvent(
 
 export async function deleteEvent(id: string): Promise<ActionResult<void>> {
   try {
+    const dbUser = await getOrCreateDbUser();
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+    if (!existing || existing.userId !== dbUser.id) {
+      return { success: false, error: "Evento non trovato" };
+    }
+
     await prisma.event.delete({ where: { id } });
     return { success: true, data: undefined };
   } catch (e) {
@@ -234,12 +255,14 @@ export async function deleteEvent(id: string): Promise<ActionResult<void>> {
 
 export async function getEvents(start: Date, end: Date): Promise<ActionResult<Event[]>> {
   try {
+    const dbUser = await getOrCreateDbUser();
     const rangeStart = new Date(start);
     rangeStart.setUTCDate(rangeStart.getUTCDate() - 2);
     const rangeEnd = new Date(end);
     rangeEnd.setUTCDate(rangeEnd.getUTCDate() + 2);
     const events = await prisma.event.findMany({
       where: {
+        userId: dbUser.id,
         OR: [
           { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
           { subEvents: { some: { dueAt: { gte: rangeStart, lte: rangeEnd } } } },
@@ -259,8 +282,9 @@ export async function getEvents(start: Date, end: Date): Promise<ActionResult<Ev
 
 export async function getEventById(id: string): Promise<ActionResult<Event | null>> {
   try {
-    const event = await prisma.event.findUnique({
-      where: { id },
+    const dbUser = await getOrCreateDbUser();
+    const event = await prisma.event.findFirst({
+      where: { id, userId: dbUser.id },
       include: { subEvents: { orderBy: { dueAt: "asc" } } },
     });
     return { success: true, data: event ? toEvent(event) : null };
