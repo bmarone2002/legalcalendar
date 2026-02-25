@@ -2,7 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
 export async function getOrCreateDbUser() {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     throw new Error("Richiesta non autenticata");
