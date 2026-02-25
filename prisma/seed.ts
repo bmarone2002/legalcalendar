@@ -8,10 +8,20 @@ async function main() {
   const end = new Date(start);
   end.setHours(11, 30, 0, 0);
 
+  const seedUser = await prisma.user.upsert({
+    where: { clerkUserId: "seed-user" },
+    create: {
+      clerkUserId: "seed-user",
+      email: "seed@local.dev",
+    },
+    update: {},
+  });
+
   const e = await prisma.event.upsert({
     where: { id: "seed-event-1" },
     create: {
       id: "seed-event-1",
+      userId: seedUser.id,
       title: "Udienza civile - Causa Rossi",
       description: "Prima udienza",
       startAt: start,
