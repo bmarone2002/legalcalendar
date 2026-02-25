@@ -22,12 +22,11 @@ const updateEventSchema = z.object({
   color: z.string().nullable().optional(),
 });
 
-interface RouteParams {
-  params: { id: string };
-}
-
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  const { id } = params;
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   try {
     const dbUser = await getOrCreateDbUser();
@@ -88,8 +87,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  const { id } = params;
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   try {
     const dbUser = await getOrCreateDbUser();
