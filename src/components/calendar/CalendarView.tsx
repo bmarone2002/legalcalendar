@@ -14,7 +14,7 @@ import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
 import { Button } from "@/components/ui/button";
 
-// Brown & white theme – event type colors (contrasto alto, testo bianco leggibile)
+// Brown & white theme – event type colors (solo per eventi madre; sottoeventi usano rosso/verde)
 const EVENT_TYPE_COLORS: Record<string, string> = {
   udienza: "#5D4037",
   notifica: "#4E342E",
@@ -23,14 +23,14 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
   altro: "#5D4037",
 };
 
-const SUB_EVENT_BORDER = "#8D6E63";
+// Sottoeventi: rosso di default (pending), verde quando completati (done). Eventi madre senza questa logica.
+const SUB_EVENT_COLOR_PENDING = "#C62828";
+const SUB_EVENT_COLOR_DONE = "#2E7D32";
 
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
-  // Colore tag: se impostato, stesso colore per evento madre e tutti i sottoeventi
+  // Evento madre: colore tag o tipo (nessun colore “sottoevento”)
   const tagColor = (e.color != null && e.color !== "") ? e.color : null;
   const mainColor = tagColor ?? (EVENT_TYPE_COLORS[e.type] ?? EVENT_TYPE_COLORS.altro);
-  const subColor = tagColor ?? "#FFF8E7";
-  const subBorder = tagColor ?? SUB_EVENT_BORDER;
   const out: Array<Record<string, unknown>> = [
     {
       id: e.id,
@@ -44,14 +44,16 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
     },
   ];
   (e.subEvents ?? []).forEach((se: SubEvent) => {
+    const isDone = se.status === "done";
+    const subBg = isDone ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
     out.push({
       id: se.id,
       title: se.title,
       start: se.dueAt,
       end: se.dueAt,
       allDay: false,
-      backgroundColor: subColor,
-      borderColor: subBorder,
+      backgroundColor: subBg,
+      borderColor: subBg,
       editable: false,
       extendedProps: {
         isSubEvent: true,
@@ -67,29 +69,20 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
 
 export function CalendarView() {
   const calendarRef = useRef<InstanceType<typeof FullCalendar> | null>(null);
-  const [viewStart, setViewStart] = useState<Date | null>(null);
-  const [viewEnd, setViewEnd] = useState<Date | null>(null);
-  const [events, setEvents] = useState<Array<Record<string, unknown>>>([]);
+  const [currentView, setCurrentView] = useState<string>("dayGridMonth");
+  const [viewTitle, setViewTitle] = useState<string>("");
   const [modalState, setModalState] = useState<
     | { mode: "create"; start?: Date; end?: Date }
     | { mode: "edit"; eventId: string }
     | null
   >(null);
 
-  const fetchEvents = useCallback(async (start: Date, end: Date) => {
-    const result = await getEvents(start, end);
-    if (result.success && result.data) {
-      setEvents(result.data.flatMap(toFullCalendarEvents));
-    }
-    setViewStart(start);
-    setViewEnd(end);
-  }, []);
-
   const handleDatesSet = useCallback(
-    (arg: { start: Date; end: Date }) => {
-      fetchEvents(arg.start, arg.end);
+    (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
+      setCurrentView(arg.view.type);
+      setViewTitle(arg.view.title);
     },
-    [fetchEvents]
+    []
   );
 
   const eventsSource = useCallback(
@@ -98,9 +91,22 @@ export function CalendarView() {
       start.setDate(start.getDate() - 1);
       const end = new Date(info.end);
       end.setDate(end.getDate() + 1);
+      const currentViewType = calendarRef.current?.getApi()?.view?.type ?? "";
       getEvents(start, end).then((result) => {
         if (result.success && result.data) {
-          successCallback(result.data.flatMap(toFullCalendarEvents));
+          let events = result.data.flatMap(toFullCalendarEvents);
+          // In vista Agenda: mostrare solo eventi a partire da oggi (verifica data lato client)
+          const isAgendaList = currentViewType === "list" || currentViewType === "listWeek" || currentViewType === "listDay" || currentViewType === "listMonth" || currentViewType === "listFromToday";
+          if (isAgendaList) {
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            events = events.filter((ev) => {
+              const evStart = ev.start as Date | string;
+              const d = typeof evStart === "string" ? new Date(evStart) : new Date(evStart.getTime());
+              return d >= todayStart;
+            });
+          }
+          successCallback(events);
         } else {
           successCallback([]);
         }
@@ -141,6 +147,30 @@ export function CalendarView() {
   const handleModalClose = useCallback(() => {
     setModalState(null);
     calendarRef.current?.getApi()?.refetchEvents();
+  }, []);
+
+  const handleChangeView = useCallback((view: string) => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    api.changeView(view);
+  }, []);
+
+  const handleToday = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    api.today();
+  }, []);
+
+  const handlePrev = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    api.prev();
+  }, []);
+
+  const handleNext = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    api.next();
   }, []);
 
   const renderEventContent = useCallback((arg: EventContentArg) => {
@@ -195,16 +225,75 @@ export function CalendarView() {
 
   return (
     <div className="flex h-full flex-col gap-2 sm:gap-3 calendar-theme">
-      <div className="flex items-center justify-end">
-        <div className="rounded-lg border-2 border-[var(--calendar-brown)] bg-[var(--calendar-brown-pale)] px-3 py-1.5">
-          <Button
-            variant="ghost"
-            size="default"
-            className="h-11 px-5 text-base font-medium text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown)]/10 hover:text-[var(--calendar-brown)]"
-            onClick={() => setModalState({ mode: "create" })}
-          >
-            Aggiungi evento
-          </Button>
+      <div className="flex flex-col gap-2 sm:gap-3 mb-1">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              className="h-9 rounded-md bg-[var(--calendar-brown)] px-4 text-sm font-medium text-white hover:bg-[var(--calendar-brown-light)]"
+              onClick={() => setModalState({ mode: "create" })}
+            >
+              Nuovo evento
+            </Button>
+          </div>
+          <div className="flex items-center gap-1 rounded-md border border-zinc-200 bg-white p-0.5">
+            {[
+              { id: "timeGridDay", label: "Giorno" },
+              { id: "timeGridWeek", label: "Settimana" },
+              { id: "dayGridMonth", label: "Mese" },
+              { id: "listFromToday", label: "Agenda" },
+            ].map((view) => (
+              <Button
+                key={view.id}
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={`h-8 px-3 text-xs sm:text-sm rounded-md ${
+                  currentView === view.id
+                    ? "bg-[var(--calendar-brown)] text-white shadow-sm"
+                    : "text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown-pale)]"
+                }`}
+                onClick={() => handleChangeView(view.id)}
+              >
+                {view.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 border-zinc-300 px-3 text-xs sm:text-sm text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown-pale)]"
+              onClick={handleToday}
+            >
+              Oggi
+            </Button>
+            <div className="flex overflow-hidden rounded-md border border-zinc-300 bg-white">
+              <button
+                type="button"
+                className="h-8 w-8 text-sm text-zinc-700 hover:bg-zinc-100"
+                onClick={handlePrev}
+                aria-label="Mese precedente"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="h-8 w-8 text-sm text-zinc-700 hover:bg-zinc-100 border-l border-zinc-200"
+                onClick={handleNext}
+                aria-label="Mese successivo"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+          <div className="text-sm sm:text-base font-semibold text-[var(--calendar-brown)]">
+            {viewTitle}
+          </div>
         </div>
       </div>
       <div className="flex-1 w-full min-h-0 calendar-month-container" style={{ minHeight: 'min(600px, calc(100vh - 10rem))' }}>
@@ -212,11 +301,7 @@ export function CalendarView() {
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,listFromToday",
-          }}
+          headerToolbar={false}
           buttonText={{
             today: "Oggi",
             month: "Mese",

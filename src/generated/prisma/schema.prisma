@@ -11,6 +11,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events Event[]
+}
+
 model Event {
   id                String   @id @default(cuid())
   title             String
@@ -24,18 +34,25 @@ model Event {
   generateSubEvents Boolean  @default(false)
   ruleTemplateId    String?
   ruleParams        String?
-  macroType         String?  // "ATTO_GIURIDICO"
-  actionType        String?  // CITAZIONE | RICORSO_OPPOSIZIONE | ...
-  actionMode        String?  // COSTITUZIONE | DA_NOTIFICARE
-  inputs            String?  // JSON: date e selezioni per regole
-  color             String?  // hex colore tag (evento + sottoeventi)
+  macroType         String? // "ATTO_GIURIDICO"
+  actionType        String? // CITAZIONE | RICORSO_OPPOSIZIONE | ...
+  actionMode        String? // COSTITUZIONE | DA_NOTIFICARE
+  inputs            String? // JSON: date e selezioni per regole
+  color             String? // hex colore tag (evento + sottoeventi)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  // Multi-tenant: fase 1 per utente, fase 2 per organizzazione
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId  String? // Preparazione fase 2: tenant = organization
 
   subEvents SubEvent[]
 
   @@index([startAt])
   @@index([endAt])
+  @@index([userId, startAt])
+  @@index([orgId, startAt])
 }
 
 model SubEvent {
@@ -43,12 +60,12 @@ model SubEvent {
   parentEventId String
   parentEvent   Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
   title         String
-  kind          String   // termine | promemoria | attivita
+  kind          String // termine | promemoria | attivita
   dueAt         DateTime
   status        String   @default("pending") // pending | done | cancelled
   priority      Int      @default(0)
   ruleId        String?
-  ruleParams    String?  // JSON
+  ruleParams    String? // JSON
   explanation   String?
   createdBy     String   @default("automatico") // manuale | automatico
   locked        Boolean  @default(false)

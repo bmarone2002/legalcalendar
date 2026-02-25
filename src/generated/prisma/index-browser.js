@@ -122,6 +122,14 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  clerkUserId: 'clerkUserId',
+  email: 'email',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.EventScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -141,7 +149,9 @@ exports.Prisma.EventScalarFieldEnum = {
   inputs: 'inputs',
   color: 'color',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  userId: 'userId',
+  orgId: 'orgId'
 };
 
 exports.Prisma.SubEventScalarFieldEnum = {
@@ -183,6 +193,7 @@ exports.Prisma.NullsOrder = {
 
 
 exports.Prisma.ModelName = {
+  User: 'User',
   Event: 'Event',
   SubEvent: 'SubEvent',
   Setting: 'Setting'

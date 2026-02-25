@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { createEvent, updateEvent, getEventById, deleteEvent } from "@/lib/actions/events";
-import { regenerateSubEvents, getSubEventsPreview } from "@/lib/actions/sub-events";
+import { regenerateSubEvents, getSubEventsPreview, updateSubEvent } from "@/lib/actions/sub-events";
 import type { EventType, SubEvent } from "@/types";
 import { EVENT_TYPES, RULE_TEMPLATES } from "@/types";
 import type { ActionType, ActionMode } from "@/types/atto-giuridico";
@@ -690,17 +690,41 @@ export function EventModal({
                   {(previewSubEvents.length > 0 || subEvents.length > 0) && (
                     <ScrollArea className="h-[280px] rounded-md border p-4">
                       <ul className="space-y-3">
-                        {(mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents.map((p, i) => ({ id: `preview-${i}`, title: p.title, dueAt: p.dueAt, explanation: p.explanation }))).map((s, idx) => (
-                          <li key={"id" in s ? s.id : `preview-${idx}`} className="border-b pb-2">
-                            <div className="font-medium">{s.title}</div>
-                            <div className="text-sm text-zinc-500">
-                              {formatDateTime(s.dueAt)}
-                            </div>
-                            <div className="text-xs text-zinc-500 mt-1">
-                              Calcolo: {(s as { explanation?: string | null }).explanation ?? ""}
-                            </div>
-                          </li>
-                        ))}
+                        {(mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents.map((p, i) => ({ id: `preview-${i}`, title: p.title, dueAt: p.dueAt, explanation: p.explanation }))).map((s, idx) => {
+                          const isSavedSub = mode === "edit" && "id" in s && typeof s.id === "string" && !s.id.startsWith("preview-");
+                          const isDone = isSavedSub && (s as SubEvent).status === "done";
+                          return (
+                            <li key={"id" in s ? s.id : `preview-${idx}`} className="border-b pb-2 flex items-start gap-2">
+                              {isSavedSub && (
+                                <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                                  <Checkbox
+                                    id={`sub-done-${(s as SubEvent).id}`}
+                                    checked={isDone}
+                                    onCheckedChange={async (checked) => {
+                                      const id = (s as SubEvent).id;
+                                      const result = await updateSubEvent(id, { status: checked ? "done" : "pending" });
+                                      if (result.success && result.data) {
+                                        setSubEvents((prev) => prev.map((se) => (se.id === id ? { ...se, status: result.data!.status } : se)));
+                                      }
+                                    }}
+                                  />
+                                  <Label htmlFor={`sub-done-${(s as SubEvent).id}`} className="text-xs text-zinc-600 cursor-pointer">
+                                    Completato
+                                  </Label>
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium">{s.title}</div>
+                                <div className="text-sm text-zinc-500">
+                                  {formatDateTime(s.dueAt)}
+                                </div>
+                                <div className="text-xs text-zinc-500 mt-1">
+                                  Calcolo: {(s as { explanation?: string | null }).explanation ?? ""}
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
                       </ul>
                     </ScrollArea>
                   )}
