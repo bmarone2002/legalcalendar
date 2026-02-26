@@ -9,7 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import itLocale from "@fullcalendar/core/locales/it";
 import type { EventClickArg, DateSelectArg, EventDropArg, EventContentArg } from "@fullcalendar/core";
 import { getEvents, updateEvent } from "@/lib/actions/events";
-import { regenerateSubEvents } from "@/lib/actions/sub-events";
+import { regenerateSubEvents, updateSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
 import { Button } from "@/components/ui/button";
@@ -204,11 +204,43 @@ export function CalendarView() {
 
     if (isSub && isListView) {
       const borderColor = arg.event.borderColor as string | undefined;
+      const status = arg.event.extendedProps.status as string | undefined;
+      const isDone = status === "done";
       return (
         <div
           className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1"
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
+          <button
+            type="button"
+            aria-label={isDone ? "Segna come non fatto" : "Segna come fatto"}
+            className={`h-5 w-9 rounded-full border flex items-center px-0.5 transition-colors ${
+              isDone
+                ? "bg-emerald-500 border-emerald-600"
+                : "bg-red-500 border-red-600"
+            }`}
+            onClick={async (e) => {
+              e.stopPropagation();
+              const id = arg.event.id as string;
+              const nextStatus = isDone ? "pending" : "done";
+              const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" });
+              if (result.success && result.data) {
+                const newStatus = result.data.status;
+                const newBg =
+                  newStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+                arg.event.setExtendedProp("status", newStatus);
+                arg.event.setProp("backgroundColor", newBg);
+                arg.event.setProp("borderColor", newBg);
+              }
+            }}
+          >
+            <span
+              className="h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform"
+              style={{
+                transform: isDone ? "translateX(12px)" : "translateX(0px)",
+              }}
+            />
+          </button>
           <span className="fc-list-event-dot" style={{ borderColor: arg.event.backgroundColor }} />
           <span className="fc-list-event-title flex-1 truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
           {kind && (
@@ -234,12 +266,12 @@ export function CalendarView() {
         </div>
       );
     }
-    // Evento madre in vista Agenda: render esplicito, testo bianco su sfondo colore
+    // Evento madre in vista Agenda: testo scuro per leggibilità
     if (isListView) {
       return (
         <div className="fc-event-main-frame flex items-center gap-2">
           <span className="fc-list-event-dot" style={{ borderColor: arg.event.backgroundColor }} />
-          <span className="fc-list-event-title flex-1 truncate font-medium" style={{ color: "#ffffff", textShadow: "0 0 1px rgba(0,0,0,0.4)" }}>{arg.event.title}</span>
+          <span className="fc-list-event-title flex-1 truncate font-medium" style={{ color: "#171717" }}>{arg.event.title}</span>
         </div>
       );
     }
