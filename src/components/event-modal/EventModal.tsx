@@ -123,21 +123,20 @@ function normalizeDisplayError(err: unknown): string {
 /** Restituisce la prima data valida dagli inputs (per Atto Giuridico) da usare come start/end nel preview. */
 function getPrimaryDateFromInputs(inputs: Record<string, unknown>): Date | null {
   const dateKeys = [
+    "dataNotifica",
     "dataUdienzaComparizione",
+    "dataUdienzaRiferimentoMemorie",
     "dataNotificaCitazione",
     "dataNotificaDecretoIngiuntivo",
     "dataUdienzaOpposizione",
-    "dataNotificaAttoOpposizione",
+    "dataUdienza",
     "dataNotificaAttoImpugnato",
-    "dataProposizioneRicorso",
     "dataNotificaRicorso",
     "dataNotificaSentenza",
     "dataPubblicazioneSentenza",
-    "dataNotificaAttoAppello",
+    "dataNotificaAppello",
     "dataNotificaSentenzaTributaria",
     "dataPubblicazioneSentenzaTributaria",
-    "dataNotificaAppelloTributario",
-    "dataUltimaNotificaRicorsoCassazione",
   ];
   for (const key of dateKeys) {
     const v = inputs[key];
@@ -502,41 +501,6 @@ export function EventModal({
                 </>
               )}
 
-              {/* Colore tag: applicato a evento e sottoeventi in calendario */}
-              <div>
-                <Label>Colore tag</Label>
-                <div className="flex flex-wrap gap-2 mt-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, color: null }))}
-                    className={`h-8 w-8 rounded-full border-2 shrink-0 transition-all ${
-                      form.color === null
-                        ? "border-[var(--calendar-brown)] ring-2 ring-[var(--calendar-brown)] ring-offset-2"
-                        : "border-zinc-300 hover:border-zinc-400 bg-zinc-100"
-                    }`}
-                    title="Nessun tag"
-                  >
-                    <span className="sr-only">Nessun tag</span>
-                  </button>
-                  {EVENT_TAG_COLORS.map((hex) => (
-                    <button
-                      key={hex}
-                      type="button"
-                      onClick={() => setForm((f) => ({ ...f, color: hex }))}
-                      className={`h-8 w-8 rounded-full shrink-0 border-2 transition-all ${
-                        form.color === hex
-                          ? "border-zinc-900 ring-2 ring-[var(--calendar-brown)] ring-offset-2"
-                          : "border-transparent hover:opacity-90"
-                      }`}
-                      style={{ backgroundColor: hex }}
-                      title={hex}
-                    >
-                      <span className="sr-only">Colore {hex}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* 2. Primo menu: Atto Giuridico oppure Evento generico */}
               <div>
                 <Label>Tipo</Label>
@@ -675,6 +639,40 @@ export function EventModal({
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Note o descrizione"
                 />
+              </div>
+              {/* Colore tag: applicato a evento e sottoeventi in calendario */}
+              <div>
+                <Label>Colore tag</Label>
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, color: null }))}
+                    className={`h-8 w-8 rounded-full border-2 shrink-0 transition-all ${
+                      form.color === null
+                        ? "border-[var(--calendar-brown)] ring-2 ring-[var(--calendar-brown)] ring-offset-2"
+                        : "border-zinc-300 hover:border-zinc-400 bg-zinc-100"
+                    }`}
+                    title="Nessun tag"
+                  >
+                    <span className="sr-only">Nessun tag</span>
+                  </button>
+                  {EVENT_TAG_COLORS.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, color: hex }))}
+                      className={`h-8 w-8 rounded-full shrink-0 border-2 transition-all ${
+                        form.color === hex
+                          ? "border-zinc-900 ring-2 ring-[var(--calendar-brown)] ring-offset-2"
+                          : "border-transparent hover:opacity-90"
+                      }`}
+                      style={{ backgroundColor: hex }}
+                      title={hex}
+                    >
+                      <span className="sr-only">Colore {hex}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </TabsContent>
