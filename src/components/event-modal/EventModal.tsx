@@ -364,17 +364,8 @@ export function EventModal({
           setError(normalizeDisplayError(result.error));
           return;
         }
-        if (form.generateSubEvents) {
-          const regen = await regenerateSubEvents(eventId);
-          if (!regen.success) {
-            setError(normalizeDisplayError(regen.error) ?? "Errore rigenerazione sottoeventi.");
-            return;
-          }
-          const subResult = await getEventById(eventId);
-          if (subResult.success && subResult.data?.subEvents) {
-            setSubEvents(subResult.data.subEvents);
-          }
-        }
+        // Per la modifica di un evento esistente NON rigeneriamo più automaticamente i sottoeventi.
+        // La rigenerazione avviene solo quando l'utente clicca esplicitamente su "Rigenera sottoeventi".
       }
       onChanged?.();
       onClose();
