@@ -8,7 +8,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import itLocale from "@fullcalendar/core/locales/it";
 import type { EventClickArg, DateSelectArg, EventDropArg, EventContentArg } from "@fullcalendar/core";
-import { getEvents, updateEvent } from "@/lib/actions/events";
+import { getEvents, getEventsFromToday, updateEvent } from "@/lib/actions/events";
 import { regenerateSubEvents, updateSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
@@ -27,9 +27,114 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
 const SUB_EVENT_COLOR_PENDING = "#C62828";
 const SUB_EVENT_COLOR_DONE = "#2E7D32";
 
+function filterEventsFromToday(events: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  return events.filter((ev) => {
+    const evStart = ev.start as Date | string | undefined;
+    if (!evStart) return false;
+    const d =
+      typeof evStart === "string"
+        ? new Date(evStart)
+        : new Date(evStart.getTime());
+    return d >= todayStart;
+  });
+}
+
+// Modalità mock: usa eventi di esempio lato frontend quando il DB non è disponibile.
+const USE_MOCK_EVENTS = process.env.NEXT_PUBLIC_USE_MOCK_EVENTS === "true";
+
+const MOCK_EVENTS: Array<Record<string, unknown>> = [
+  // Evento madre 1: Udienza con due sottoeventi (uno fatto, uno da fare)
+  {
+    id: "e-1",
+    title: "Udienza Tribunale Roma - Rossi c. Bianchi",
+    start: "2026-02-10T09:30:00",
+    end: "2026-02-10T11:00:00",
+    allDay: false,
+    backgroundColor: "#ffffff",
+    borderColor: EVENT_TYPE_COLORS.udienza,
+    extendedProps: {
+      type: "udienza",
+      tags: ["Civile", "Roma"],
+      isSubEvent: false,
+    },
+  },
+  {
+    id: "se-1-1",
+    title: "Deposito comparsa conclusionale",
+    start: "2026-02-05T12:00:00",
+    end: "2026-02-05T12:00:00",
+    allDay: false,
+    backgroundColor: SUB_EVENT_COLOR_DONE,
+    borderColor: SUB_EVENT_COLOR_DONE,
+    editable: false,
+    extendedProps: {
+      isSubEvent: true,
+      parentEventId: "e-1",
+      parentTitle: "Udienza Tribunale Roma - Rossi c. Bianchi",
+      kind: "Deposito",
+      status: "done",
+    },
+  },
+  {
+    id: "se-1-2",
+    title: "Notifica sentenza a cliente",
+    start: "2026-02-20T10:00:00",
+    end: "2026-02-20T10:00:00",
+    allDay: false,
+    backgroundColor: SUB_EVENT_COLOR_PENDING,
+    borderColor: SUB_EVENT_COLOR_PENDING,
+    editable: false,
+    extendedProps: {
+      isSubEvent: true,
+      parentEventId: "e-1",
+      parentTitle: "Udienza Tribunale Roma - Rossi c. Bianchi",
+      kind: "Notifica",
+      status: "pending",
+    },
+  },
+  // Evento madre 2: Scadenza con un sottoevento
+  {
+    id: "e-2",
+    title: "Termine appello sentenza Milano",
+    start: "2026-03-01T00:00:00",
+    end: "2026-03-01T23:59:59",
+    allDay: true,
+    backgroundColor: "#ffffff",
+    borderColor: EVENT_TYPE_COLORS.scadenza,
+    extendedProps: {
+      type: "scadenza",
+      tags: ["Appello", "Milano"],
+      isSubEvent: false,
+    },
+  },
+  {
+    id: "se-2-1",
+    title: "Promemoria: valutazione strategia appello",
+    start: "2026-02-15T09:00:00",
+    end: "2026-02-15T09:00:00",
+    allDay: false,
+    backgroundColor: SUB_EVENT_COLOR_PENDING,
+    borderColor: SUB_EVENT_COLOR_PENDING,
+    editable: false,
+    extendedProps: {
+      isSubEvent: true,
+      parentEventId: "e-2",
+      parentTitle: "Termine appello sentenza Milano",
+      kind: "Promemoria",
+      status: "pending",
+    },
+  },
+];
+
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
-  const tagColor = e.color && e.color.trim() !== "" ? e.color : null;
+  const rawColor = (e.color ?? "").trim();
+  const normalized = rawColor.toLowerCase();
+  const isWhiteLike =
+    normalized === "#fff" || normalized === "#ffffff" || normalized === "white";
+  const tagColor = rawColor && !isWhiteLike ? rawColor : null;
   const mainBackground = tagColor ?? "#ffffff";
   const mainBorder = tagColor ?? "#E5E5E5";
   const out: Array<Record<string, unknown>> = [
@@ -92,29 +197,53 @@ export function CalendarView() {
       successCallback: (events: Array<Record<string, unknown>>) => void,
       failureCallback: (error: Error) => void
     ) => {
+      const viewType =
+        info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
+
+      if (USE_MOCK_EVENTS) {
+        const base = viewType === "listFromToday" ? filterEventsFromToday(MOCK_EVENTS) : MOCK_EVENTS;
+        successCallback(base);
+        return;
+      }
+
+      // In Agenda usiamo sempre gli eventi "da oggi in avanti" come to-do list
+      if (viewType === "listFromToday") {
+        getEventsFromToday()
+          .then((result) => {
+            if (result.success && result.data) {
+              let events = result.data.flatMap(toFullCalendarEvents);
+              events = filterEventsFromToday(events);
+              successCallback(events);
+            } else {
+              failureCallback(
+                new Error(
+                  !result.success && result.error
+                    ? result.error
+                    : "Errore caricamento eventi"
+                )
+              );
+            }
+          })
+          .catch((err) =>
+            failureCallback(
+              err instanceof Error
+                ? err
+                : new Error("Errore sconosciuto caricamento eventi")
+            )
+          );
+        return;
+      }
+
       const start = new Date(info.start);
       start.setDate(start.getDate() - 1);
       const end = new Date(info.end);
       end.setDate(end.getDate() + 1);
-      const viewType =
-        info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
       getEvents(start, end)
         .then((result) => {
           if (result.success && result.data) {
             let events = result.data.flatMap(toFullCalendarEvents);
-            // In vista Agenda: mostrare solo eventi a partire dal giorno corrente (incluso)
-            if (viewType === "listFromToday") {
-              const todayStart = new Date();
-              todayStart.setHours(0, 0, 0, 0);
-              events = events.filter((ev) => {
-                const evStart = ev.start as Date | string;
-                const d =
-                  typeof evStart === "string"
-                    ? new Date(evStart)
-                    : new Date(evStart.getTime());
-                return d >= todayStart;
-              });
-            }
+            // Mostra solo eventi (madre + sottoeventi) dalla data odierna in avanti, in tutte le viste
+            events = filterEventsFromToday(events);
             successCallback(events);
           } else {
             failureCallback(
@@ -283,52 +412,62 @@ export function CalendarView() {
   return (
     <div className="flex h-full flex-col gap-2 sm:gap-3 calendar-theme">
       <div className="flex flex-col gap-2 sm:gap-3 mb-1">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Prima riga: Nuovo evento + viste + filtro + azioni (stile ribbon) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-2">
           <div className="flex items-center gap-2">
             <Button
               variant="default"
               size="sm"
-              className="h-9 rounded-md bg-[var(--calendar-brown)] px-4 text-sm font-medium text-white hover:bg-[var(--calendar-brown-light)]"
+              className="h-9 rounded-md bg-[#0b5fff] px-4 text-sm font-medium text-white shadow-sm hover:bg-[#0a55e5]"
               onClick={() => setModalState({ mode: "create" })}
             >
-              Nuovo evento
+              <span className="mr-1">Nuovo evento</span>
+              <span className="text-xs">▾</span>
             </Button>
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-zinc-200 bg-white p-0.5">
-            {[
-              { id: "timeGridDay", label: "Giorno" },
-              { id: "timeGridWeek", label: "Settimana" },
-              { id: "dayGridMonth", label: "Mese" },
-              { id: "listFromToday", label: "Agenda" },
-            ].map((view) => (
-              <Button
-                key={view.id}
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={`h-8 px-3 text-xs sm:text-sm rounded-md ${
-                  currentView === view.id
-                    ? "bg-[var(--calendar-brown)] text-white shadow-sm"
-                    : "text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown-pale)]"
-                }`}
-                onClick={() => handleChangeView(view.id)}
-              >
-                {view.label}
-              </Button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2 justify-end">
+            <div className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white p-0.5 shadow-sm">
+              {[
+                { id: "timeGridDay", label: "Giorno" },
+                { id: "timeGridWeek", label: "Settimana" },
+                { id: "dayGridMonth", label: "Mese" },
+                { id: "listFromToday", label: "Agenda" },
+              ].map((view) => (
+                <Button
+                  key={view.id}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-3 text-xs sm:text-sm rounded-md border ${
+                    currentView === view.id
+                      ? "border-[#0b5fff] bg-[#e7f1ff] text-[#0b5fff]"
+                      : "border-transparent text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                  onClick={() => handleChangeView(view.id)}
+                >
+                  {view.label}
+                </Button>
+              ))}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 text-xs sm:text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              Condividi
+            </Button>
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 border-zinc-300 px-3 text-xs sm:text-sm text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown-pale)]"
+              className="inline-flex items-center justify-center rounded-md border border-zinc-300 bg-white px-3 text-xs sm:text-sm font-normal text-zinc-700 h-8 hover:bg-zinc-100"
               onClick={handleToday}
             >
               Oggi
-            </Button>
+            </button>
             <div className="flex overflow-hidden rounded-md border border-zinc-300 bg-white">
               <button
                 type="button"
