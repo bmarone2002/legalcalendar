@@ -86,31 +86,51 @@ export function CalendarView() {
   );
 
   const eventsSource = useCallback(
-    (info: { start: Date; end: Date }, successCallback: (events: Array<Record<string, unknown>>) => void) => {
+    (
+      info: { start: Date; end: Date },
+      successCallback: (events: Array<Record<string, unknown>>) => void,
+      failureCallback: (error: unknown) => void
+    ) => {
       const start = new Date(info.start);
       start.setDate(start.getDate() - 1);
       const end = new Date(info.end);
       end.setDate(end.getDate() + 1);
       const currentViewType = calendarRef.current?.getApi()?.view?.type ?? "";
-      getEvents(start, end).then((result) => {
-        if (result.success && result.data) {
-          let events = result.data.flatMap(toFullCalendarEvents);
-          // In vista Agenda: mostrare solo eventi a partire da oggi (verifica data lato client)
-          const isAgendaList = currentViewType === "list" || currentViewType === "listWeek" || currentViewType === "listDay" || currentViewType === "listMonth" || currentViewType === "listFromToday";
-          if (isAgendaList) {
-            const todayStart = new Date();
-            todayStart.setHours(0, 0, 0, 0);
-            events = events.filter((ev) => {
-              const evStart = ev.start as Date | string;
-              const d = typeof evStart === "string" ? new Date(evStart) : new Date(evStart.getTime());
-              return d >= todayStart;
-            });
+      getEvents(start, end)
+        .then((result) => {
+          if (result.success && result.data) {
+            let events = result.data.flatMap(toFullCalendarEvents);
+            // In vista Agenda: mostrare solo eventi a partire da oggi (verifica data lato client)
+            const isAgendaList =
+              currentViewType === "list" ||
+              currentViewType === "listWeek" ||
+              currentViewType === "listDay" ||
+              currentViewType === "listMonth" ||
+              currentViewType === "listFromToday";
+            if (isAgendaList) {
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+              events = events.filter((ev) => {
+                const evStart = ev.start as Date | string;
+                const d =
+                  typeof evStart === "string"
+                    ? new Date(evStart)
+                    : new Date(evStart.getTime());
+                return d >= todayStart;
+              });
+            }
+            successCallback(events);
+          } else {
+            failureCallback(
+              new Error(
+                !result.success && result.error
+                  ? result.error
+                  : "Errore caricamento eventi"
+              )
+            );
           }
-          successCallback(events);
-        } else {
-          successCallback([]);
-        }
-      }).catch(() => successCallback([]));
+        })
+        .catch((err) => failureCallback(err));
     },
     []
   );
