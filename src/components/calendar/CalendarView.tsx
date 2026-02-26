@@ -277,7 +277,13 @@ export function CalendarView() {
   }, []);
 
   const handleModalChanged = useCallback(() => {
-    calendarRef.current?.getApi()?.refetchEvents();
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    const viewType = api.view.type;
+    // In Agenda non forziamo il refetch immediato per evitare che gli eventi spariscano
+    if (viewType !== "listFromToday") {
+      api.refetchEvents();
+    }
   }, []);
 
   const handleChangeView = useCallback((view: string) => {
