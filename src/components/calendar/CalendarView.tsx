@@ -287,6 +287,12 @@ export function CalendarView() {
     }
   }, []);
 
+  const handleModalDeleted = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    api.refetchEvents();
+  }, []);
+
   const handleChangeView = useCallback((view: string) => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
@@ -573,6 +579,7 @@ export function CalendarView() {
           eventId={modalState.mode === "edit" ? modalState.eventId : undefined}
           onClose={handleModalClose}
           onChanged={handleModalChanged}
+          onDeleted={handleModalDeleted}
           onDeleteMock={
             USE_MOCK_EVENTS && modalState.mode === "edit"
               ? () => {

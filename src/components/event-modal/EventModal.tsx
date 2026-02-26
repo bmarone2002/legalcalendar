@@ -40,6 +40,8 @@ interface EventModalProps {
   onChanged?: () => void;
   /** Solo in modalità mock: callback per rimuovere l'evento demo lato client senza chiamare il backend */
   onDeleteMock?: () => void;
+  /** Chiamato solo dopo eliminazione andata a buon fine, per forzare un refresh del calendario */
+  onDeleted?: () => void;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -160,6 +162,7 @@ export function EventModal({
   onClose,
   onChanged,
   onDeleteMock,
+  onDeleted,
 }: EventModalProps) {
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
   const [form, setForm] = useState<EventFormState>(() => defaultEvent(initialStart, initialEnd));
@@ -435,6 +438,7 @@ export function EventModal({
         onDeleteMock();
         setShowDeleteConfirm(false);
         onChanged?.();
+        onDeleted?.();
         onClose();
         return;
       }
@@ -442,6 +446,7 @@ export function EventModal({
       if (result.success) {
         setShowDeleteConfirm(false);
         onChanged?.();
+        onDeleted?.();
         onClose();
       } else {
         setError(normalizeDisplayError(result.error) ?? "Errore durante l'eliminazione");
