@@ -280,31 +280,6 @@ export async function getEvents(start: Date, end: Date): Promise<ActionResult<Ev
   }
 }
 
-export async function getEventsFromToday(): Promise<ActionResult<Event[]>> {
-  try {
-    const dbUser = await getOrCreateDbUser();
-    const todayStart = new Date();
-    todayStart.setUTCHours(0, 0, 0, 0);
-    const events = await prisma.event.findMany({
-      where: {
-        userId: dbUser.id,
-        OR: [
-          { startAt: { gte: todayStart } },
-          { subEvents: { some: { dueAt: { gte: todayStart } } } },
-        ],
-      },
-      include: { subEvents: { orderBy: { dueAt: "asc" } } },
-      orderBy: { startAt: "asc" },
-    });
-    return { success: true, data: events.map(toEvent) };
-  } catch (e) {
-    return {
-      success: false,
-      error: e instanceof Error ? e.message : "Errore caricamento eventi da oggi",
-    };
-  }
-}
-
 export async function getEventById(id: string): Promise<ActionResult<Event | null>> {
   try {
     const dbUser = await getOrCreateDbUser();

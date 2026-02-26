@@ -8,7 +8,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import itLocale from "@fullcalendar/core/locales/it";
 import type { EventClickArg, DateSelectArg, EventDropArg, EventContentArg } from "@fullcalendar/core";
-import { getEvents, getEventsFromToday, updateEvent } from "@/lib/actions/events";
+import { getEvents, updateEvent } from "@/lib/actions/events";
 import { regenerateSubEvents, updateSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
@@ -201,36 +201,11 @@ export function CalendarView() {
         info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
 
       if (USE_MOCK_EVENTS) {
-        const base = viewType === "listFromToday" ? filterEventsFromToday(MOCK_EVENTS) : MOCK_EVENTS;
+        const base =
+          viewType === "listFromToday"
+            ? filterEventsFromToday(MOCK_EVENTS)
+            : MOCK_EVENTS;
         successCallback(base);
-        return;
-      }
-
-      // In Agenda usiamo sempre gli eventi "da oggi in avanti" come to-do list
-      if (viewType === "listFromToday") {
-        getEventsFromToday()
-          .then((result) => {
-            if (result.success && result.data) {
-              let events = result.data.flatMap(toFullCalendarEvents);
-              events = filterEventsFromToday(events);
-              successCallback(events);
-            } else {
-              failureCallback(
-                new Error(
-                  !result.success && result.error
-                    ? result.error
-                    : "Errore caricamento eventi"
-                )
-              );
-            }
-          })
-          .catch((err) =>
-            failureCallback(
-              err instanceof Error
-                ? err
-                : new Error("Errore sconosciuto caricamento eventi")
-            )
-          );
         return;
       }
 
@@ -242,8 +217,10 @@ export function CalendarView() {
         .then((result) => {
           if (result.success && result.data) {
             let events = result.data.flatMap(toFullCalendarEvents);
-            // Mostra solo eventi (madre + sottoeventi) dalla data odierna in avanti, in tutte le viste
-            events = filterEventsFromToday(events);
+            // In Agenda: mostrare solo eventi a partire dal giorno corrente (incluso)
+            if (viewType === "listFromToday") {
+              events = filterEventsFromToday(events);
+            }
             successCallback(events);
           } else {
             failureCallback(
