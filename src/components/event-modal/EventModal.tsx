@@ -34,6 +34,7 @@ interface EventModalProps {
   initialStart?: Date;
   initialEnd?: Date;
   onClose: () => void;
+  onChanged?: () => void;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -152,6 +153,7 @@ export function EventModal({
   initialStart,
   initialEnd,
   onClose,
+  onChanged,
 }: EventModalProps) {
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
   const [form, setForm] = useState<EventFormState>(() => defaultEvent(initialStart, initialEnd));
@@ -374,6 +376,7 @@ export function EventModal({
           }
         }
       }
+      onChanged?.();
       onClose();
     } finally {
       setSaving(false);
@@ -433,6 +436,7 @@ export function EventModal({
       const result = await deleteEvent(eventId);
       if (result.success) {
         setShowDeleteConfirm(false);
+        onChanged?.();
         onClose();
       } else {
         setError(normalizeDisplayError(result.error) ?? "Errore durante l'eliminazione");

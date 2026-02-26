@@ -166,6 +166,9 @@ export function CalendarView() {
 
   const handleModalClose = useCallback(() => {
     setModalState(null);
+  }, []);
+
+  const handleModalChanged = useCallback(() => {
     calendarRef.current?.getApi()?.refetchEvents();
   }, []);
 
@@ -387,6 +390,7 @@ export function CalendarView() {
           initialEnd={modalState.mode === "create" ? modalState.end : undefined}
           eventId={modalState.mode === "edit" ? modalState.eventId : undefined}
           onClose={handleModalClose}
+          onChanged={handleModalChanged}
         />
       )}
     </div>
