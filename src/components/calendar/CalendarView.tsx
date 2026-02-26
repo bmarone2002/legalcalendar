@@ -287,10 +287,17 @@ export function CalendarView() {
     }
   }, []);
 
-  const handleModalDeleted = useCallback(() => {
+  const handleModalDeleted = useCallback((deletedId: string) => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
-    api.refetchEvents();
+    const events = api.getEvents();
+    events.forEach((ev) => {
+      const isSub = ev.extendedProps.isSubEvent as boolean | undefined;
+      const parentId = ev.extendedProps.parentEventId as string | undefined;
+      if (ev.id === deletedId || (isSub && parentId === deletedId)) {
+        ev.remove();
+      }
+    });
   }, []);
 
   const handleChangeView = useCallback((view: string) => {

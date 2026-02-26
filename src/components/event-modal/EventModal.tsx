@@ -40,8 +40,8 @@ interface EventModalProps {
   onChanged?: () => void;
   /** Solo in modalità mock: callback per rimuovere l'evento demo lato client senza chiamare il backend */
   onDeleteMock?: () => void;
-  /** Chiamato solo dopo eliminazione andata a buon fine, per forzare un refresh del calendario */
-  onDeleted?: () => void;
+  /** Chiamato solo dopo eliminazione andata a buon fine, con l'id dell'evento eliminato */
+  onDeleted?: (id: string) => void;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -438,7 +438,7 @@ export function EventModal({
         onDeleteMock();
         setShowDeleteConfirm(false);
         onChanged?.();
-        onDeleted?.();
+        onDeleted?.(eventId);
         onClose();
         return;
       }
@@ -446,7 +446,7 @@ export function EventModal({
       if (result.success) {
         setShowDeleteConfirm(false);
         onChanged?.();
-        onDeleted?.();
+        onDeleted?.(eventId);
         onClose();
       } else {
         setError(normalizeDisplayError(result.error) ?? "Errore durante l'eliminazione");
