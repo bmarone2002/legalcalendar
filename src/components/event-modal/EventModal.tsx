@@ -28,6 +28,9 @@ import { formatDateTime } from "@/lib/utils";
 
 type ModalMode = "create" | "edit";
 
+// Modalità mock: stessa variabile usata nel calendario per eventi di esempio
+const USE_MOCK_EVENTS = process.env.NEXT_PUBLIC_USE_MOCK_EVENTS === "true";
+
 interface EventModalProps {
   mode: ModalMode;
   eventId?: string;
@@ -35,6 +38,8 @@ interface EventModalProps {
   initialEnd?: Date;
   onClose: () => void;
   onChanged?: () => void;
+  /** Solo in modalità mock: callback per rimuovere l'evento demo lato client senza chiamare il backend */
+  onDeleteMock?: () => void;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -154,6 +159,7 @@ export function EventModal({
   initialEnd,
   onClose,
   onChanged,
+  onDeleteMock,
 }: EventModalProps) {
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
   const [form, setForm] = useState<EventFormState>(() => defaultEvent(initialStart, initialEnd));
@@ -194,6 +200,7 @@ export function EventModal({
   }, []);
 
   useEffect(() => {
+    if (USE_MOCK_EVENTS) return;
     if (mode === "edit" && eventId) loadEvent(eventId);
   }, [mode, eventId, loadEvent]);
 
@@ -424,6 +431,13 @@ export function EventModal({
     setSaving(true);
     setError(null);
     try {
+      if (USE_MOCK_EVENTS && onDeleteMock) {
+        onDeleteMock();
+        setShowDeleteConfirm(false);
+        onChanged?.();
+        onClose();
+        return;
+      }
       const result = await deleteEvent(eventId);
       if (result.success) {
         setShowDeleteConfirm(false);

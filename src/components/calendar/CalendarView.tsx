@@ -182,6 +182,7 @@ export function CalendarView() {
     | { mode: "edit"; eventId: string }
     | null
   >(null);
+  const [mockEvents, setMockEvents] = useState<Array<Record<string, unknown>>>(MOCK_EVENTS);
 
   const handleDatesSet = useCallback(
     (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
@@ -203,8 +204,8 @@ export function CalendarView() {
       if (USE_MOCK_EVENTS) {
         const base =
           viewType === "listFromToday"
-            ? filterEventsFromToday(MOCK_EVENTS)
-            : MOCK_EVENTS;
+            ? filterEventsFromToday(mockEvents)
+            : mockEvents;
         successCallback(base);
         return;
       }
@@ -240,7 +241,7 @@ export function CalendarView() {
           )
         );
     },
-    []
+    [mockEvents]
   );
 
   const handleSelect = useCallback((arg: DateSelectArg) => {
@@ -337,6 +338,31 @@ export function CalendarView() {
               e.stopPropagation();
               const id = arg.event.id as string;
               const nextStatus = isDone ? "pending" : "done";
+              if (USE_MOCK_EVENTS) {
+                const newBg =
+                  nextStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+                arg.event.setExtendedProp("status", nextStatus);
+                arg.event.setProp("backgroundColor", newBg);
+                arg.event.setProp("borderColor", newBg);
+                setMockEvents((prev) =>
+                  prev.map((ev) => {
+                    if (ev.id === id) {
+                      const extendedProps = {
+                        ...(ev.extendedProps as Record<string, unknown> | undefined),
+                        status: nextStatus,
+                      };
+                      return {
+                        ...ev,
+                        backgroundColor: newBg,
+                        borderColor: newBg,
+                        extendedProps,
+                      };
+                    }
+                    return ev;
+                  })
+                );
+                return;
+              }
               const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" });
               if (result.success && result.data) {
                 const newStatus = result.data.status;
@@ -547,6 +573,21 @@ export function CalendarView() {
           eventId={modalState.mode === "edit" ? modalState.eventId : undefined}
           onClose={handleModalClose}
           onChanged={handleModalChanged}
+          onDeleteMock={
+            USE_MOCK_EVENTS && modalState.mode === "edit"
+              ? () => {
+                  const id = modalState.eventId;
+                  setMockEvents((prev) =>
+                    prev.filter((ev) => {
+                      const parentId =
+                        (ev.extendedProps as { parentEventId?: string } | undefined)
+                          ?.parentEventId;
+                      return ev.id !== id && parentId !== id;
+                    })
+                  );
+                }
+              : undefined
+          }
         />
       )}
     </div>
