@@ -89,7 +89,7 @@ export function CalendarView() {
     (
       info: { start: Date; end: Date },
       successCallback: (events: Array<Record<string, unknown>>) => void,
-      failureCallback: (error: unknown) => void
+      failureCallback: (error: Error) => void
     ) => {
       const start = new Date(info.start);
       start.setDate(start.getDate() - 1);
@@ -130,7 +130,7 @@ export function CalendarView() {
             );
           }
         })
-        .catch((err) => failureCallback(err));
+        .catch((err) => failureCallback(err instanceof Error ? err : new Error("Errore sconosciuto caricamento eventi")));
     },
     []
   );
