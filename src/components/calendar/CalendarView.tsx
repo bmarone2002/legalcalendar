@@ -28,9 +28,10 @@ const SUB_EVENT_COLOR_PENDING = "#C62828";
 const SUB_EVENT_COLOR_DONE = "#2E7D32";
 
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
-  // Evento madre: colore tag o tipo (nessun colore “sottoevento”)
-  const tagColor = (e.color != null && e.color !== "") ? e.color : null;
-  const mainColor = tagColor ?? (EVENT_TYPE_COLORS[e.type] ?? EVENT_TYPE_COLORS.altro);
+  // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
+  const tagColor = e.color && e.color.trim() !== "" ? e.color : null;
+  const mainBackground = tagColor ?? "#ffffff";
+  const mainBorder = tagColor ?? "#E5E5E5";
   const out: Array<Record<string, unknown>> = [
     {
       id: e.id,
@@ -38,8 +39,8 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       start: e.startAt,
       end: e.endAt,
       allDay: false,
-      backgroundColor: mainColor,
-      borderColor: mainColor,
+      backgroundColor: mainBackground,
+      borderColor: mainBorder,
       extendedProps: { type: e.type, tags: e.tags, isSubEvent: false },
     },
   ];
@@ -87,7 +88,7 @@ export function CalendarView() {
 
   const eventsSource = useCallback(
     (
-      info: { start: Date; end: Date },
+      info: { start: Date; end: Date; view?: { type: string } },
       successCallback: (events: Array<Record<string, unknown>>) => void,
       failureCallback: (error: Error) => void
     ) => {
@@ -95,19 +96,14 @@ export function CalendarView() {
       start.setDate(start.getDate() - 1);
       const end = new Date(info.end);
       end.setDate(end.getDate() + 1);
-      const currentViewType = calendarRef.current?.getApi()?.view?.type ?? "";
+      const viewType =
+        info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
       getEvents(start, end)
         .then((result) => {
           if (result.success && result.data) {
             let events = result.data.flatMap(toFullCalendarEvents);
-            // In vista Agenda: mostrare solo eventi a partire da oggi (verifica data lato client)
-            const isAgendaList =
-              currentViewType === "list" ||
-              currentViewType === "listWeek" ||
-              currentViewType === "listDay" ||
-              currentViewType === "listMonth" ||
-              currentViewType === "listFromToday";
-            if (isAgendaList) {
+            // In vista Agenda: mostrare solo eventi a partire dal giorno corrente (incluso)
+            if (viewType === "listFromToday") {
               const todayStart = new Date();
               todayStart.setHours(0, 0, 0, 0);
               events = events.filter((ev) => {
@@ -130,7 +126,13 @@ export function CalendarView() {
             );
           }
         })
-        .catch((err) => failureCallback(err instanceof Error ? err : new Error("Errore sconosciuto caricamento eventi")));
+        .catch((err) =>
+          failureCallback(
+            err instanceof Error
+              ? err
+              : new Error("Errore sconosciuto caricamento eventi")
+          )
+        );
     },
     []
   );

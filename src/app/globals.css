@@ -100,12 +100,12 @@ body {
 .calendar-theme .fc-daygrid-event-harness { overflow: hidden; }
 .calendar-theme .fc-daygrid-day-events { overflow: hidden; }
 .calendar-theme .fc-daygrid-day-frame { overflow: hidden; }
-/* Eventi madre: testo bianco leggibile su sfondo colore (mese, settimana, agenda) */
+/* Eventi madre: testo scuro su sfondo chiaro (mese, settimana, agenda) */
 .calendar-theme .fc-event.fc-event-madre .fc-event-title,
 .calendar-theme .fc-event.fc-event-madre .fc-event-time,
-.calendar-theme .fc-event.fc-event-madre .fc-event-main * { color: #fff !important; text-shadow: 0 0 1px rgba(0,0,0,0.35); }
-.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-title { font-weight: 600; color: #fff !important; text-shadow: 0 0 1px rgba(0,0,0,0.3); }
-.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-time { color: rgba(255,255,255,0.95) !important; }
+.calendar-theme .fc-event.fc-event-madre .fc-event-main * { color: #171717 !important; text-shadow: none; }
+.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-title { font-weight: 600; color: #171717 !important; text-shadow: none; }
+.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-time { color: #171717 !important; }
 /* Sottoeventi: cornice (bordo sinistro) colorata come il tag dell'evento madre, testo scuro */
 .calendar-theme .fc-event.fc-event-sub { border-left-width: 4px; border-left-style: solid; }
 .calendar-theme .fc-event.fc-event-sub .fc-event-main * { color: #171717 !important; }
