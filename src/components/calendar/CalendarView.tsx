@@ -14,16 +14,7 @@ import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
 import { Button } from "@/components/ui/button";
 
-// Brown & white theme – event type colors (solo per eventi madre; sottoeventi usano rosso/verde)
-const EVENT_TYPE_COLORS: Record<string, string> = {
-  udienza: "#5D4037",
-  notifica: "#4E342E",
-  deposito: "#3E2723",
-  scadenza: "#4E342E",
-  altro: "#5D4037",
-};
-
-// Sottoeventi: rosso di default (pending), verde quando completati (done). Eventi madre senza questa logica.
+// Sottoeventi: rosso (pending), verde (done).
 const SUB_EVENT_COLOR_PENDING = "#C62828";
 const SUB_EVENT_COLOR_DONE = "#2E7D32";
 
@@ -40,93 +31,6 @@ function filterEventsFromToday(events: Array<Record<string, unknown>>): Array<Re
     return d >= todayStart;
   });
 }
-
-// Modalità mock: usa eventi di esempio lato frontend quando il DB non è disponibile.
-const USE_MOCK_EVENTS = process.env.NEXT_PUBLIC_USE_MOCK_EVENTS === "true";
-
-const MOCK_EVENTS: Array<Record<string, unknown>> = [
-  // Evento madre 1: Udienza con due sottoeventi (uno fatto, uno da fare)
-  {
-    id: "e-1",
-    title: "Udienza Tribunale Roma - Rossi c. Bianchi",
-    start: "2026-02-10T09:30:00",
-    end: "2026-02-10T11:00:00",
-    allDay: false,
-    backgroundColor: "#ffffff",
-    borderColor: EVENT_TYPE_COLORS.udienza,
-    extendedProps: {
-      type: "udienza",
-      tags: ["Civile", "Roma"],
-      isSubEvent: false,
-    },
-  },
-  {
-    id: "se-1-1",
-    title: "Deposito comparsa conclusionale",
-    start: "2026-02-05T12:00:00",
-    end: "2026-02-05T12:00:00",
-    allDay: false,
-    backgroundColor: SUB_EVENT_COLOR_DONE,
-    borderColor: SUB_EVENT_COLOR_DONE,
-    editable: false,
-    extendedProps: {
-      isSubEvent: true,
-      parentEventId: "e-1",
-      parentTitle: "Udienza Tribunale Roma - Rossi c. Bianchi",
-      kind: "Deposito",
-      status: "done",
-    },
-  },
-  {
-    id: "se-1-2",
-    title: "Notifica sentenza a cliente",
-    start: "2026-02-20T10:00:00",
-    end: "2026-02-20T10:00:00",
-    allDay: false,
-    backgroundColor: SUB_EVENT_COLOR_PENDING,
-    borderColor: SUB_EVENT_COLOR_PENDING,
-    editable: false,
-    extendedProps: {
-      isSubEvent: true,
-      parentEventId: "e-1",
-      parentTitle: "Udienza Tribunale Roma - Rossi c. Bianchi",
-      kind: "Notifica",
-      status: "pending",
-    },
-  },
-  // Evento madre 2: Scadenza con un sottoevento
-  {
-    id: "e-2",
-    title: "Termine appello sentenza Milano",
-    start: "2026-03-01T00:00:00",
-    end: "2026-03-01T23:59:59",
-    allDay: true,
-    backgroundColor: "#ffffff",
-    borderColor: EVENT_TYPE_COLORS.scadenza,
-    extendedProps: {
-      type: "scadenza",
-      tags: ["Appello", "Milano"],
-      isSubEvent: false,
-    },
-  },
-  {
-    id: "se-2-1",
-    title: "Promemoria: valutazione strategia appello",
-    start: "2026-02-15T09:00:00",
-    end: "2026-02-15T09:00:00",
-    allDay: false,
-    backgroundColor: SUB_EVENT_COLOR_PENDING,
-    borderColor: SUB_EVENT_COLOR_PENDING,
-    editable: false,
-    extendedProps: {
-      isSubEvent: true,
-      parentEventId: "e-2",
-      parentTitle: "Termine appello sentenza Milano",
-      kind: "Promemoria",
-      status: "pending",
-    },
-  },
-];
 
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
@@ -182,8 +86,6 @@ export function CalendarView() {
     | { mode: "edit"; eventId: string }
     | null
   >(null);
-  const [mockEvents, setMockEvents] = useState<Array<Record<string, unknown>>>(MOCK_EVENTS);
-
   const handleDatesSet = useCallback(
     (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
       setCurrentView(arg.view.type);
@@ -200,15 +102,6 @@ export function CalendarView() {
     ) => {
       const viewType =
         info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
-
-      if (USE_MOCK_EVENTS) {
-        const base =
-          viewType === "listFromToday"
-            ? filterEventsFromToday(mockEvents)
-            : mockEvents;
-        successCallback(base);
-        return;
-      }
 
       const start = new Date(info.start);
       start.setDate(start.getDate() - 1);
@@ -241,7 +134,7 @@ export function CalendarView() {
           )
         );
     },
-    [mockEvents]
+    []
   );
 
   const handleSelect = useCallback((arg: DateSelectArg) => {
@@ -351,31 +244,6 @@ export function CalendarView() {
               e.stopPropagation();
               const id = arg.event.id as string;
               const nextStatus = isDone ? "pending" : "done";
-              if (USE_MOCK_EVENTS) {
-                const newBg =
-                  nextStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
-                arg.event.setExtendedProp("status", nextStatus);
-                arg.event.setProp("backgroundColor", newBg);
-                arg.event.setProp("borderColor", newBg);
-                setMockEvents((prev) =>
-                  prev.map((ev) => {
-                    if (ev.id === id) {
-                      const extendedProps = {
-                        ...(ev.extendedProps as Record<string, unknown> | undefined),
-                        status: nextStatus,
-                      };
-                      return {
-                        ...ev,
-                        backgroundColor: newBg,
-                        borderColor: newBg,
-                        extendedProps,
-                      };
-                    }
-                    return ev;
-                  })
-                );
-                return;
-              }
               const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" });
               if (result.success && result.data) {
                 const newStatus = result.data.status;
@@ -471,14 +339,6 @@ export function CalendarView() {
                 </Button>
               ))}
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-8 px-3 text-xs sm:text-sm text-zinc-700 hover:bg-zinc-100"
-            >
-              Condividi
-            </Button>
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -587,21 +447,6 @@ export function CalendarView() {
           onClose={handleModalClose}
           onChanged={handleModalChanged}
           onDeleted={handleModalDeleted}
-          onDeleteMock={
-            USE_MOCK_EVENTS && modalState.mode === "edit"
-              ? () => {
-                  const id = modalState.eventId;
-                  setMockEvents((prev) =>
-                    prev.filter((ev) => {
-                      const parentId =
-                        (ev.extendedProps as { parentEventId?: string } | undefined)
-                          ?.parentEventId;
-                      return ev.id !== id && parentId !== id;
-                    })
-                  );
-                }
-              : undefined
-          }
         />
       )}
     </div>

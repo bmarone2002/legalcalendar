@@ -5,6 +5,7 @@ import { getSettings } from "../settings";
 import { runRulesForEvent } from "../rules/engine";
 import type { Event, SubEvent } from "@/types";
 import type { ActionResult } from "./events";
+import { parseJsonField } from "@/lib/utils";
 
 export interface PreviewSubEventInput {
   title: string;
@@ -66,15 +67,6 @@ export async function getSubEventsPreview(
   }
 }
 
-function parseRuleParams(ruleParams: string | null): Record<string, unknown> | null {
-  if (ruleParams == null) return null;
-  try {
-    return JSON.parse(ruleParams) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
 function toSubEvent(r: {
   id: string;
   parentEventId: string;
@@ -100,30 +92,13 @@ function toSubEvent(r: {
     status: r.status as "pending" | "done" | "cancelled",
     priority: r.priority,
     ruleId: r.ruleId,
-    ruleParams: parseRuleParams(r.ruleParams),
+    ruleParams: parseJsonField(r.ruleParams),
     explanation: r.explanation,
     createdBy: r.createdBy as "manuale" | "automatico",
     locked: r.locked,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   };
-}
-
-export async function getSubEventsByParentId(
-  parentId: string
-): Promise<ActionResult<SubEvent[]>> {
-  try {
-    const list = await prisma.subEvent.findMany({
-      where: { parentEventId: parentId },
-      orderBy: { dueAt: "asc" },
-    });
-    return { success: true, data: list.map(toSubEvent) };
-  } catch (e) {
-    return {
-      success: false,
-      error: e instanceof Error ? e.message : "Errore caricamento sottoeventi",
-    };
-  }
 }
 
 export async function regenerateSubEvents(parentEventId: string): Promise<
@@ -155,7 +130,7 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
       notes: parent.notes,
       generateSubEvents: parent.generateSubEvents,
       ruleTemplateId: parent.ruleTemplateId,
-      ruleParams: parseRuleParams(parent.ruleParams),
+      ruleParams: parseJsonField(parent.ruleParams),
       macroType: parent.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
       actionType: parent.actionType ?? undefined,
       actionMode: parent.actionMode ?? undefined,
@@ -231,17 +206,3 @@ export async function updateSubEvent(
   }
 }
 
-export async function lockSubEvent(id: string): Promise<ActionResult<SubEvent>> {
-  try {
-    const sub = await prisma.subEvent.update({
-      where: { id },
-      data: { locked: true },
-    });
-    return { success: true, data: toSubEvent(sub) };
-  } catch (e) {
-    return {
-      success: false,
-      error: e instanceof Error ? e.message : "Errore blocco sottoevento",
-    };
-  }
-}

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "../db";
 import type { Event, CreateEventInput, UpdateEventInput, EventType } from "@/types";
 import { getOrCreateDbUser } from "@/lib/db/user";
+import { parseJsonField } from "@/lib/utils";
 
 function parseTags(tags: string): string[] {
   try {
@@ -11,24 +12,6 @@ function parseTags(tags: string): string[] {
     return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
   } catch {
     return [];
-  }
-}
-
-function parseRuleParams(ruleParams: string | null): Record<string, unknown> | null {
-  if (ruleParams == null) return null;
-  try {
-    return JSON.parse(ruleParams) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-function parseInputs(inputs: string | null): Record<string, unknown> | null {
-  if (inputs == null) return null;
-  try {
-    return JSON.parse(inputs) as Record<string, unknown>;
-  } catch {
-    return null;
   }
 }
 
@@ -81,11 +64,11 @@ function toEvent(r: {
     notes: r.notes,
     generateSubEvents: r.generateSubEvents,
     ruleTemplateId: r.ruleTemplateId,
-    ruleParams: parseRuleParams(r.ruleParams),
+    ruleParams: parseJsonField(r.ruleParams),
     macroType: r.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
     actionType: r.actionType ?? undefined,
     actionMode: r.actionMode ?? undefined,
-    inputs: parseInputs(r.inputs ?? null),
+    inputs: parseJsonField(r.inputs ?? null),
     color: r.color ?? null,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
@@ -99,7 +82,7 @@ function toEvent(r: {
         status: s.status as "pending" | "done" | "cancelled",
         priority: s.priority,
         ruleId: s.ruleId,
-        ruleParams: parseRuleParams(s.ruleParams),
+        ruleParams: parseJsonField(s.ruleParams),
         explanation: s.explanation,
         createdBy: s.createdBy as "manuale" | "automatico",
         locked: s.locked,
