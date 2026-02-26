@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "start:prod": "node -e \"if(!process.env.DATABASE_URL){console.error('\\n>>> DATABASE_URL mancante! Su Railway: servizio App (Legal Calendar) → Variables → New Variable → Nome: DATABASE_URL, Valore: copia la URL dal servizio PostgreSQL (Variables o Connect).\\n'); process.exit(1)}\" && prisma migrate deploy && next start",

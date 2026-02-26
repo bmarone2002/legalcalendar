@@ -5,6 +5,8 @@ const projectRoot = process.cwd();
 const generatedPrisma = path.resolve(projectRoot, "src/generated/prisma");
 
 const nextConfig: NextConfig = {
+  // Evita che Next usi la root della cartella padre (multi lockfile) e riduce errori Server Action
+  outputFileTracingRoot: projectRoot,
   turbopack: {
     resolveAlias: {
       // Use our generated Prisma client (with macroType, etc.) instead of node_modules
