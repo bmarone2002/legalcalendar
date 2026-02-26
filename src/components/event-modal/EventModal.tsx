@@ -282,7 +282,7 @@ export function EventModal({
         }),
       };
       const result = await getSubEventsPreview(payload);
-      if (result.success && result.data) {
+      if (result.success && result.data && result.data.length > 0) {
         setPreviewSubEvents(
           result.data.map((c) => ({
             title: c.title,
@@ -293,7 +293,20 @@ export function EventModal({
         setError(null);
       } else {
         setPreviewSubEvents([]);
-        setError(!result.success ? normalizeDisplayError(result.error) : "Impossibile calcolare i sottoeventi");
+        if (
+          result.success &&
+          (!result.data || result.data.length === 0) &&
+          form.ruleTemplateId === "atto-giuridico" &&
+          form.macroType === "ATTO_GIURIDICO"
+        ) {
+          setError("Inserire tutte le date e i campi necessari per effettuare il calcolo.");
+        } else {
+          setError(
+            !result.success
+              ? normalizeDisplayError(result.error)
+              : "Impossibile calcolare i sottoeventi"
+          );
+        }
       }
       setActiveTab("regole");
     } finally {
