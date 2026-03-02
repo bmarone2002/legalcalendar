@@ -29,7 +29,7 @@ body {
 /* Calendar brown & white theme – FullCalendar: grid visible in light and dark mode */
 .calendar-theme .fc {
   --fc-page-bg: #fff;
-  --fc-border-color: #E8E0D9;
+  --fc-border-color: #C1AE9A;
   --fc-neutral-bg-color: #faf8f6;
   --fc-list-event-hover-bg-color: var(--calendar-brown-pale);
 }
@@ -40,7 +40,7 @@ body {
 .calendar-theme .fc .fc-col-header-cell-cushion { color: var(--calendar-brown); }
 .calendar-theme .fc .fc-daygrid-day-number { color: var(--calendar-muted); }
 .calendar-theme .fc .fc-list-event:hover td { background: var(--calendar-brown-pale); }
-.calendar-theme .fc-theme-standard td, .calendar-theme .fc-theme-standard th { border-color: #E8E0D9; }
+.calendar-theme .fc-theme-standard td, .calendar-theme .fc-theme-standard th { border-color: #C1AE9A; }
 .calendar-theme .fc-scrollgrid { background: #fff; }
 .calendar-theme .fc .fc-daygrid-day { background: #fff; }
 .calendar-theme .fc .fc-daygrid-day-frame { min-height: 100px; }
