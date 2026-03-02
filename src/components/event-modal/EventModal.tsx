@@ -839,7 +839,12 @@ export function EventModal({
                     </ScrollArea>
                   )}
                   {mode === "edit" && eventId && (
-                    <Button variant="outline" className="border-[var(--calendar-brown)] text-[var(--calendar-brown)] hover:bg-[var(--calendar-brown-pale)]" onClick={handleRigenera} disabled={saving}>
+                    <Button
+                      variant="outline"
+                      className="border-[var(--calendar-brown)] text-[var(--calendar-brown)] bg-white hover:bg-[var(--calendar-brown-pale)] dark:bg-white dark:border-[var(--calendar-brown)] dark:text-[var(--calendar-brown)] dark:hover:bg-[var(--calendar-brown-pale)]"
+                      onClick={handleRigenera}
+                      disabled={saving}
+                    >
                       Rigenera sottoeventi
                     </Button>
                   )}
