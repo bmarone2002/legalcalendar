@@ -320,3 +320,17 @@ export async function updateSubEvent(
   }
 }
 
+export async function deleteSubEvent(id: string): Promise<ActionResult<void>> {
+  try {
+    await prisma.subEvent.delete({
+      where: { id },
+    });
+    return { success: true, data: undefined };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Errore eliminazione sottoevento",
+    };
+  }
+}
+

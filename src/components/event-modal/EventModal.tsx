@@ -21,6 +21,7 @@ import {
   getSubEventsPreview,
   updateSubEvent,
   createSubEventsFromPreview,
+  deleteSubEvent,
 } from "@/lib/actions/sub-events";
 import type { EventType, SubEvent } from "@/types";
 import { EVENT_TYPES, RULE_TEMPLATES } from "@/types";
@@ -183,6 +184,7 @@ export function EventModal({
   const [activeTab, setActiveTab] = useState<"dettagli" | "regole">("dettagli");
   const [calculating, setCalculating] = useState(false);
   const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
+  const [selectedSubEventId, setSelectedSubEventId] = useState<string | null>(null);
   /** Se true, non sovrascrivere la lista preview con l'useEffect (l'utente ha rimosso elementi con ×). Si resetta solo al click su Calcola. */
   const previewEditedByUserRef = useRef(false);
   /** Se true, l'utente ha cliccato "Calcola" almeno una volta: al Salva usiamo la lista preview (anche se vuota). Altrimenti usiamo regenerateSubEvents per creare tutti i sottoeventi. */
@@ -211,6 +213,7 @@ export function EventModal({
         color: e.color ?? null,
       });
       setSubEvents(e.subEvents ?? []);
+      setSelectedSubEventId(null);
     }
   }, []);
 
@@ -469,8 +472,26 @@ export function EventModal({
       const result = await regenerateSubEvents(eventId);
       if (result.success && result.data) {
         setSubEvents(result.data);
+        setSelectedSubEventId(null);
       } else if (!result.success) {
         setError(normalizeDisplayError(result.error) ?? "Errore rigenerazione");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSelectedSubEvent = async () => {
+    if (!selectedSubEventId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await deleteSubEvent(selectedSubEventId);
+      if (result.success) {
+        setSubEvents((prev) => prev.filter((se) => se.id !== selectedSubEventId));
+        setSelectedSubEventId(null);
+      } else {
+        setError(normalizeDisplayError(result.error) ?? "Errore eliminazione sottoevento");
       }
     } finally {
       setSaving(false);
@@ -752,10 +773,21 @@ export function EventModal({
                           (s, idx) => {
                           const isSavedSub = mode === "edit" && subEvents.length > 0;
                           const isDone = isSavedSub && (s as SubEvent).status === "done";
+                          const currentId = (s as { id?: string }).id ?? `sub-${idx}`;
+                          const isSelected = isSavedSub && selectedSubEventId === currentId;
                           return (
                             <li
-                              key={(s as { id?: string }).id ?? `sub-${idx}`}
-                              className="border-b pb-2 flex items-start gap-2"
+                              key={currentId}
+                              className={`border-b pb-2 flex items-start gap-2 ${
+                                isSelected ? "bg-red-50" : ""
+                              }`}
+                              onClick={() => {
+                                if (isSavedSub) {
+                                  setSelectedSubEventId((prev) =>
+                                    prev === currentId ? null : currentId
+                                  );
+                                }
+                              }}
                             >
                               {isSavedSub && (
                                 <div className="flex items-center gap-2 shrink-0 pt-0.5">
@@ -822,15 +854,24 @@ export function EventModal({
         <DialogFooter className="dialog-footer-light flex-row justify-between">
           <div className="flex gap-2">
             {mode === "edit" && eventId && (
-              <Button
-                type="button"
-                variant="outline"
-                className="border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={saving}
-              >
-                Rimuovi evento
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDeleteSelectedSubEvent}
+                  disabled={saving || !selectedSubEventId}
+                >
+                  Rimuovi evento
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={saving}
+                >
+                  Rimuovi tutto
+                </Button>
+              </>
             )}
           </div>
           <div className="flex gap-2">
