@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -183,6 +183,8 @@ export function EventModal({
   const [activeTab, setActiveTab] = useState<"dettagli" | "regole">("dettagli");
   const [calculating, setCalculating] = useState(false);
   const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
+  /** Se true, non sovrascrivere la lista preview con l'useEffect (l'utente ha rimosso elementi con ×). Si resetta solo al click su Calcola. */
+  const previewEditedByUserRef = useRef(false);
 
   const loadEvent = useCallback(async (id: string) => {
     setLoading(true);
@@ -217,8 +219,10 @@ export function EventModal({
   useEffect(() => {
     if (!form.generateSubEvents || !form.ruleTemplateId) {
       setPreviewSubEvents([]);
+      previewEditedByUserRef.current = false;
       return;
     }
+    if (previewEditedByUserRef.current) return;
     (async () => {
       let startAt = form.startAt;
       let endAt = form.endAt;
@@ -246,8 +250,8 @@ export function EventModal({
       const result = await getSubEventsPreview(payload);
       if (result.success && result.data) {
         setPreviewSubEvents(
-          result.data.map((c, index) => ({
-            id: `${c.ruleId}-${index}-${c.dueAt}`,
+          result.data.map((c) => ({
+            id: c.id,
             title: c.title,
             dueAt: new Date(c.dueAt),
             explanation: c.explanation,
@@ -303,10 +307,11 @@ export function EventModal({
         }),
       };
       const result = await getSubEventsPreview(payload);
+      previewEditedByUserRef.current = false;
       if (result.success && result.data && result.data.length > 0) {
         setPreviewSubEvents(
-          result.data.map((c, index) => ({
-            id: `${c.ruleId}-${index}-${c.dueAt}`,
+          result.data.map((c) => ({
+            id: c.id,
             title: c.title,
             dueAt: new Date(c.dueAt),
             explanation: c.explanation,
@@ -341,6 +346,7 @@ export function EventModal({
   }, [form]);
 
   const handleRemovePreviewSubEvent = (id: string) => {
+    previewEditedByUserRef.current = true;
     setPreviewSubEvents((prev) => prev.filter((s) => s.id !== id));
   };
 
@@ -381,16 +387,8 @@ export function EventModal({
           return;
         }
         if (result.data && form.generateSubEvents) {
-          const hasPreviewSelection = previewSubEvents.length > 0;
-          const regen = hasPreviewSelection
-            ? await createSubEventsFromPreview(
-                result.data.id,
-                previewSubEvents.map((p) => ({
-                  ruleId: p.ruleId,
-                  ruleParams: p.ruleParams ?? null,
-                }))
-              )
-            : await regenerateSubEvents(result.data.id);
+          const selectedIds = previewSubEvents.map((p) => p.id);
+          const regen = await createSubEventsFromPreview(result.data.id, selectedIds);
           if (!regen.success) {
             setError(
               regen.error ?? "Errore creazione sottoeventi. Riprova o rigenera dalla tab Regole."

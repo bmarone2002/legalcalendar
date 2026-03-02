@@ -26,6 +26,7 @@ export async function getSubEventsPreview(
 ): Promise<
   ActionResult<
     Array<{
+      id: string;
       title: string;
       dueAt: string;
       explanation: string;
@@ -65,7 +66,8 @@ export async function getSubEventsPreview(
     });
     return {
       success: true,
-      data: candidates.map((c) => ({
+      data: candidates.map((c, index) => ({
+        id: `${c.ruleId}-${index}-${c.dueAt.toISOString()}`,
         title: c.title,
         dueAt: c.dueAt.toISOString(),
         explanation: c.explanation,
@@ -200,9 +202,10 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
   }
 }
 
+/** Crea solo i sottoeventi i cui id preview sono in selectedPreviewIds (stesso id restituito da getSubEventsPreview). */
 export async function createSubEventsFromPreview(
   parentEventId: string,
-  selected: Array<{ ruleId: string; ruleParams?: Record<string, unknown> | null }>
+  selectedPreviewIds: string[]
 ): Promise<ActionResult<SubEvent[]>> {
   try {
     const parent = await prisma.event.findUnique({
@@ -249,12 +252,12 @@ export async function createSubEventsFromPreview(
       userSelections,
     });
 
-    const selectedSet = new Set(
-      selected.map((s) => `${s.ruleId}::${JSON.stringify(s.ruleParams ?? null)}`)
-    );
-    const filtered = candidates.filter((c) =>
-      selectedSet.has(`${c.ruleId}::${JSON.stringify(c.ruleParams ?? null)}`)
-    );
+    const selectedSet = new Set(selectedPreviewIds);
+    const filtered = candidates.filter((_c, index) => {
+      const c = candidates[index];
+      const previewId = `${c.ruleId}-${index}-${c.dueAt.toISOString()}`;
+      return selectedSet.has(previewId);
+    });
 
     const toDelete = parent.subEvents.filter((s) => !s.locked);
     await prisma.subEvent.deleteMany({
