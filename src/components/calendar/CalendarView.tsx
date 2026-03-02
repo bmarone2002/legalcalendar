@@ -41,10 +41,12 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   const tagColor = rawColor && !isWhiteLike ? rawColor : null;
   const mainBackground = tagColor ?? "#ffffff";
   const mainBorder = tagColor ?? "#E5E5E5";
+  const rawTitle = e.title ?? "";
+  const mainTitle = rawTitle.replace(/^\s*\d+\s*[-–.)]?\s*/, "").trimStart();
   const out: Array<Record<string, unknown>> = [
     {
       id: e.id,
-      title: e.title,
+      title: mainTitle,
       start: e.startAt,
       end: e.endAt,
       allDay: false,
@@ -68,7 +70,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       extendedProps: {
         isSubEvent: true,
         parentEventId: e.id,
-        parentTitle: e.title,
+        parentTitle: mainTitle,
         kind: se.kind,
         status: se.status,
       },
