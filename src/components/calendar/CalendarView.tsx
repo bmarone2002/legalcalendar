@@ -300,6 +300,14 @@ export function CalendarView() {
         </div>
       );
     }
+    // Evento madre in vista Mese/Giorno/Settimana: nascondi l'orario e mostra solo il titolo (già con pallino)
+    if (!isSub && arg.view.type.startsWith("dayGrid")) {
+      return (
+        <div className="fc-event-main-frame flex items-center gap-1">
+          <span className="truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
+        </div>
+      );
+    }
     return true;
   }, []);
 
