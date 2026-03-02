@@ -778,8 +778,10 @@ export function EventModal({
                           return (
                             <li
                               key={currentId}
-                              className={`border-b pb-2 flex items-start gap-2 ${
-                                isSelected ? "bg-red-50" : ""
+                              className={`border-b pb-2 flex items-start gap-2 rounded-md transition-colors ${
+                                isSelected
+                                  ? "bg-red-100/70 border-red-300"
+                                  : "hover:bg-zinc-50"
                               }`}
                               onClick={() => {
                                 if (isSavedSub) {
