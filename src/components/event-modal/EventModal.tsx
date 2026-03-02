@@ -16,7 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { createEvent, updateEvent, getEventById, deleteEvent } from "@/lib/actions/events";
-import { regenerateSubEvents, getSubEventsPreview, updateSubEvent } from "@/lib/actions/sub-events";
+import {
+  regenerateSubEvents,
+  getSubEventsPreview,
+  updateSubEvent,
+  createSubEventsFromPreview,
+} from "@/lib/actions/sub-events";
 import type { EventType, SubEvent } from "@/types";
 import { EVENT_TYPES, RULE_TEMPLATES } from "@/types";
 import type { ActionType, ActionMode } from "@/types/atto-giuridico";
@@ -159,7 +164,18 @@ export function EventModal({
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
   const [form, setForm] = useState<EventFormState>(() => defaultEvent(initialStart, initialEnd));
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
-  const [previewSubEvents, setPreviewSubEvents] = useState<Array<{ title: string; dueAt: Date; explanation: string }>>([]);
+  const [previewSubEvents, setPreviewSubEvents] = useState<
+    Array<{
+      id: string;
+      title: string;
+      dueAt: Date;
+      explanation: string;
+      ruleId: string;
+      ruleParams?: Record<string, unknown> | null;
+      kind: string;
+      priority?: number;
+    }>
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -230,10 +246,15 @@ export function EventModal({
       const result = await getSubEventsPreview(payload);
       if (result.success && result.data) {
         setPreviewSubEvents(
-          result.data.map((c) => ({
+          result.data.map((c, index) => ({
+            id: `${c.ruleId}-${index}-${c.dueAt}`,
             title: c.title,
             dueAt: new Date(c.dueAt),
             explanation: c.explanation,
+            ruleId: c.ruleId,
+            ruleParams: c.ruleParams ?? null,
+            kind: c.kind,
+            priority: c.priority,
           }))
         );
       } else {
@@ -284,10 +305,15 @@ export function EventModal({
       const result = await getSubEventsPreview(payload);
       if (result.success && result.data && result.data.length > 0) {
         setPreviewSubEvents(
-          result.data.map((c) => ({
+          result.data.map((c, index) => ({
+            id: `${c.ruleId}-${index}-${c.dueAt}`,
             title: c.title,
             dueAt: new Date(c.dueAt),
             explanation: c.explanation,
+            ruleId: c.ruleId,
+            ruleParams: c.ruleParams ?? null,
+            kind: c.kind,
+            priority: c.priority,
           }))
         );
         setError(null);
@@ -313,6 +339,10 @@ export function EventModal({
       setCalculating(false);
     }
   }, [form]);
+
+  const handleRemovePreviewSubEvent = (id: string) => {
+    setPreviewSubEvents((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const handleSave = async () => {
     setError(null);
@@ -351,9 +381,20 @@ export function EventModal({
           return;
         }
         if (result.data && form.generateSubEvents) {
-          const regen = await regenerateSubEvents(result.data.id);
+          const hasPreviewSelection = previewSubEvents.length > 0;
+          const regen = hasPreviewSelection
+            ? await createSubEventsFromPreview(
+                result.data.id,
+                previewSubEvents.map((p) => ({
+                  ruleId: p.ruleId,
+                  ruleParams: p.ruleParams ?? null,
+                }))
+              )
+            : await regenerateSubEvents(result.data.id);
           if (!regen.success) {
-            setError(regen.error ?? "Errore creazione sottoeventi. Riprova o rigenera dalla tab Regole.");
+            setError(
+              regen.error ?? "Errore creazione sottoeventi. Riprova o rigenera dalla tab Regole."
+            );
             return;
           }
         }
@@ -699,11 +740,15 @@ export function EventModal({
                   {(previewSubEvents.length > 0 || subEvents.length > 0) && (
                     <ScrollArea className="h-[280px] rounded-md border p-4">
                       <ul className="space-y-3">
-                        {(mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents.map((p, i) => ({ id: `preview-${i}`, title: p.title, dueAt: p.dueAt, explanation: p.explanation }))).map((s, idx) => {
-                          const isSavedSub = mode === "edit" && "id" in s && typeof s.id === "string" && !s.id.startsWith("preview-");
+                        {(mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents).map(
+                          (s, idx) => {
+                          const isSavedSub = mode === "edit" && subEvents.length > 0;
                           const isDone = isSavedSub && (s as SubEvent).status === "done";
                           return (
-                            <li key={"id" in s ? s.id : `preview-${idx}`} className="border-b pb-2 flex items-start gap-2">
+                            <li
+                              key={(s as { id?: string }).id ?? `sub-${idx}`}
+                              className="border-b pb-2 flex items-start gap-2"
+                            >
                               {isSavedSub && (
                                 <div className="flex items-center gap-2 shrink-0 pt-0.5">
                                   <Checkbox
@@ -731,6 +776,20 @@ export function EventModal({
                                   Calcolo: {(s as { explanation?: string | null }).explanation ?? ""}
                                 </div>
                               </div>
+                              {!isSavedSub && (
+                                <button
+                                  type="button"
+                                  className="ml-2 text-xs text-red-600 hover:text-red-800 shrink-0"
+                                  onClick={() =>
+                                    handleRemovePreviewSubEvent(
+                                      (s as { id: string | undefined }).id ?? `sub-${idx}`
+                                    )
+                                  }
+                                  aria-label="Rimuovi sottoevento"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </li>
                           );
                         })}
