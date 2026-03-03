@@ -292,11 +292,8 @@ export function CalendarView() {
   const handleModalChanged = useCallback(() => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
-    const viewType = api.view.type;
-    // In Agenda non forziamo il refetch immediato per evitare che gli eventi spariscano
-    if (viewType !== "listFromToday") {
-      api.refetchEvents();
-    }
+    // Dopo il salvataggio aggiorniamo sempre gli eventi, anche in Agenda
+    api.refetchEvents();
   }, []);
 
   const handleModalDeleted = useCallback((deletedId: string) => {
