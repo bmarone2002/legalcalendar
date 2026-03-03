@@ -18,6 +18,13 @@ import { Button } from "@/components/ui/button";
 const SUB_EVENT_COLOR_PENDING = "#C62828";
 const SUB_EVENT_COLOR_DONE = "#2E7D32";
 
+type SearchSuggestion = {
+  eventId: string;
+  label: string;
+  matchType: "titolo" | "promemoria";
+  detail?: string;
+};
+
 function filterEventsFromToday(events: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -90,6 +97,11 @@ export function CalendarView() {
     | { mode: "edit"; eventId: string }
     | null
   >(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
+  const [allEvents, setAllEvents] = useState<AppEvent[]>([]);
+  const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
+  const [searchFilterEventId, setSearchFilterEventId] = useState<string | null>(null);
   const handleDatesSet = useCallback(
     (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
       setCurrentView(arg.view.type);
@@ -114,7 +126,14 @@ export function CalendarView() {
       getEvents(start, end)
         .then((result) => {
           if (result.success && result.data) {
-            let events = result.data.flatMap(toFullCalendarEvents);
+            let eventsData = result.data;
+            setAllEvents(eventsData);
+
+            if (viewType === "listFromToday" && isSearchActive && searchFilterEventId) {
+              eventsData = eventsData.filter((e) => e.id === searchFilterEventId);
+            }
+
+            let events = eventsData.flatMap(toFullCalendarEvents);
             // In Agenda: mostrare solo eventi a partire dal giorno corrente (incluso)
             if (viewType === "listFromToday") {
               events = filterEventsFromToday(events);
@@ -138,8 +157,104 @@ export function CalendarView() {
           )
         );
     },
+    [isSearchActive, searchFilterEventId]
+  );
+
+  const applySuggestionSelection = useCallback(
+    (eventId: string, label?: string) => {
+      setSearchFilterEventId(eventId);
+      setIsSearchActive(true);
+      if (label) {
+        setSearchQuery(label);
+      }
+      setSearchSuggestions([]);
+      const api = calendarRef.current?.getApi();
+      if (api) {
+        api.changeView("listFromToday");
+        api.refetchEvents();
+      }
+    },
     []
   );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      const query = value;
+      setSearchQuery(query);
+
+      const trimmed = query.trim().toLowerCase();
+      if (trimmed.length < 2) {
+        setSearchSuggestions([]);
+        return;
+      }
+
+      const suggestions: SearchSuggestion[] = [];
+      for (const ev of allEvents) {
+        const titleMatch = (ev.title ?? "").toLowerCase().includes(trimmed);
+        const promemoriaMatches =
+          ev.subEvents?.filter(
+            (se) =>
+              se.kind === "promemoria" &&
+              (se.title ?? "").toLowerCase().includes(trimmed)
+          ) ?? [];
+
+        if (titleMatch) {
+          suggestions.push({
+            eventId: ev.id,
+            label: ev.title ?? "",
+            matchType: "titolo",
+          });
+          continue;
+        }
+
+        if (promemoriaMatches.length > 0) {
+          const first = promemoriaMatches[0];
+          suggestions.push({
+            eventId: ev.id,
+            label: first.title ?? "",
+            matchType: "promemoria",
+            detail: ev.title ?? "",
+          });
+        }
+
+        if (suggestions.length >= 10) break;
+      }
+
+      setSearchSuggestions(suggestions);
+    },
+    [allEvents]
+  );
+
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (searchSuggestions.length > 0) {
+          const first = searchSuggestions[0];
+          applySuggestionSelection(first.eventId, first.label);
+        }
+      }
+    },
+    [searchSuggestions, applySuggestionSelection]
+  );
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: SearchSuggestion) => {
+      applySuggestionSelection(suggestion.eventId, suggestion.label);
+    },
+    [applySuggestionSelection]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    setSearchSuggestions([]);
+    setIsSearchActive(false);
+    setSearchFilterEventId(null);
+    const api = calendarRef.current?.getApi();
+    if (api) {
+      api.refetchEvents();
+    }
+  }, []);
 
   const handleSelect = useCallback((arg: DateSelectArg) => {
     setModalState({ mode: "create", start: arg.start, end: arg.end });
@@ -381,8 +496,60 @@ export function CalendarView() {
               </button>
             </div>
           </div>
-          <div className="text-sm sm:text-base font-semibold text-[var(--calendar-brown)]">
-            {viewTitle}
+          <div className="flex items-center gap-3">
+            <div className="text-sm sm:text-base font-semibold text-[var(--calendar-brown)]">
+              {viewTitle}
+            </div>
+            <div className="flex items-center gap-2">
+              {isSearchActive && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs sm:text-sm rounded-md border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100"
+                  onClick={handleClearSearch}
+                >
+                  Mostra tutti gli eventi
+                </Button>
+              )}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="Cerca per titolo o promemoria…"
+                  className="h-8 w-52 sm:w-64 rounded-md border border-zinc-300 bg-white px-2 text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+                />
+                {searchSuggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 w-64 sm:w-72 rounded-md border border-zinc-200 bg-white shadow-lg max-h-60 overflow-auto text-xs sm:text-sm">
+                    {searchSuggestions.map((s) => (
+                      <button
+                        key={`${s.eventId}-${s.label}-${s.matchType}`}
+                        type="button"
+                        className="flex w-full flex-col items-start px-3 py-1.5 text-left hover:bg-zinc-100"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSuggestionClick(s);
+                        }}
+                      >
+                        <span className="font-medium text-zinc-800 truncate">
+                          {s.label}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide text-zinc-500">
+                          {s.matchType === "titolo" ? "Titolo evento" : "Promemoria"}
+                        </span>
+                        {s.detail && (
+                          <span className="text-[11px] text-zinc-500 truncate">
+                            Evento: {s.detail}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
