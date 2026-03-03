@@ -171,6 +171,19 @@ exports.Prisma.SubEventScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RinvioScalarFieldEnum = {
+  id: 'id',
+  parentEventId: 'parentEventId',
+  numero: 'numero',
+  dataUdienza: 'dataUdienza',
+  tipoUdienza: 'tipoUdienza',
+  tipoUdienzaCustom: 'tipoUdienzaCustom',
+  note: 'note',
+  adempimenti: 'adempimenti',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SettingScalarFieldEnum = {
   id: 'id',
   value: 'value'
@@ -196,6 +209,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   Event: 'Event',
   SubEvent: 'SubEvent',
+  Rinvio: 'Rinvio',
   Setting: 'Setting'
 };
 

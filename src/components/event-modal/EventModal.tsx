@@ -29,6 +29,7 @@ import { EVENT_TYPES, RULE_TEMPLATES } from "@/types";
 import type { ActionType, ActionMode } from "@/types/atto-giuridico";
 import { ACTION_TYPES, ACTION_MODES, ACTION_TYPE_LABELS, ACTION_MODE_LABELS } from "@/types/atto-giuridico";
 import { AttoGiuridicoPanel } from "./AttoGiuridicoPanel";
+import { ProsecuzionePanel } from "./ProsecuzionePanel";
 import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
@@ -183,7 +184,7 @@ export function EventModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dettagli" | "regole">("dettagli");
+  const [activeTab, setActiveTab] = useState<"dettagli" | "regole" | "prosecuzione">("dettagli");
   const [calculating, setCalculating] = useState(false);
   const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
   const [selectedSubEventId, setSelectedSubEventId] = useState<string | null>(null);
@@ -542,10 +543,13 @@ export function EventModal({
         <DialogHeader>
           <DialogTitle className="text-[var(--calendar-brown)]">{mode === "create" ? "Nuovo evento" : "Dettaglio evento"}</DialogTitle>
         </DialogHeader>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "dettagli" | "regole")} className="flex-1 min-h-0 flex flex-col">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "dettagli" | "regole" | "prosecuzione")} className="flex-1 min-h-0 flex flex-col">
           <TabsList className="bg-zinc-100 dark:bg-zinc-100 dark:text-zinc-600 p-1">
             <TabsTrigger value="dettagli" className="data-[state=active]:bg-white data-[state=active]:text-zinc-900 dark:data-[state=active]:bg-white dark:data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm">Dettagli</TabsTrigger>
             <TabsTrigger value="regole" className="data-[state=active]:bg-white data-[state=active]:text-zinc-900 dark:data-[state=active]:bg-white dark:data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm">Regole & Sottoeventi</TabsTrigger>
+            {mode === "edit" && eventId && form.macroType === "ATTO_GIURIDICO" && (
+              <TabsTrigger value="prosecuzione" className="data-[state=active]:bg-white data-[state=active]:text-zinc-900 dark:data-[state=active]:bg-white dark:data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm">Prosecuzione</TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="dettagli" className="flex-1 overflow-auto mt-2">
             <div className="space-y-4">
@@ -883,6 +887,22 @@ export function EventModal({
               )}
             </div>
           </TabsContent>
+          {mode === "edit" && eventId && form.macroType === "ATTO_GIURIDICO" && (
+            <TabsContent value="prosecuzione" className="flex-1 overflow-auto mt-2">
+              <ProsecuzionePanel
+                eventId={eventId}
+                onSubEventsChanged={async () => {
+                  if (eventId) {
+                    const result = await getEventById(eventId);
+                    if (result.success && result.data) {
+                      setSubEvents(result.data.subEvents ?? []);
+                    }
+                  }
+                  onChanged?.();
+                }}
+              />
+            </TabsContent>
+          )}
         </Tabs>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <DialogFooter className="dialog-footer-light flex-row justify-between">

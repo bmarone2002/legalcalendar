@@ -29,6 +29,11 @@ export type Event = $Result.DefaultSelection<Prisma.$EventPayload>
  */
 export type SubEvent = $Result.DefaultSelection<Prisma.$SubEventPayload>
 /**
+ * Model Rinvio
+ * 
+ */
+export type Rinvio = $Result.DefaultSelection<Prisma.$RinvioPayload>
+/**
  * Model Setting
  * 
  */
@@ -186,6 +191,16 @@ export class PrismaClient<
     * ```
     */
   get subEvent(): Prisma.SubEventDelegate<ExtArgs>;
+
+  /**
+   * `prisma.rinvio`: Exposes CRUD operations for the **Rinvio** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Rinvios
+    * const rinvios = await prisma.rinvio.findMany()
+    * ```
+    */
+  get rinvio(): Prisma.RinvioDelegate<ExtArgs>;
 
   /**
    * `prisma.setting`: Exposes CRUD operations for the **Setting** model.
@@ -640,6 +655,7 @@ export namespace Prisma {
     User: 'User',
     Event: 'Event',
     SubEvent: 'SubEvent',
+    Rinvio: 'Rinvio',
     Setting: 'Setting'
   };
 
@@ -656,7 +672,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "event" | "subEvent" | "setting"
+      modelProps: "user" | "event" | "subEvent" | "rinvio" | "setting"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -867,6 +883,76 @@ export namespace Prisma {
           count: {
             args: Prisma.SubEventCountArgs<ExtArgs>
             result: $Utils.Optional<SubEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      Rinvio: {
+        payload: Prisma.$RinvioPayload<ExtArgs>
+        fields: Prisma.RinvioFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RinvioFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RinvioFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          findFirst: {
+            args: Prisma.RinvioFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RinvioFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          findMany: {
+            args: Prisma.RinvioFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>[]
+          }
+          create: {
+            args: Prisma.RinvioCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          createMany: {
+            args: Prisma.RinvioCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RinvioCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>[]
+          }
+          delete: {
+            args: Prisma.RinvioDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          update: {
+            args: Prisma.RinvioUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          deleteMany: {
+            args: Prisma.RinvioDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RinvioUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.RinvioUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RinvioPayload>
+          }
+          aggregate: {
+            args: Prisma.RinvioAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRinvio>
+          }
+          groupBy: {
+            args: Prisma.RinvioGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RinvioGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RinvioCountArgs<ExtArgs>
+            result: $Utils.Optional<RinvioCountAggregateOutputType> | number
           }
         }
       }
@@ -1133,10 +1219,12 @@ export namespace Prisma {
 
   export type EventCountOutputType = {
     subEvents: number
+    rinvii: number
   }
 
   export type EventCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     subEvents?: boolean | EventCountOutputTypeCountSubEventsArgs
+    rinvii?: boolean | EventCountOutputTypeCountRinviiArgs
   }
 
   // Custom InputTypes
@@ -1155,6 +1243,13 @@ export namespace Prisma {
    */
   export type EventCountOutputTypeCountSubEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SubEventWhereInput
+  }
+
+  /**
+   * EventCountOutputType without action
+   */
+  export type EventCountOutputTypeCountRinviiArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RinvioWhereInput
   }
 
 
@@ -2404,6 +2499,7 @@ export namespace Prisma {
     orgId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     subEvents?: boolean | Event$subEventsArgs<ExtArgs>
+    rinvii?: boolean | Event$rinviiArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
 
@@ -2459,6 +2555,7 @@ export namespace Prisma {
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     subEvents?: boolean | Event$subEventsArgs<ExtArgs>
+    rinvii?: boolean | Event$rinviiArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2470,6 +2567,7 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       subEvents: Prisma.$SubEventPayload<ExtArgs>[]
+      rinvii: Prisma.$RinvioPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2859,6 +2957,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     subEvents<T extends Event$subEventsArgs<ExtArgs> = {}>(args?: Subset<T, Event$subEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SubEventPayload<ExtArgs>, T, "findMany"> | Null>
+    rinvii<T extends Event$rinviiArgs<ExtArgs> = {}>(args?: Subset<T, Event$rinviiArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3244,6 +3343,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: SubEventScalarFieldEnum | SubEventScalarFieldEnum[]
+  }
+
+  /**
+   * Event.rinvii
+   */
+  export type Event$rinviiArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    where?: RinvioWhereInput
+    orderBy?: RinvioOrderByWithRelationInput | RinvioOrderByWithRelationInput[]
+    cursor?: RinvioWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RinvioScalarFieldEnum | RinvioScalarFieldEnum[]
   }
 
   /**
@@ -4337,6 +4456,1033 @@ export namespace Prisma {
 
 
   /**
+   * Model Rinvio
+   */
+
+  export type AggregateRinvio = {
+    _count: RinvioCountAggregateOutputType | null
+    _avg: RinvioAvgAggregateOutputType | null
+    _sum: RinvioSumAggregateOutputType | null
+    _min: RinvioMinAggregateOutputType | null
+    _max: RinvioMaxAggregateOutputType | null
+  }
+
+  export type RinvioAvgAggregateOutputType = {
+    numero: number | null
+  }
+
+  export type RinvioSumAggregateOutputType = {
+    numero: number | null
+  }
+
+  export type RinvioMinAggregateOutputType = {
+    id: string | null
+    parentEventId: string | null
+    numero: number | null
+    dataUdienza: Date | null
+    tipoUdienza: string | null
+    tipoUdienzaCustom: string | null
+    note: string | null
+    adempimenti: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RinvioMaxAggregateOutputType = {
+    id: string | null
+    parentEventId: string | null
+    numero: number | null
+    dataUdienza: Date | null
+    tipoUdienza: string | null
+    tipoUdienzaCustom: string | null
+    note: string | null
+    adempimenti: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RinvioCountAggregateOutputType = {
+    id: number
+    parentEventId: number
+    numero: number
+    dataUdienza: number
+    tipoUdienza: number
+    tipoUdienzaCustom: number
+    note: number
+    adempimenti: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type RinvioAvgAggregateInputType = {
+    numero?: true
+  }
+
+  export type RinvioSumAggregateInputType = {
+    numero?: true
+  }
+
+  export type RinvioMinAggregateInputType = {
+    id?: true
+    parentEventId?: true
+    numero?: true
+    dataUdienza?: true
+    tipoUdienza?: true
+    tipoUdienzaCustom?: true
+    note?: true
+    adempimenti?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RinvioMaxAggregateInputType = {
+    id?: true
+    parentEventId?: true
+    numero?: true
+    dataUdienza?: true
+    tipoUdienza?: true
+    tipoUdienzaCustom?: true
+    note?: true
+    adempimenti?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RinvioCountAggregateInputType = {
+    id?: true
+    parentEventId?: true
+    numero?: true
+    dataUdienza?: true
+    tipoUdienza?: true
+    tipoUdienzaCustom?: true
+    note?: true
+    adempimenti?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type RinvioAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Rinvio to aggregate.
+     */
+    where?: RinvioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rinvios to fetch.
+     */
+    orderBy?: RinvioOrderByWithRelationInput | RinvioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RinvioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rinvios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rinvios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Rinvios
+    **/
+    _count?: true | RinvioCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: RinvioAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: RinvioSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RinvioMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RinvioMaxAggregateInputType
+  }
+
+  export type GetRinvioAggregateType<T extends RinvioAggregateArgs> = {
+        [P in keyof T & keyof AggregateRinvio]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRinvio[P]>
+      : GetScalarType<T[P], AggregateRinvio[P]>
+  }
+
+
+
+
+  export type RinvioGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RinvioWhereInput
+    orderBy?: RinvioOrderByWithAggregationInput | RinvioOrderByWithAggregationInput[]
+    by: RinvioScalarFieldEnum[] | RinvioScalarFieldEnum
+    having?: RinvioScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RinvioCountAggregateInputType | true
+    _avg?: RinvioAvgAggregateInputType
+    _sum?: RinvioSumAggregateInputType
+    _min?: RinvioMinAggregateInputType
+    _max?: RinvioMaxAggregateInputType
+  }
+
+  export type RinvioGroupByOutputType = {
+    id: string
+    parentEventId: string
+    numero: number
+    dataUdienza: Date
+    tipoUdienza: string
+    tipoUdienzaCustom: string | null
+    note: string | null
+    adempimenti: string
+    createdAt: Date
+    updatedAt: Date
+    _count: RinvioCountAggregateOutputType | null
+    _avg: RinvioAvgAggregateOutputType | null
+    _sum: RinvioSumAggregateOutputType | null
+    _min: RinvioMinAggregateOutputType | null
+    _max: RinvioMaxAggregateOutputType | null
+  }
+
+  type GetRinvioGroupByPayload<T extends RinvioGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RinvioGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RinvioGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RinvioGroupByOutputType[P]>
+            : GetScalarType<T[P], RinvioGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RinvioSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    parentEventId?: boolean
+    numero?: boolean
+    dataUdienza?: boolean
+    tipoUdienza?: boolean
+    tipoUdienzaCustom?: boolean
+    note?: boolean
+    adempimenti?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    parentEvent?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["rinvio"]>
+
+  export type RinvioSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    parentEventId?: boolean
+    numero?: boolean
+    dataUdienza?: boolean
+    tipoUdienza?: boolean
+    tipoUdienzaCustom?: boolean
+    note?: boolean
+    adempimenti?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    parentEvent?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["rinvio"]>
+
+  export type RinvioSelectScalar = {
+    id?: boolean
+    parentEventId?: boolean
+    numero?: boolean
+    dataUdienza?: boolean
+    tipoUdienza?: boolean
+    tipoUdienzaCustom?: boolean
+    note?: boolean
+    adempimenti?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type RinvioInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    parentEvent?: boolean | EventDefaultArgs<ExtArgs>
+  }
+  export type RinvioIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    parentEvent?: boolean | EventDefaultArgs<ExtArgs>
+  }
+
+  export type $RinvioPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Rinvio"
+    objects: {
+      parentEvent: Prisma.$EventPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      parentEventId: string
+      numero: number
+      dataUdienza: Date
+      tipoUdienza: string
+      tipoUdienzaCustom: string | null
+      note: string | null
+      adempimenti: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["rinvio"]>
+    composites: {}
+  }
+
+  type RinvioGetPayload<S extends boolean | null | undefined | RinvioDefaultArgs> = $Result.GetResult<Prisma.$RinvioPayload, S>
+
+  type RinvioCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<RinvioFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: RinvioCountAggregateInputType | true
+    }
+
+  export interface RinvioDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Rinvio'], meta: { name: 'Rinvio' } }
+    /**
+     * Find zero or one Rinvio that matches the filter.
+     * @param {RinvioFindUniqueArgs} args - Arguments to find a Rinvio
+     * @example
+     * // Get one Rinvio
+     * const rinvio = await prisma.rinvio.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RinvioFindUniqueArgs>(args: SelectSubset<T, RinvioFindUniqueArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Rinvio that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {RinvioFindUniqueOrThrowArgs} args - Arguments to find a Rinvio
+     * @example
+     * // Get one Rinvio
+     * const rinvio = await prisma.rinvio.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RinvioFindUniqueOrThrowArgs>(args: SelectSubset<T, RinvioFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Rinvio that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioFindFirstArgs} args - Arguments to find a Rinvio
+     * @example
+     * // Get one Rinvio
+     * const rinvio = await prisma.rinvio.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RinvioFindFirstArgs>(args?: SelectSubset<T, RinvioFindFirstArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Rinvio that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioFindFirstOrThrowArgs} args - Arguments to find a Rinvio
+     * @example
+     * // Get one Rinvio
+     * const rinvio = await prisma.rinvio.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RinvioFindFirstOrThrowArgs>(args?: SelectSubset<T, RinvioFindFirstOrThrowArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Rinvios that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Rinvios
+     * const rinvios = await prisma.rinvio.findMany()
+     * 
+     * // Get first 10 Rinvios
+     * const rinvios = await prisma.rinvio.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const rinvioWithIdOnly = await prisma.rinvio.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RinvioFindManyArgs>(args?: SelectSubset<T, RinvioFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Rinvio.
+     * @param {RinvioCreateArgs} args - Arguments to create a Rinvio.
+     * @example
+     * // Create one Rinvio
+     * const Rinvio = await prisma.rinvio.create({
+     *   data: {
+     *     // ... data to create a Rinvio
+     *   }
+     * })
+     * 
+     */
+    create<T extends RinvioCreateArgs>(args: SelectSubset<T, RinvioCreateArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Rinvios.
+     * @param {RinvioCreateManyArgs} args - Arguments to create many Rinvios.
+     * @example
+     * // Create many Rinvios
+     * const rinvio = await prisma.rinvio.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RinvioCreateManyArgs>(args?: SelectSubset<T, RinvioCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Rinvios and returns the data saved in the database.
+     * @param {RinvioCreateManyAndReturnArgs} args - Arguments to create many Rinvios.
+     * @example
+     * // Create many Rinvios
+     * const rinvio = await prisma.rinvio.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Rinvios and only return the `id`
+     * const rinvioWithIdOnly = await prisma.rinvio.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RinvioCreateManyAndReturnArgs>(args?: SelectSubset<T, RinvioCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Rinvio.
+     * @param {RinvioDeleteArgs} args - Arguments to delete one Rinvio.
+     * @example
+     * // Delete one Rinvio
+     * const Rinvio = await prisma.rinvio.delete({
+     *   where: {
+     *     // ... filter to delete one Rinvio
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RinvioDeleteArgs>(args: SelectSubset<T, RinvioDeleteArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Rinvio.
+     * @param {RinvioUpdateArgs} args - Arguments to update one Rinvio.
+     * @example
+     * // Update one Rinvio
+     * const rinvio = await prisma.rinvio.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RinvioUpdateArgs>(args: SelectSubset<T, RinvioUpdateArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Rinvios.
+     * @param {RinvioDeleteManyArgs} args - Arguments to filter Rinvios to delete.
+     * @example
+     * // Delete a few Rinvios
+     * const { count } = await prisma.rinvio.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RinvioDeleteManyArgs>(args?: SelectSubset<T, RinvioDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Rinvios.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Rinvios
+     * const rinvio = await prisma.rinvio.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RinvioUpdateManyArgs>(args: SelectSubset<T, RinvioUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Rinvio.
+     * @param {RinvioUpsertArgs} args - Arguments to update or create a Rinvio.
+     * @example
+     * // Update or create a Rinvio
+     * const rinvio = await prisma.rinvio.upsert({
+     *   create: {
+     *     // ... data to create a Rinvio
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Rinvio we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RinvioUpsertArgs>(args: SelectSubset<T, RinvioUpsertArgs<ExtArgs>>): Prisma__RinvioClient<$Result.GetResult<Prisma.$RinvioPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Rinvios.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioCountArgs} args - Arguments to filter Rinvios to count.
+     * @example
+     * // Count the number of Rinvios
+     * const count = await prisma.rinvio.count({
+     *   where: {
+     *     // ... the filter for the Rinvios we want to count
+     *   }
+     * })
+    **/
+    count<T extends RinvioCountArgs>(
+      args?: Subset<T, RinvioCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RinvioCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Rinvio.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RinvioAggregateArgs>(args: Subset<T, RinvioAggregateArgs>): Prisma.PrismaPromise<GetRinvioAggregateType<T>>
+
+    /**
+     * Group by Rinvio.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RinvioGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RinvioGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RinvioGroupByArgs['orderBy'] }
+        : { orderBy?: RinvioGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RinvioGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRinvioGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Rinvio model
+   */
+  readonly fields: RinvioFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Rinvio.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RinvioClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    parentEvent<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Rinvio model
+   */ 
+  interface RinvioFieldRefs {
+    readonly id: FieldRef<"Rinvio", 'String'>
+    readonly parentEventId: FieldRef<"Rinvio", 'String'>
+    readonly numero: FieldRef<"Rinvio", 'Int'>
+    readonly dataUdienza: FieldRef<"Rinvio", 'DateTime'>
+    readonly tipoUdienza: FieldRef<"Rinvio", 'String'>
+    readonly tipoUdienzaCustom: FieldRef<"Rinvio", 'String'>
+    readonly note: FieldRef<"Rinvio", 'String'>
+    readonly adempimenti: FieldRef<"Rinvio", 'String'>
+    readonly createdAt: FieldRef<"Rinvio", 'DateTime'>
+    readonly updatedAt: FieldRef<"Rinvio", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Rinvio findUnique
+   */
+  export type RinvioFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter, which Rinvio to fetch.
+     */
+    where: RinvioWhereUniqueInput
+  }
+
+  /**
+   * Rinvio findUniqueOrThrow
+   */
+  export type RinvioFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter, which Rinvio to fetch.
+     */
+    where: RinvioWhereUniqueInput
+  }
+
+  /**
+   * Rinvio findFirst
+   */
+  export type RinvioFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter, which Rinvio to fetch.
+     */
+    where?: RinvioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rinvios to fetch.
+     */
+    orderBy?: RinvioOrderByWithRelationInput | RinvioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rinvios.
+     */
+    cursor?: RinvioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rinvios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rinvios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rinvios.
+     */
+    distinct?: RinvioScalarFieldEnum | RinvioScalarFieldEnum[]
+  }
+
+  /**
+   * Rinvio findFirstOrThrow
+   */
+  export type RinvioFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter, which Rinvio to fetch.
+     */
+    where?: RinvioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rinvios to fetch.
+     */
+    orderBy?: RinvioOrderByWithRelationInput | RinvioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rinvios.
+     */
+    cursor?: RinvioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rinvios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rinvios.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rinvios.
+     */
+    distinct?: RinvioScalarFieldEnum | RinvioScalarFieldEnum[]
+  }
+
+  /**
+   * Rinvio findMany
+   */
+  export type RinvioFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter, which Rinvios to fetch.
+     */
+    where?: RinvioWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rinvios to fetch.
+     */
+    orderBy?: RinvioOrderByWithRelationInput | RinvioOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Rinvios.
+     */
+    cursor?: RinvioWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rinvios from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rinvios.
+     */
+    skip?: number
+    distinct?: RinvioScalarFieldEnum | RinvioScalarFieldEnum[]
+  }
+
+  /**
+   * Rinvio create
+   */
+  export type RinvioCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Rinvio.
+     */
+    data: XOR<RinvioCreateInput, RinvioUncheckedCreateInput>
+  }
+
+  /**
+   * Rinvio createMany
+   */
+  export type RinvioCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Rinvios.
+     */
+    data: RinvioCreateManyInput | RinvioCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Rinvio createManyAndReturn
+   */
+  export type RinvioCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Rinvios.
+     */
+    data: RinvioCreateManyInput | RinvioCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Rinvio update
+   */
+  export type RinvioUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Rinvio.
+     */
+    data: XOR<RinvioUpdateInput, RinvioUncheckedUpdateInput>
+    /**
+     * Choose, which Rinvio to update.
+     */
+    where: RinvioWhereUniqueInput
+  }
+
+  /**
+   * Rinvio updateMany
+   */
+  export type RinvioUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Rinvios.
+     */
+    data: XOR<RinvioUpdateManyMutationInput, RinvioUncheckedUpdateManyInput>
+    /**
+     * Filter which Rinvios to update
+     */
+    where?: RinvioWhereInput
+  }
+
+  /**
+   * Rinvio upsert
+   */
+  export type RinvioUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Rinvio to update in case it exists.
+     */
+    where: RinvioWhereUniqueInput
+    /**
+     * In case the Rinvio found by the `where` argument doesn't exist, create a new Rinvio with this data.
+     */
+    create: XOR<RinvioCreateInput, RinvioUncheckedCreateInput>
+    /**
+     * In case the Rinvio was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RinvioUpdateInput, RinvioUncheckedUpdateInput>
+  }
+
+  /**
+   * Rinvio delete
+   */
+  export type RinvioDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+    /**
+     * Filter which Rinvio to delete.
+     */
+    where: RinvioWhereUniqueInput
+  }
+
+  /**
+   * Rinvio deleteMany
+   */
+  export type RinvioDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Rinvios to delete
+     */
+    where?: RinvioWhereInput
+  }
+
+  /**
+   * Rinvio without action
+   */
+  export type RinvioDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rinvio
+     */
+    select?: RinvioSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RinvioInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Setting
    */
 
@@ -5250,6 +6396,22 @@ export namespace Prisma {
   export type SubEventScalarFieldEnum = (typeof SubEventScalarFieldEnum)[keyof typeof SubEventScalarFieldEnum]
 
 
+  export const RinvioScalarFieldEnum: {
+    id: 'id',
+    parentEventId: 'parentEventId',
+    numero: 'numero',
+    dataUdienza: 'dataUdienza',
+    tipoUdienza: 'tipoUdienza',
+    tipoUdienzaCustom: 'tipoUdienzaCustom',
+    note: 'note',
+    adempimenti: 'adempimenti',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type RinvioScalarFieldEnum = (typeof RinvioScalarFieldEnum)[keyof typeof RinvioScalarFieldEnum]
+
+
   export const SettingScalarFieldEnum: {
     id: 'id',
     value: 'value'
@@ -5435,6 +6597,7 @@ export namespace Prisma {
     orgId?: StringNullableFilter<"Event"> | string | null
     user?: XOR<UserRelationFilter, UserWhereInput>
     subEvents?: SubEventListRelationFilter
+    rinvii?: RinvioListRelationFilter
   }
 
   export type EventOrderByWithRelationInput = {
@@ -5461,6 +6624,7 @@ export namespace Prisma {
     orgId?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
     subEvents?: SubEventOrderByRelationAggregateInput
+    rinvii?: RinvioOrderByRelationAggregateInput
   }
 
   export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -5490,6 +6654,7 @@ export namespace Prisma {
     orgId?: StringNullableFilter<"Event"> | string | null
     user?: XOR<UserRelationFilter, UserWhereInput>
     subEvents?: SubEventListRelationFilter
+    rinvii?: RinvioListRelationFilter
   }, "id">
 
   export type EventOrderByWithAggregationInput = {
@@ -5648,6 +6813,88 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"SubEvent"> | Date | string
   }
 
+  export type RinvioWhereInput = {
+    AND?: RinvioWhereInput | RinvioWhereInput[]
+    OR?: RinvioWhereInput[]
+    NOT?: RinvioWhereInput | RinvioWhereInput[]
+    id?: StringFilter<"Rinvio"> | string
+    parentEventId?: StringFilter<"Rinvio"> | string
+    numero?: IntFilter<"Rinvio"> | number
+    dataUdienza?: DateTimeFilter<"Rinvio"> | Date | string
+    tipoUdienza?: StringFilter<"Rinvio"> | string
+    tipoUdienzaCustom?: StringNullableFilter<"Rinvio"> | string | null
+    note?: StringNullableFilter<"Rinvio"> | string | null
+    adempimenti?: StringFilter<"Rinvio"> | string
+    createdAt?: DateTimeFilter<"Rinvio"> | Date | string
+    updatedAt?: DateTimeFilter<"Rinvio"> | Date | string
+    parentEvent?: XOR<EventRelationFilter, EventWhereInput>
+  }
+
+  export type RinvioOrderByWithRelationInput = {
+    id?: SortOrder
+    parentEventId?: SortOrder
+    numero?: SortOrder
+    dataUdienza?: SortOrder
+    tipoUdienza?: SortOrder
+    tipoUdienzaCustom?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+    adempimenti?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    parentEvent?: EventOrderByWithRelationInput
+  }
+
+  export type RinvioWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: RinvioWhereInput | RinvioWhereInput[]
+    OR?: RinvioWhereInput[]
+    NOT?: RinvioWhereInput | RinvioWhereInput[]
+    parentEventId?: StringFilter<"Rinvio"> | string
+    numero?: IntFilter<"Rinvio"> | number
+    dataUdienza?: DateTimeFilter<"Rinvio"> | Date | string
+    tipoUdienza?: StringFilter<"Rinvio"> | string
+    tipoUdienzaCustom?: StringNullableFilter<"Rinvio"> | string | null
+    note?: StringNullableFilter<"Rinvio"> | string | null
+    adempimenti?: StringFilter<"Rinvio"> | string
+    createdAt?: DateTimeFilter<"Rinvio"> | Date | string
+    updatedAt?: DateTimeFilter<"Rinvio"> | Date | string
+    parentEvent?: XOR<EventRelationFilter, EventWhereInput>
+  }, "id">
+
+  export type RinvioOrderByWithAggregationInput = {
+    id?: SortOrder
+    parentEventId?: SortOrder
+    numero?: SortOrder
+    dataUdienza?: SortOrder
+    tipoUdienza?: SortOrder
+    tipoUdienzaCustom?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+    adempimenti?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: RinvioCountOrderByAggregateInput
+    _avg?: RinvioAvgOrderByAggregateInput
+    _max?: RinvioMaxOrderByAggregateInput
+    _min?: RinvioMinOrderByAggregateInput
+    _sum?: RinvioSumOrderByAggregateInput
+  }
+
+  export type RinvioScalarWhereWithAggregatesInput = {
+    AND?: RinvioScalarWhereWithAggregatesInput | RinvioScalarWhereWithAggregatesInput[]
+    OR?: RinvioScalarWhereWithAggregatesInput[]
+    NOT?: RinvioScalarWhereWithAggregatesInput | RinvioScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Rinvio"> | string
+    parentEventId?: StringWithAggregatesFilter<"Rinvio"> | string
+    numero?: IntWithAggregatesFilter<"Rinvio"> | number
+    dataUdienza?: DateTimeWithAggregatesFilter<"Rinvio"> | Date | string
+    tipoUdienza?: StringWithAggregatesFilter<"Rinvio"> | string
+    tipoUdienzaCustom?: StringNullableWithAggregatesFilter<"Rinvio"> | string | null
+    note?: StringNullableWithAggregatesFilter<"Rinvio"> | string | null
+    adempimenti?: StringWithAggregatesFilter<"Rinvio"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Rinvio"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Rinvio"> | Date | string
+  }
+
   export type SettingWhereInput = {
     AND?: SettingWhereInput | SettingWhereInput[]
     OR?: SettingWhereInput[]
@@ -5768,6 +7015,7 @@ export namespace Prisma {
     orgId?: string | null
     user: UserCreateNestedOneWithoutEventsInput
     subEvents?: SubEventCreateNestedManyWithoutParentEventInput
+    rinvii?: RinvioCreateNestedManyWithoutParentEventInput
   }
 
   export type EventUncheckedCreateInput = {
@@ -5793,6 +7041,7 @@ export namespace Prisma {
     userId: string
     orgId?: string | null
     subEvents?: SubEventUncheckedCreateNestedManyWithoutParentEventInput
+    rinvii?: RinvioUncheckedCreateNestedManyWithoutParentEventInput
   }
 
   export type EventUpdateInput = {
@@ -5818,6 +7067,7 @@ export namespace Prisma {
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
     user?: UserUpdateOneRequiredWithoutEventsNestedInput
     subEvents?: SubEventUpdateManyWithoutParentEventNestedInput
+    rinvii?: RinvioUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventUncheckedUpdateInput = {
@@ -5843,6 +7093,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
     subEvents?: SubEventUncheckedUpdateManyWithoutParentEventNestedInput
+    rinvii?: RinvioUncheckedUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventCreateManyInput = {
@@ -6034,6 +7285,96 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RinvioCreateInput = {
+    id?: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    parentEvent: EventCreateNestedOneWithoutRinviiInput
+  }
+
+  export type RinvioUncheckedCreateInput = {
+    id?: string
+    parentEventId: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RinvioUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parentEvent?: EventUpdateOneRequiredWithoutRinviiNestedInput
+  }
+
+  export type RinvioUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    parentEventId?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RinvioCreateManyInput = {
+    id?: string
+    parentEventId: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RinvioUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RinvioUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    parentEventId?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type SettingCreateInput = {
     id: string
     value: string
@@ -6215,7 +7556,17 @@ export namespace Prisma {
     none?: SubEventWhereInput
   }
 
+  export type RinvioListRelationFilter = {
+    every?: RinvioWhereInput
+    some?: RinvioWhereInput
+    none?: RinvioWhereInput
+  }
+
   export type SubEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RinvioOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -6390,6 +7741,53 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type RinvioCountOrderByAggregateInput = {
+    id?: SortOrder
+    parentEventId?: SortOrder
+    numero?: SortOrder
+    dataUdienza?: SortOrder
+    tipoUdienza?: SortOrder
+    tipoUdienzaCustom?: SortOrder
+    note?: SortOrder
+    adempimenti?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RinvioAvgOrderByAggregateInput = {
+    numero?: SortOrder
+  }
+
+  export type RinvioMaxOrderByAggregateInput = {
+    id?: SortOrder
+    parentEventId?: SortOrder
+    numero?: SortOrder
+    dataUdienza?: SortOrder
+    tipoUdienza?: SortOrder
+    tipoUdienzaCustom?: SortOrder
+    note?: SortOrder
+    adempimenti?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RinvioMinOrderByAggregateInput = {
+    id?: SortOrder
+    parentEventId?: SortOrder
+    numero?: SortOrder
+    dataUdienza?: SortOrder
+    tipoUdienza?: SortOrder
+    tipoUdienzaCustom?: SortOrder
+    note?: SortOrder
+    adempimenti?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RinvioSumOrderByAggregateInput = {
+    numero?: SortOrder
+  }
+
   export type SettingCountOrderByAggregateInput = {
     id?: SortOrder
     value?: SortOrder
@@ -6472,11 +7870,25 @@ export namespace Prisma {
     connect?: SubEventWhereUniqueInput | SubEventWhereUniqueInput[]
   }
 
+  export type RinvioCreateNestedManyWithoutParentEventInput = {
+    create?: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput> | RinvioCreateWithoutParentEventInput[] | RinvioUncheckedCreateWithoutParentEventInput[]
+    connectOrCreate?: RinvioCreateOrConnectWithoutParentEventInput | RinvioCreateOrConnectWithoutParentEventInput[]
+    createMany?: RinvioCreateManyParentEventInputEnvelope
+    connect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+  }
+
   export type SubEventUncheckedCreateNestedManyWithoutParentEventInput = {
     create?: XOR<SubEventCreateWithoutParentEventInput, SubEventUncheckedCreateWithoutParentEventInput> | SubEventCreateWithoutParentEventInput[] | SubEventUncheckedCreateWithoutParentEventInput[]
     connectOrCreate?: SubEventCreateOrConnectWithoutParentEventInput | SubEventCreateOrConnectWithoutParentEventInput[]
     createMany?: SubEventCreateManyParentEventInputEnvelope
     connect?: SubEventWhereUniqueInput | SubEventWhereUniqueInput[]
+  }
+
+  export type RinvioUncheckedCreateNestedManyWithoutParentEventInput = {
+    create?: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput> | RinvioCreateWithoutParentEventInput[] | RinvioUncheckedCreateWithoutParentEventInput[]
+    connectOrCreate?: RinvioCreateOrConnectWithoutParentEventInput | RinvioCreateOrConnectWithoutParentEventInput[]
+    createMany?: RinvioCreateManyParentEventInputEnvelope
+    connect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -6505,6 +7917,20 @@ export namespace Prisma {
     deleteMany?: SubEventScalarWhereInput | SubEventScalarWhereInput[]
   }
 
+  export type RinvioUpdateManyWithoutParentEventNestedInput = {
+    create?: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput> | RinvioCreateWithoutParentEventInput[] | RinvioUncheckedCreateWithoutParentEventInput[]
+    connectOrCreate?: RinvioCreateOrConnectWithoutParentEventInput | RinvioCreateOrConnectWithoutParentEventInput[]
+    upsert?: RinvioUpsertWithWhereUniqueWithoutParentEventInput | RinvioUpsertWithWhereUniqueWithoutParentEventInput[]
+    createMany?: RinvioCreateManyParentEventInputEnvelope
+    set?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    disconnect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    delete?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    connect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    update?: RinvioUpdateWithWhereUniqueWithoutParentEventInput | RinvioUpdateWithWhereUniqueWithoutParentEventInput[]
+    updateMany?: RinvioUpdateManyWithWhereWithoutParentEventInput | RinvioUpdateManyWithWhereWithoutParentEventInput[]
+    deleteMany?: RinvioScalarWhereInput | RinvioScalarWhereInput[]
+  }
+
   export type SubEventUncheckedUpdateManyWithoutParentEventNestedInput = {
     create?: XOR<SubEventCreateWithoutParentEventInput, SubEventUncheckedCreateWithoutParentEventInput> | SubEventCreateWithoutParentEventInput[] | SubEventUncheckedCreateWithoutParentEventInput[]
     connectOrCreate?: SubEventCreateOrConnectWithoutParentEventInput | SubEventCreateOrConnectWithoutParentEventInput[]
@@ -6517,6 +7943,20 @@ export namespace Prisma {
     update?: SubEventUpdateWithWhereUniqueWithoutParentEventInput | SubEventUpdateWithWhereUniqueWithoutParentEventInput[]
     updateMany?: SubEventUpdateManyWithWhereWithoutParentEventInput | SubEventUpdateManyWithWhereWithoutParentEventInput[]
     deleteMany?: SubEventScalarWhereInput | SubEventScalarWhereInput[]
+  }
+
+  export type RinvioUncheckedUpdateManyWithoutParentEventNestedInput = {
+    create?: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput> | RinvioCreateWithoutParentEventInput[] | RinvioUncheckedCreateWithoutParentEventInput[]
+    connectOrCreate?: RinvioCreateOrConnectWithoutParentEventInput | RinvioCreateOrConnectWithoutParentEventInput[]
+    upsert?: RinvioUpsertWithWhereUniqueWithoutParentEventInput | RinvioUpsertWithWhereUniqueWithoutParentEventInput[]
+    createMany?: RinvioCreateManyParentEventInputEnvelope
+    set?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    disconnect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    delete?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    connect?: RinvioWhereUniqueInput | RinvioWhereUniqueInput[]
+    update?: RinvioUpdateWithWhereUniqueWithoutParentEventInput | RinvioUpdateWithWhereUniqueWithoutParentEventInput[]
+    updateMany?: RinvioUpdateManyWithWhereWithoutParentEventInput | RinvioUpdateManyWithWhereWithoutParentEventInput[]
+    deleteMany?: RinvioScalarWhereInput | RinvioScalarWhereInput[]
   }
 
   export type EventCreateNestedOneWithoutSubEventsInput = {
@@ -6539,6 +7979,20 @@ export namespace Prisma {
     upsert?: EventUpsertWithoutSubEventsInput
     connect?: EventWhereUniqueInput
     update?: XOR<XOR<EventUpdateToOneWithWhereWithoutSubEventsInput, EventUpdateWithoutSubEventsInput>, EventUncheckedUpdateWithoutSubEventsInput>
+  }
+
+  export type EventCreateNestedOneWithoutRinviiInput = {
+    create?: XOR<EventCreateWithoutRinviiInput, EventUncheckedCreateWithoutRinviiInput>
+    connectOrCreate?: EventCreateOrConnectWithoutRinviiInput
+    connect?: EventWhereUniqueInput
+  }
+
+  export type EventUpdateOneRequiredWithoutRinviiNestedInput = {
+    create?: XOR<EventCreateWithoutRinviiInput, EventUncheckedCreateWithoutRinviiInput>
+    connectOrCreate?: EventCreateOrConnectWithoutRinviiInput
+    upsert?: EventUpsertWithoutRinviiInput
+    connect?: EventWhereUniqueInput
+    update?: XOR<XOR<EventUpdateToOneWithWhereWithoutRinviiInput, EventUpdateWithoutRinviiInput>, EventUncheckedUpdateWithoutRinviiInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -6712,6 +8166,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     orgId?: string | null
     subEvents?: SubEventCreateNestedManyWithoutParentEventInput
+    rinvii?: RinvioCreateNestedManyWithoutParentEventInput
   }
 
   export type EventUncheckedCreateWithoutUserInput = {
@@ -6736,6 +8191,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     orgId?: string | null
     subEvents?: SubEventUncheckedCreateNestedManyWithoutParentEventInput
+    rinvii?: RinvioUncheckedCreateNestedManyWithoutParentEventInput
   }
 
   export type EventCreateOrConnectWithoutUserInput = {
@@ -6854,6 +8310,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RinvioCreateWithoutParentEventInput = {
+    id?: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RinvioUncheckedCreateWithoutParentEventInput = {
+    id?: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RinvioCreateOrConnectWithoutParentEventInput = {
+    where: RinvioWhereUniqueInput
+    create: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput>
+  }
+
+  export type RinvioCreateManyParentEventInputEnvelope = {
+    data: RinvioCreateManyParentEventInput | RinvioCreateManyParentEventInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutEventsInput = {
     update: XOR<UserUpdateWithoutEventsInput, UserUncheckedUpdateWithoutEventsInput>
     create: XOR<UserCreateWithoutEventsInput, UserUncheckedCreateWithoutEventsInput>
@@ -6917,6 +8407,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"SubEvent"> | Date | string
   }
 
+  export type RinvioUpsertWithWhereUniqueWithoutParentEventInput = {
+    where: RinvioWhereUniqueInput
+    update: XOR<RinvioUpdateWithoutParentEventInput, RinvioUncheckedUpdateWithoutParentEventInput>
+    create: XOR<RinvioCreateWithoutParentEventInput, RinvioUncheckedCreateWithoutParentEventInput>
+  }
+
+  export type RinvioUpdateWithWhereUniqueWithoutParentEventInput = {
+    where: RinvioWhereUniqueInput
+    data: XOR<RinvioUpdateWithoutParentEventInput, RinvioUncheckedUpdateWithoutParentEventInput>
+  }
+
+  export type RinvioUpdateManyWithWhereWithoutParentEventInput = {
+    where: RinvioScalarWhereInput
+    data: XOR<RinvioUpdateManyMutationInput, RinvioUncheckedUpdateManyWithoutParentEventInput>
+  }
+
+  export type RinvioScalarWhereInput = {
+    AND?: RinvioScalarWhereInput | RinvioScalarWhereInput[]
+    OR?: RinvioScalarWhereInput[]
+    NOT?: RinvioScalarWhereInput | RinvioScalarWhereInput[]
+    id?: StringFilter<"Rinvio"> | string
+    parentEventId?: StringFilter<"Rinvio"> | string
+    numero?: IntFilter<"Rinvio"> | number
+    dataUdienza?: DateTimeFilter<"Rinvio"> | Date | string
+    tipoUdienza?: StringFilter<"Rinvio"> | string
+    tipoUdienzaCustom?: StringNullableFilter<"Rinvio"> | string | null
+    note?: StringNullableFilter<"Rinvio"> | string | null
+    adempimenti?: StringFilter<"Rinvio"> | string
+    createdAt?: DateTimeFilter<"Rinvio"> | Date | string
+    updatedAt?: DateTimeFilter<"Rinvio"> | Date | string
+  }
+
   export type EventCreateWithoutSubEventsInput = {
     id?: string
     title: string
@@ -6939,6 +8461,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     orgId?: string | null
     user: UserCreateNestedOneWithoutEventsInput
+    rinvii?: RinvioCreateNestedManyWithoutParentEventInput
   }
 
   export type EventUncheckedCreateWithoutSubEventsInput = {
@@ -6963,6 +8486,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     userId: string
     orgId?: string | null
+    rinvii?: RinvioUncheckedCreateNestedManyWithoutParentEventInput
   }
 
   export type EventCreateOrConnectWithoutSubEventsInput = {
@@ -7003,6 +8527,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
     user?: UserUpdateOneRequiredWithoutEventsNestedInput
+    rinvii?: RinvioUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSubEventsInput = {
@@ -7027,6 +8552,123 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
+    rinvii?: RinvioUncheckedUpdateManyWithoutParentEventNestedInput
+  }
+
+  export type EventCreateWithoutRinviiInput = {
+    id?: string
+    title: string
+    description?: string | null
+    startAt: Date | string
+    endAt: Date | string
+    type?: string
+    tags?: string
+    caseId?: string | null
+    notes?: string | null
+    generateSubEvents?: boolean
+    ruleTemplateId?: string | null
+    ruleParams?: string | null
+    macroType?: string | null
+    actionType?: string | null
+    actionMode?: string | null
+    inputs?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    orgId?: string | null
+    user: UserCreateNestedOneWithoutEventsInput
+    subEvents?: SubEventCreateNestedManyWithoutParentEventInput
+  }
+
+  export type EventUncheckedCreateWithoutRinviiInput = {
+    id?: string
+    title: string
+    description?: string | null
+    startAt: Date | string
+    endAt: Date | string
+    type?: string
+    tags?: string
+    caseId?: string | null
+    notes?: string | null
+    generateSubEvents?: boolean
+    ruleTemplateId?: string | null
+    ruleParams?: string | null
+    macroType?: string | null
+    actionType?: string | null
+    actionMode?: string | null
+    inputs?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
+    orgId?: string | null
+    subEvents?: SubEventUncheckedCreateNestedManyWithoutParentEventInput
+  }
+
+  export type EventCreateOrConnectWithoutRinviiInput = {
+    where: EventWhereUniqueInput
+    create: XOR<EventCreateWithoutRinviiInput, EventUncheckedCreateWithoutRinviiInput>
+  }
+
+  export type EventUpsertWithoutRinviiInput = {
+    update: XOR<EventUpdateWithoutRinviiInput, EventUncheckedUpdateWithoutRinviiInput>
+    create: XOR<EventCreateWithoutRinviiInput, EventUncheckedCreateWithoutRinviiInput>
+    where?: EventWhereInput
+  }
+
+  export type EventUpdateToOneWithWhereWithoutRinviiInput = {
+    where?: EventWhereInput
+    data: XOR<EventUpdateWithoutRinviiInput, EventUncheckedUpdateWithoutRinviiInput>
+  }
+
+  export type EventUpdateWithoutRinviiInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: StringFieldUpdateOperationsInput | string
+    tags?: StringFieldUpdateOperationsInput | string
+    caseId?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    generateSubEvents?: BoolFieldUpdateOperationsInput | boolean
+    ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
+    ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
+    macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    actionType?: NullableStringFieldUpdateOperationsInput | string | null
+    actionMode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputs?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
+    user?: UserUpdateOneRequiredWithoutEventsNestedInput
+    subEvents?: SubEventUpdateManyWithoutParentEventNestedInput
+  }
+
+  export type EventUncheckedUpdateWithoutRinviiInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: StringFieldUpdateOperationsInput | string
+    tags?: StringFieldUpdateOperationsInput | string
+    caseId?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    generateSubEvents?: BoolFieldUpdateOperationsInput | boolean
+    ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
+    ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
+    macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    actionType?: NullableStringFieldUpdateOperationsInput | string | null
+    actionMode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputs?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    orgId?: NullableStringFieldUpdateOperationsInput | string | null
+    subEvents?: SubEventUncheckedUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventCreateManyUserInput = {
@@ -7074,6 +8716,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
     subEvents?: SubEventUpdateManyWithoutParentEventNestedInput
+    rinvii?: RinvioUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutUserInput = {
@@ -7098,6 +8741,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
     subEvents?: SubEventUncheckedUpdateManyWithoutParentEventNestedInput
+    rinvii?: RinvioUncheckedUpdateManyWithoutParentEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutUserInput = {
@@ -7135,6 +8779,18 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RinvioCreateManyParentEventInput = {
+    id?: string
+    numero: number
+    dataUdienza: Date | string
+    tipoUdienza: string
+    tipoUdienzaCustom?: string | null
+    note?: string | null
+    adempimenti?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -7187,6 +8843,42 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RinvioUpdateWithoutParentEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RinvioUncheckedUpdateWithoutParentEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RinvioUncheckedUpdateManyWithoutParentEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    numero?: IntFieldUpdateOperationsInput | number
+    dataUdienza?: DateTimeFieldUpdateOperationsInput | Date | string
+    tipoUdienza?: StringFieldUpdateOperationsInput | string
+    tipoUdienzaCustom?: NullableStringFieldUpdateOperationsInput | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    adempimenti?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -7212,6 +8904,10 @@ export namespace Prisma {
      * @deprecated Use SubEventDefaultArgs instead
      */
     export type SubEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SubEventDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use RinvioDefaultArgs instead
+     */
+    export type RinvioArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RinvioDefaultArgs<ExtArgs>
     /**
      * @deprecated Use SettingDefaultArgs instead
      */

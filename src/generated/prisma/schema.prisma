@@ -48,6 +48,7 @@ model Event {
   orgId  String? // Preparazione fase 2: tenant = organization
 
   subEvents SubEvent[]
+  rinvii    Rinvio[]
 
   @@index([startAt])
   @@index([endAt])
@@ -74,6 +75,23 @@ model SubEvent {
 
   @@index([parentEventId])
   @@index([dueAt])
+}
+
+model Rinvio {
+  id                String   @id @default(cuid())
+  parentEventId     String
+  parentEvent       Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
+  numero            Int
+  dataUdienza       DateTime
+  tipoUdienza       String // valore dalla tabella predefinita o "ALTRO"
+  tipoUdienzaCustom String? // se tipoUdienza = "ALTRO", testo libero
+  note              String?
+  adempimenti       String   @default("[]") // JSON: array di adempimenti
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([parentEventId])
+  @@index([dataUdienza])
 }
 
 model Setting {

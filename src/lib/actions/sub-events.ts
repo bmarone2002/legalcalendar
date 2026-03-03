@@ -164,7 +164,9 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
       userSelections,
     });
 
-    const toDelete = parent.subEvents.filter((s) => !s.locked);
+    const toDelete = parent.subEvents.filter(
+      (s) => !s.locked && s.ruleId !== "rinvio-udienza"
+    );
     await prisma.subEvent.deleteMany({
       where: { id: { in: toDelete.map((s) => s.id) } },
     });
@@ -259,7 +261,9 @@ export async function createSubEventsFromPreview(
       return selectedSet.has(previewId);
     });
 
-    const toDelete = parent.subEvents.filter((s) => !s.locked);
+    const toDelete = parent.subEvents.filter(
+      (s) => !s.locked && s.ruleId !== "rinvio-udienza"
+    );
     await prisma.subEvent.deleteMany({
       where: { id: { in: toDelete.map((s) => s.id) } },
     });
