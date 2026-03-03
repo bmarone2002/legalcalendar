@@ -370,9 +370,16 @@ export function ProsecuzionePanel({
 
     setSaving(true);
     try {
+      const normalizedDataUdienza = new Date(
+        dataUdienza.getFullYear(),
+        dataUdienza.getMonth(),
+        dataUdienza.getDate(),
+        12, 0, 0
+      );
+
       const result = await createRinvio({
         parentEventId: eventId,
-        dataUdienza,
+        dataUdienza: normalizedDataUdienza,
         tipoUdienza,
         tipoUdienzaCustom: tipoUdienza === "ALTRO" ? tipoUdienzaCustom : null,
         note: note || null,

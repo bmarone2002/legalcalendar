@@ -71,7 +71,6 @@ async function generateSubEventsForRinvio(
     udienzaInfo.tipoUdienzaCustom
   );
 
-  // SubEvent per la data udienza stessa
   const udienzaDueAt = applyDeadlineTime(udienzaInfo.dataUdienza, settings);
 
   await prisma.subEvent.create({
