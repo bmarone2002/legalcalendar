@@ -553,10 +553,7 @@ export function CalendarView() {
           </div>
         </div>
       </div>
-      <div
-        className="flex-1 w-full min-h-0 calendar-month-container"
-        style={{ height: "calc(100vh - 190px)" }}
-      >
+      <div className="w-full calendar-month-container">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
@@ -612,8 +609,8 @@ export function CalendarView() {
           eventDrop={handleEventDrop}
           eventContent={renderEventContent}
           eventClassNames={(arg) => (arg.event.extendedProps.isSubEvent as boolean) ? ["fc-event-sub"] : ["fc-event-madre"]}
-          height="100%"
-          expandRows={true}
+          height="auto"
+          expandRows={false}
           slotMinTime="00:00:00"
           slotMaxTime="24:00:00"
           slotDuration="01:00:00"
