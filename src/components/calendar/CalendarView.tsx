@@ -594,32 +594,29 @@ export function CalendarView() {
               <span className="text-xs">▾</span>
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
+          <div className="flex items-center gap-3">
+            {/* Toggle promemoria: interruttore con label */}
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={handleToggleHideSubEvents}
-              title={hideSubEvents ? "Filtro attivo: solo eventi principali. Clicca per mostrare tutto" : "Mostra solo eventi principali (nasconde promemoria)"}
-              className={`h-8 px-3 text-xs sm:text-sm rounded-md border transition-colors ${
-                hideSubEvents
-                  ? "bg-[var(--calendar-brown)] border-[var(--calendar-brown)] text-white hover:opacity-90 dark:bg-[var(--calendar-brown)] dark:border-[var(--calendar-brown)] dark:text-white"
-                  : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100 dark:!bg-white dark:!text-zinc-700 dark:hover:!bg-zinc-100"
-              }`}
+              className="flex items-center gap-2 select-none"
+              title={hideSubEvents ? "Promemoria nascosti. Clicca per mostrarli." : "Promemoria visibili. Clicca per nasconderli."}
             >
-              {hideSubEvents ? "Solo eventi" : "Tutti gli eventi"}
-            </Button>
-            {isSearchActive && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs sm:text-sm rounded-md border-zinc-300 bg-white text-black hover:bg-zinc-100 dark:!bg-white dark:!text-black dark:hover:!bg-zinc-100"
-                onClick={handleClearSearch}
+              <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">Promemoria</span>
+              <span
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors ${
+                  hideSubEvents
+                    ? "bg-zinc-300 border-zinc-400"
+                    : "bg-[var(--calendar-brown)] border-[var(--calendar-brown)]"
+                }`}
               >
-                Mostra tutti gli eventi
-              </Button>
-            )}
+                <span
+                  className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
+                  style={{ transform: hideSubEvents ? "translateX(2px)" : "translateX(18px)" }}
+                />
+              </span>
+            </button>
+            {/* Barra di ricerca con X integrata per rimuovere il filtro */}
             <div className="relative">
               <input
                 type="text"
@@ -627,8 +624,23 @@ export function CalendarView() {
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Cerca per titolo o promemoria…"
-                className="h-8 w-52 sm:w-64 rounded-md border border-zinc-300 bg-white px-2 text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+                className={`h-8 w-52 sm:w-64 rounded-md border bg-white px-2 pr-7 text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 ${
+                  isSearchActive ? "border-[var(--calendar-brown)] ring-1 ring-[var(--calendar-brown)]" : "border-zinc-300"
+                }`}
               />
+              {(isSearchActive || searchQuery.length > 0) && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                  title="Annulla ricerca"
+                  aria-label="Annulla ricerca"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+                    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
               {searchSuggestions.length > 0 && (
                 <div className="absolute z-20 mt-1 w-64 sm:w-72 rounded-md border border-zinc-200 bg-white shadow-lg max-h-60 overflow-auto text-xs sm:text-sm">
                   {searchSuggestions.map((s) => (
