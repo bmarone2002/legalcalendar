@@ -41,9 +41,13 @@ interface EventModalProps {
   eventId?: string;
   initialStart?: Date;
   initialEnd?: Date;
+  draftId?: string | null;
+  initialDraft?: Partial<EventFormState>;
   onClose: () => void;
   onChanged?: () => void;
   onDeleted?: (id: string) => void;
+  onDraft?: (draftId: string | null, form: EventFormState) => void;
+  onDraftCleared?: (draftId: string | null) => void;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -164,13 +168,30 @@ export function EventModal({
   eventId,
   initialStart,
   initialEnd,
+  draftId,
+  initialDraft,
   onClose,
   onChanged,
   onDeleted,
+  onDraft,
+  onDraftCleared,
 }: EventModalProps) {
   const router = useRouter();
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
-  const [form, setForm] = useState<EventFormState>(() => defaultEvent(initialStart, initialEnd));
+  const [form, setForm] = useState<EventFormState>(() => {
+    const base = defaultEvent(initialStart, initialEnd);
+    if (!initialDraft) return base;
+    return {
+      ...base,
+      ...initialDraft,
+      startAt: initialDraft.startAt
+        ? new Date(initialDraft.startAt as unknown as Date)
+        : base.startAt,
+      endAt: initialDraft.endAt
+        ? new Date(initialDraft.endAt as unknown as Date)
+        : base.endAt,
+    };
+  });
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
   const [previewSubEvents, setPreviewSubEvents] = useState<
     Array<{
@@ -456,10 +477,14 @@ export function EventModal({
         if (form.generateSubEvents) {
           const usePreviewList = userHasClickedCalcolaRef.current;
           if (usePreviewList) {
-            const regen = await createSubEventsFromPreview(eventId, previewSubEvents.map((p) => p.id));
+            const regen = await createSubEventsFromPreview(
+              eventId,
+              previewSubEvents.map((p) => p.id)
+            );
             if (!regen.success) {
               setError(
-                regen.error ?? "Errore aggiornamento sottoeventi. Riprova o rigenera dalla tab Regole."
+                regen.error ??
+                  "Errore aggiornamento sottoeventi. Riprova o rigenera dalla tab Regole."
               );
               return;
             }
@@ -470,6 +495,8 @@ export function EventModal({
           }
         }
       }
+      // Dopo il salvataggio, una eventuale bozza collegata può essere rimossa
+      onDraftCleared?.(draftId ?? null);
       onChanged?.();
       router.refresh();
       onClose();
@@ -572,7 +599,17 @@ export function EventModal({
   }
 
   return (
-    <Dialog open onOpenChange={() => onClose()}>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) {
+          if (mode === "create" && onDraft) {
+            onDraft(draftId ?? null, form);
+          }
+          onClose();
+        }
+      }}
+    >
       <DialogContent
         ref={setPopoverContainer}
         className="max-w-2xl max-h-[90vh] flex flex-col bg-white event-modal-light"
@@ -581,7 +618,12 @@ export function EventModal({
       >
         <PopoverContainerContext.Provider value={popoverContainer}>
         <DialogHeader>
-          <DialogTitle className="text-[var(--calendar-brown)]">{mode === "create" ? "Nuovo evento" : "Dettaglio evento"}</DialogTitle>
+          <DialogTitle className="text-[var(--calendar-brown)]">
+            {mode === "create" ? "Nuovo evento" : "Dettaglio evento"}
+          </DialogTitle>
+          {mode === "create" && draftId && (
+            <p className="text-xs font-semibold text-red-600 mt-1">BOZZA (non ancora salvato)</p>
+          )}
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "dettagli" | "regole" | "prosecuzione")} className="flex-1 min-h-0 flex flex-col">
           <TabsList className="bg-zinc-100 dark:bg-zinc-100 dark:text-zinc-600 p-1">
@@ -1026,7 +1068,16 @@ export function EventModal({
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} disabled={saving || calculating}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (mode === "create" && onDraft) {
+                  onDraft(draftId ?? null, form);
+                }
+                onClose();
+              }}
+              disabled={saving || calculating}
+            >
               Annulla
             </Button>
             <Button

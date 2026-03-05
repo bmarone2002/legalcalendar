@@ -25,6 +25,11 @@ type SearchSuggestion = {
   detail?: string;
 };
 
+type DraftEvent = {
+  id: string;
+  form: any;
+};
+
 function filterEventsFromToday(events: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -94,7 +99,7 @@ export function CalendarView() {
   const [currentView, setCurrentView] = useState<string>("dayGridMonth");
   const [viewTitle, setViewTitle] = useState<string>("");
   const [modalState, setModalState] = useState<
-    | { mode: "create"; start?: Date; end?: Date }
+    | { mode: "create"; start?: Date; end?: Date; draftId?: string | null; initialDraftForm?: any }
     | { mode: "edit"; eventId: string }
     | null
   >(null);
@@ -107,6 +112,7 @@ export function CalendarView() {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("calendar:hideSubEvents") === "true";
   });
+  const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -151,6 +157,31 @@ export function CalendarView() {
             }
 
             let events = eventsData.flatMap(toFullCalendarEvents);
+            // Eventi bozza (solo lato client, evidenziati in giallo)
+            const draftFcEvents = draftEvents.map((draft) => {
+              const f = draft.form || {};
+              const start = f.startAt ? new Date(f.startAt) : new Date();
+              const end =
+                f.endAt != null
+                  ? new Date(f.endAt)
+                  : new Date(start.getTime() + 60 * 60 * 1000);
+              const rawTitle = (f.title as string | undefined)?.trim() || "Evento senza titolo";
+              return {
+                id: draft.id,
+                title: `BOZZA – ${rawTitle}`,
+                start,
+                end,
+                allDay: false,
+                backgroundColor: "#FFF9C4",
+                borderColor: "#FBC02D",
+                extendedProps: {
+                  isSubEvent: false,
+                  isDraft: true,
+                  status: f.status ?? "pending",
+                },
+              } as Record<string, unknown>;
+            });
+            events = events.concat(draftFcEvents);
             // Filtro "Solo eventi principali": nasconde promemoria e sottoeventi
             if (hideSubEvents) {
               events = events.filter((ev) => !(ev.extendedProps as { isSubEvent?: boolean }).isSubEvent);
@@ -178,7 +209,7 @@ export function CalendarView() {
           )
         );
     },
-    [isSearchActive, searchFilterEventId, hideSubEvents]
+    [isSearchActive, searchFilterEventId, hideSubEvents, draftEvents]
   );
 
   const applySuggestionSelection = useCallback(
@@ -292,14 +323,39 @@ export function CalendarView() {
     setModalState({ mode: "create", start: arg.start, end: arg.end });
   }, []);
 
-  const handleEventClick = useCallback((arg: EventClickArg) => {
-    arg.jsEvent.preventDefault();
-    const isSub = arg.event.extendedProps.isSubEvent as boolean | undefined;
-    const eventId = isSub
-      ? (arg.event.extendedProps.parentEventId as string)
-      : (arg.event.id as string);
-    setModalState({ mode: "edit", eventId });
-  }, []);
+  const handleEventClick = useCallback(
+    (arg: EventClickArg) => {
+      arg.jsEvent.preventDefault();
+      const ext = arg.event.extendedProps as any;
+      if (ext.isDraft) {
+        const draftId = arg.event.id as string;
+        const draft = draftEvents.find((d) => d.id === draftId);
+        if (draft) {
+          const form = draft.form || {};
+          const start =
+            form.startAt != null
+              ? new Date(form.startAt)
+              : (arg.event.start as Date | null) ?? new Date();
+          const end =
+            form.endAt != null
+              ? new Date(form.endAt)
+              : (arg.event.end as Date | null) ?? new Date(start.getTime() + 60 * 60 * 1000);
+          setModalState({
+            mode: "create",
+            start,
+            end,
+            draftId,
+            initialDraftForm: form,
+          });
+        }
+        return;
+      }
+      const isSub = ext.isSubEvent as boolean | undefined;
+      const eventId = isSub ? (ext.parentEventId as string) : (arg.event.id as string);
+      setModalState({ mode: "edit", eventId });
+    },
+    [draftEvents]
+  );
 
   const handleEventDrop = useCallback(
     async (arg: EventDropArg) => {
@@ -340,6 +396,35 @@ export function CalendarView() {
       }
     });
   }, []);
+
+  const handleDraftFromModal = useCallback(
+    (draftId: string | null, form: any) => {
+      const id =
+        draftId ??
+        `draft-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const snapshot = {
+        ...form,
+        startAt: form.startAt instanceof Date ? form.startAt.toISOString() : form.startAt,
+        endAt: form.endAt instanceof Date ? form.endAt.toISOString() : form.endAt,
+      };
+      setDraftEvents((prev) => {
+        const without = prev.filter((d) => d.id !== id);
+        return [...without, { id, form: snapshot }];
+      });
+    },
+    []
+  );
+
+  const handleClearDraftFromModal = useCallback(
+    (draftId: string | null) => {
+      if (!draftId) {
+        setDraftEvents([]);
+        return;
+      }
+      setDraftEvents((prev) => prev.filter((d) => d.id !== draftId));
+    },
+    []
+  );
 
   const handleChangeView = useCallback((view: string) => {
     const api = calendarRef.current?.getApi();
@@ -696,10 +781,14 @@ export function CalendarView() {
           mode={modalState.mode}
           initialStart={modalState.mode === "create" ? modalState.start : undefined}
           initialEnd={modalState.mode === "create" ? modalState.end : undefined}
+          draftId={modalState.mode === "create" ? modalState.draftId ?? null : undefined}
+          initialDraft={modalState.mode === "create" ? modalState.initialDraftForm : undefined}
           eventId={modalState.mode === "edit" ? modalState.eventId : undefined}
           onClose={handleModalClose}
           onChanged={handleModalChanged}
           onDeleted={handleModalDeleted}
+          onDraft={handleDraftFromModal}
+          onDraftCleared={handleClearDraftFromModal}
         />
       )}
     </div>

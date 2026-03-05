@@ -20,8 +20,14 @@ export const reminderRule: RuleDefinition = {
       "09:00";
     const { hours, minutes } = parseTime(timeStr);
     const eventStart = new Date(input.event.startAt);
+    // Normalizza alla data locale dell'evento (ignorando l'ora per il calcolo dei giorni)
+    const eventDateOnly = new Date(
+      eventStart.getFullYear(),
+      eventStart.getMonth(),
+      eventStart.getDate()
+    );
     const subEvents = offsets.map((daysBefore) => {
-      const dueDate = addDays(eventStart, -daysBefore);
+      const dueDate = addDays(eventDateOnly, -daysBefore);
       const dueAt = setMinutes(setHours(dueDate, hours), minutes);
       return {
         title: `Promemoria: ${input.event.title} (T-${daysBefore})`,
