@@ -154,6 +154,6 @@ export const ACTION_TYPE_LABELS: Record<ActionType, string> = {
 };
 
 export const ACTION_MODE_LABELS: Record<ActionMode, string> = {
-  COSTITUZIONE: "Costituzione",
-  DA_NOTIFICARE: "Da notificare",
+  COSTITUZIONE: "CONVENUTO/RESISTENTE",
+  DA_NOTIFICARE: "ATTORE/RICORRENTE",
 };

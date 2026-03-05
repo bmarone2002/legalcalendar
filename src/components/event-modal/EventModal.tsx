@@ -619,7 +619,7 @@ export function EventModal({
         <PopoverContainerContext.Provider value={popoverContainer}>
         <DialogHeader>
           <DialogTitle className="text-[var(--calendar-brown)]">
-            {mode === "create" ? "Nuovo evento" : "Dettaglio evento"}
+            {mode === "create" ? "NUOVA PRATICA" : "DETTAGLIO PRATICA"}
           </DialogTitle>
           {mode === "create" && draftId && (
             <p className="text-xs font-semibold text-red-600 mt-1">BOZZA (non ancora salvato)</p>
@@ -637,11 +637,11 @@ export function EventModal({
             <div className="space-y-4">
               {/* 1. Titolo */}
               <div>
-                <Label>Titolo</Label>
+                <Label>PRATICA</Label>
                 <Input
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="Titolo evento"
+                  placeholder="DETTAGLI PRATICA"
                 />
               </div>
 
@@ -668,7 +668,7 @@ export function EventModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="generico">Pratiche in Corso</SelectItem>
-                    <SelectItem value="ATTO_GIURIDICO">Atto Giuridico</SelectItem>
+                    <SelectItem value="ATTO_GIURIDICO">NUOVO ATTO GIURIDICO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
