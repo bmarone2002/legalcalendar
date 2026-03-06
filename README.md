@@ -2,6 +2,8 @@
 
 Calendario personale per avvocato con interfaccia stile Outlook: viste Mese/Settimana, drag & drop eventi, modale evento estensibile e rule engine per sottoeventi automatici.
 
+> Nota: ultima versione aggiornata con auto-posizionamento eventi da 1h e miglioramenti UI (Mar 2026).
+
 ## Stack
 
 - **Next.js 14+** (App Router), **React**, **TypeScript**
