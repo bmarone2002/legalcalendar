@@ -47,6 +47,8 @@ interface EventModalProps {
   onDeleted?: (id: string) => void;
   onDraft?: (draftId: string | null, form: EventFormState) => void;
   onDraftCleared?: (draftId: string | null) => void;
+  targetUserId?: string;
+  readOnly?: boolean;
 }
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
@@ -181,6 +183,8 @@ export function EventModal({
   onDeleted,
   onDraft,
   onDraftCleared,
+  targetUserId,
+  readOnly = false,
 }: EventModalProps) {
   // Data evento: solo i valori attuali del form contano. initialStart/initialEnd servono solo come default iniziale se apri da click sul calendario; se modifichi data/ora in creazione, resta ciò che hai impostato.
   const [form, setForm] = useState<EventFormState>(() => {
@@ -225,7 +229,7 @@ export function EventModal({
 
   const loadEvent = useCallback(async (id: string) => {
     setLoading(true);
-    const result = await getEventById(id);
+    const result = await getEventById(id, targetUserId);
     setLoading(false);
     if (result.success && result.data) {
       const e = result.data;
@@ -254,7 +258,7 @@ export function EventModal({
       setSubEvents(e.subEvents ?? []);
       setSelectedSubEventId(null);
     }
-  }, []);
+  }, [targetUserId]);
 
   useEffect(() => {
     if (mode === "edit" && eventId) loadEvent(eventId);
@@ -442,7 +446,7 @@ export function EventModal({
           ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
           color: form.color ?? undefined,
           status: form.status,
-        });
+        }, targetUserId);
         if (!result.success) {
           setError(result.error);
           return;
@@ -450,8 +454,8 @@ export function EventModal({
         if (result.data && form.generateSubEvents) {
           const usePreviewList = userHasClickedCalcolaRef.current;
           const regen = usePreviewList
-            ? await createSubEventsFromPreview(result.data.id, previewSubEvents.map((p) => p.id))
-            : await regenerateSubEvents(result.data.id);
+            ? await createSubEventsFromPreview(result.data.id, previewSubEvents.map((p) => p.id), targetUserId)
+            : await regenerateSubEvents(result.data.id, targetUserId);
           if (!regen.success) {
             setError(
               regen.error ?? "Errore creazione sottoeventi. Riprova o rigenera dalla tab Regole."
@@ -477,19 +481,18 @@ export function EventModal({
           ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
           color: form.color ?? undefined,
           status: form.status,
-        });
+        }, targetUserId);
         if (!result.success) {
           setError(normalizeDisplayError(result.error));
           return;
         }
-        // In modifica: se l'utente ha cliccato Calcola e l'evento genera sottoeventi,
-        // aggiorniamo i promemoria in base alla data corrente prima di chiudere.
         if (form.generateSubEvents) {
           const usePreviewList = userHasClickedCalcolaRef.current;
           if (usePreviewList) {
             const regen = await createSubEventsFromPreview(
               eventId,
-              previewSubEvents.map((p) => p.id)
+              previewSubEvents.map((p) => p.id),
+              targetUserId
             );
             if (!regen.success) {
               setError(
@@ -545,12 +548,12 @@ export function EventModal({
         ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
         color: form.color ?? undefined,
         status: form.status,
-      });
+      }, targetUserId);
       if (!up.success) {
         setError(normalizeDisplayError(up.error));
         return;
       }
-      const result = await regenerateSubEvents(eventId);
+      const result = await regenerateSubEvents(eventId, targetUserId);
       if (result.success && result.data) {
         setSubEvents(result.data);
         setSelectedSubEventId(null);
@@ -567,7 +570,7 @@ export function EventModal({
     setSaving(true);
     setError(null);
     try {
-      const result = await deleteSubEvent(selectedSubEventId);
+      const result = await deleteSubEvent(selectedSubEventId, targetUserId);
       if (result.success) {
         setSubEvents((prev) => prev.filter((se) => se.id !== selectedSubEventId));
         setSelectedSubEventId(null);
@@ -584,7 +587,7 @@ export function EventModal({
     setSaving(true);
     setError(null);
     try {
-      const result = await deleteEvent(eventId);
+      const result = await deleteEvent(eventId, targetUserId);
       if (result.success) {
         setShowDeleteConfirm(false);
         onChanged?.();
@@ -629,7 +632,7 @@ export function EventModal({
         <PopoverContainerContext.Provider value={popoverContainer}>
         <DialogHeader>
           <DialogTitle className="text-[var(--calendar-brown)]">
-            {mode === "create" ? "NUOVA PRATICA" : "DETTAGLIO PRATICA"}
+            {readOnly ? "VISUALIZZAZIONE PRATICA" : mode === "create" ? "NUOVA PRATICA" : "DETTAGLIO PRATICA"}
           </DialogTitle>
           {mode === "create" && draftId && (
             <p className="text-xs font-semibold text-red-600 mt-1">BOZZA (non ancora salvato)</p>
@@ -652,6 +655,7 @@ export function EventModal({
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                   placeholder="DETTAGLI PRATICA"
+                  disabled={readOnly}
                 />
               </div>
 
@@ -869,6 +873,7 @@ export function EventModal({
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Adempimenti o note"
+                  disabled={readOnly}
                 />
               </div>
 
@@ -976,9 +981,10 @@ export function EventModal({
                                   <Checkbox
                                     id={`sub-done-${(s as SubEvent).id}`}
                                     checked={isDone}
+                                    disabled={readOnly}
                                     onCheckedChange={async (checked) => {
                                       const id = (s as SubEvent).id;
-                                      const result = await updateSubEvent(id, { status: checked ? "done" : "pending" });
+                                      const result = await updateSubEvent(id, { status: checked ? "done" : "pending" }, targetUserId);
                                       if (result.success && result.data) {
                                         setSubEvents((prev) => prev.map((se) => (se.id === id ? { ...se, status: result.data!.status } : se)));
                                       }
@@ -1040,9 +1046,11 @@ export function EventModal({
             <TabsContent value="prosecuzione" className="flex-1 overflow-auto mt-2">
               <ProsecuzionePanel
                 eventId={eventId}
+                targetUserId={targetUserId}
+                readOnly={readOnly}
                 onSubEventsChanged={async () => {
                   if (eventId) {
-                    const result = await getEventById(eventId);
+                    const result = await getEventById(eventId, targetUserId);
                     if (result.success && result.data) {
                       setSubEvents(result.data.subEvents ?? []);
                     }
@@ -1056,7 +1064,7 @@ export function EventModal({
         {error && <p className="text-sm text-red-600">{error}</p>}
         <DialogFooter className="dialog-footer-light flex-row justify-between">
           <div className="flex gap-2">
-            {mode === "edit" && eventId && (
+            {!readOnly && mode === "edit" && eventId && (
               <>
                 <Button
                   type="button"
@@ -1081,26 +1089,30 @@ export function EventModal({
             <Button
               variant="outline"
               onClick={() => {
-                if (mode === "create" && onDraft) {
+                if (!readOnly && mode === "create" && onDraft) {
                   onDraft(draftId ?? null, form);
                 }
                 onClose();
               }}
               disabled={saving || calculating}
             >
-              Annulla
+              {readOnly ? "Chiudi" : "Annulla"}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCalcola}
-              disabled={saving || calculating || !form.ruleTemplateId}
-            >
-              {calculating ? "Calcolo..." : "Calcola"}
-            </Button>
-            <Button className="btn-save-primary" onClick={handleSave} disabled={saving || calculating}>
-              {saving ? "Salvataggio..." : "Salva"}
-            </Button>
+            {!readOnly && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCalcola}
+                  disabled={saving || calculating || !form.ruleTemplateId}
+                >
+                  {calculating ? "Calcolo..." : "Calcola"}
+                </Button>
+                <Button className="btn-save-primary" onClick={handleSave} disabled={saving || calculating}>
+                  {saving ? "Salvataggio..." : "Salva"}
+                </Button>
+              </>
+            )}
           </div>
         </DialogFooter>
         </PopoverContainerContext.Provider>

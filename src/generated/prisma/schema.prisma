@@ -18,7 +18,9 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  events Event[]
+  events       Event[]
+  sharedByMe   CalendarShare[] @relation("SharedByMe")
+  sharedWithMe CalendarShare[] @relation("SharedWithMe")
 }
 
 model Event {
@@ -98,4 +100,24 @@ model Rinvio {
 model Setting {
   id    String @id
   value String // JSON
+}
+
+enum SharePermission {
+  VIEW_ONLY
+  FULL
+}
+
+model CalendarShare {
+  id           String          @id @default(cuid())
+  ownerId      String
+  sharedWithId String
+  permission   SharePermission @default(VIEW_ONLY)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  owner      User @relation("SharedByMe", fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWith User @relation("SharedWithMe", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, sharedWithId])
+  @@index([sharedWithId])
 }

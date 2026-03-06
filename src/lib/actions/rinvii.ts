@@ -7,6 +7,7 @@ import { addDays } from "date-fns";
 import type { Rinvio, Adempimento, CreateRinvioInput, UpdateRinvioInput, TipoUdienza } from "@/types/rinvio";
 import { TIPO_UDIENZA_LABELS, DEFAULT_GIORNI_ALERT_UDIENZA } from "@/types/rinvio";
 import type { ActionResult } from "./events";
+import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 
 const RINVIO_RULE_ID = "rinvio-udienza";
 
@@ -175,10 +176,23 @@ async function deleteSubEventsForRinvio(parentEventId: string, rinvioId: string)
   }
 }
 
+async function getEventOwner(eventId: string): Promise<string | null> {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { userId: true },
+  });
+  return event?.userId ?? null;
+}
+
 export async function getRinviiByEventId(
-  eventId: string
+  eventId: string,
+  targetUserId?: string
 ): Promise<ActionResult<Rinvio[]>> {
   try {
+    const ownerId = await getEventOwner(eventId);
+    if (!ownerId) return { success: false, error: "Evento non trovato" };
+    await resolveCalendarUser(targetUserId ?? ownerId, "VIEW_ONLY");
+
     const rinvii = await prisma.rinvio.findMany({
       where: { parentEventId: eventId },
       orderBy: { numero: "asc" },
@@ -193,9 +207,14 @@ export async function getRinviiByEventId(
 }
 
 export async function createRinvio(
-  data: CreateRinvioInput
+  data: CreateRinvioInput,
+  targetUserId?: string
 ): Promise<ActionResult<Rinvio>> {
   try {
+    const ownerId = await getEventOwner(data.parentEventId);
+    if (!ownerId) return { success: false, error: "Evento non trovato" };
+    await resolveCalendarUser(targetUserId ?? ownerId, "FULL");
+
     const lastRinvio = await prisma.rinvio.findFirst({
       where: { parentEventId: data.parentEventId },
       orderBy: { numero: "desc" },
@@ -237,13 +256,18 @@ export async function createRinvio(
 
 export async function updateRinvio(
   id: string,
-  data: UpdateRinvioInput
+  data: UpdateRinvioInput,
+  targetUserId?: string
 ): Promise<ActionResult<Rinvio>> {
   try {
-    const existing = await prisma.rinvio.findUnique({ where: { id } });
+    const existing = await prisma.rinvio.findUnique({
+      where: { id },
+      include: { parentEvent: { select: { userId: true } } },
+    });
     if (!existing) {
       return { success: false, error: "Rinvio non trovato" };
     }
+    await resolveCalendarUser(targetUserId ?? existing.parentEvent.userId, "FULL");
 
     const rinvio = await prisma.rinvio.update({
       where: { id },
@@ -290,13 +314,20 @@ export async function updateRinvio(
 }
 
 export async function deleteRinvio(
-  id: string
+  id: string,
+  targetUserId?: string
 ): Promise<ActionResult<void>> {
   try {
-    const existing = await prisma.rinvio.findUnique({ where: { id }, select: { parentEventId: true } });
-    if (existing) {
-      await deleteSubEventsForRinvio(existing.parentEventId, id);
+    const existing = await prisma.rinvio.findUnique({
+      where: { id },
+      select: { parentEventId: true, parentEvent: { select: { userId: true } } },
+    });
+    if (!existing) {
+      return { success: false, error: "Rinvio non trovato" };
     }
+    await resolveCalendarUser(targetUserId ?? existing.parentEvent.userId, "FULL");
+
+    await deleteSubEventsForRinvio(existing.parentEventId, id);
     await prisma.rinvio.delete({ where: { id } });
     return { success: true, data: undefined };
   } catch (e) {

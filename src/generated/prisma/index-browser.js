@@ -190,6 +190,15 @@ exports.Prisma.SettingScalarFieldEnum = {
   value: 'value'
 };
 
+exports.Prisma.CalendarShareScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  sharedWithId: 'sharedWithId',
+  permission: 'permission',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -204,14 +213,18 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-
+exports.SharePermission = exports.$Enums.SharePermission = {
+  VIEW_ONLY: 'VIEW_ONLY',
+  FULL: 'FULL'
+};
 
 exports.Prisma.ModelName = {
   User: 'User',
   Event: 'Event',
   SubEvent: 'SubEvent',
   Rinvio: 'Rinvio',
-  Setting: 'Setting'
+  Setting: 'Setting',
+  CalendarShare: 'CalendarShare'
 };
 
 /**

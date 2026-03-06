@@ -8,6 +8,7 @@ import type { ActionResult } from "./events";
 import { parseJsonField } from "@/lib/utils";
 import { toSubEvent } from "@/lib/mappers";
 import type { SubEventCandidate } from "../rules/types";
+import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 
 export { toSubEvent };
 
@@ -176,12 +177,13 @@ export async function getSubEventsPreview(
   }
 }
 
-export async function regenerateSubEvents(parentEventId: string): Promise<
+export async function regenerateSubEvents(parentEventId: string, targetUserId?: string): Promise<
   ActionResult<SubEvent[]>
 > {
   try {
     const ctx = await loadParentContext(parentEventId);
     if (!ctx) return { success: false, error: "Evento non trovato" };
+    await resolveCalendarUser(targetUserId ?? ctx.parent.userId, "FULL");
     if (!ctx.parent.generateSubEvents || !ctx.parent.ruleTemplateId) {
       return { success: true, data: [] };
     }
@@ -205,11 +207,13 @@ export async function regenerateSubEvents(parentEventId: string): Promise<
 
 export async function createSubEventsFromPreview(
   parentEventId: string,
-  selectedPreviewIds: string[]
+  selectedPreviewIds: string[],
+  targetUserId?: string
 ): Promise<ActionResult<SubEvent[]>> {
   try {
     const ctx = await loadParentContext(parentEventId);
     if (!ctx) return { success: false, error: "Evento non trovato" };
+    await resolveCalendarUser(targetUserId ?? ctx.parent.userId, "FULL");
     if (!ctx.parent.generateSubEvents || !ctx.parent.ruleTemplateId) {
       return { success: true, data: [] };
     }
@@ -240,9 +244,19 @@ export async function createSubEventsFromPreview(
 
 export async function updateSubEvent(
   id: string,
-  data: { title?: string; dueAt?: Date; status?: SubEvent["status"] }
+  data: { title?: string; dueAt?: Date; status?: SubEvent["status"] },
+  targetUserId?: string
 ): Promise<ActionResult<SubEvent>> {
   try {
+    const existing = await prisma.subEvent.findUnique({
+      where: { id },
+      select: { parentEvent: { select: { userId: true } } },
+    });
+    if (!existing) {
+      return { success: false, error: "Sottoevento non trovato" };
+    }
+    await resolveCalendarUser(targetUserId ?? existing.parentEvent.userId, "FULL");
+
     const sub = await prisma.subEvent.update({
       where: { id },
       data: {
@@ -260,8 +274,17 @@ export async function updateSubEvent(
   }
 }
 
-export async function deleteSubEvent(id: string): Promise<ActionResult<void>> {
+export async function deleteSubEvent(id: string, targetUserId?: string): Promise<ActionResult<void>> {
   try {
+    const existing = await prisma.subEvent.findUnique({
+      where: { id },
+      select: { parentEvent: { select: { userId: true } } },
+    });
+    if (!existing) {
+      return { success: false, error: "Sottoevento non trovato" };
+    }
+    await resolveCalendarUser(targetUserId ?? existing.parentEvent.userId, "FULL");
+
     await prisma.subEvent.delete({
       where: { id },
     });

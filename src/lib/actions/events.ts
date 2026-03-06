@@ -6,6 +6,7 @@ import type { Event, CreateEventInput, UpdateEventInput, EventType } from "@/typ
 import { getOrCreateDbUser } from "@/lib/db/user";
 import { parseJsonField } from "@/lib/utils";
 import { toSubEvent } from "@/lib/mappers";
+import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 
 function parseTags(tags: string): string[] {
   try {
@@ -113,17 +114,17 @@ function formatValidationError(err: z.ZodError): string {
   return err.errors.map((e) => e.message).filter(Boolean).join(". ") || err.message;
 }
 
-export async function createEvent(data: CreateEventInput): Promise<ActionResult<Event>> {
+export async function createEvent(data: CreateEventInput, targetUserId?: string): Promise<ActionResult<Event>> {
   const parsed = createEventSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: formatValidationError(parsed.error) };
   }
   const p = parsed.data;
   try {
-    const dbUser = await getOrCreateDbUser();
+    const { userId } = await resolveCalendarUser(targetUserId, "FULL");
     const event = await prisma.event.create({
       data: {
-        userId: dbUser.id,
+        userId,
         title: p.title,
         description: p.description ?? null,
         startAt: p.startAt,
@@ -154,7 +155,8 @@ export async function createEvent(data: CreateEventInput): Promise<ActionResult<
 
 export async function updateEvent(
   id: string,
-  data: UpdateEventInput
+  data: UpdateEventInput,
+  targetUserId?: string
 ): Promise<ActionResult<Event>> {
   const parsed = updateEventSchema.safeParse(data);
   if (!parsed.success) {
@@ -162,14 +164,14 @@ export async function updateEvent(
   }
   const p = parsed.data;
   try {
-    const dbUser = await getOrCreateDbUser();
     const existing = await prisma.event.findUnique({
       where: { id },
       select: { userId: true },
     });
-    if (!existing || existing.userId !== dbUser.id) {
+    if (!existing) {
       return { success: false, error: "Evento non trovato" };
     }
+    await resolveCalendarUser(targetUserId ?? existing.userId, "FULL");
 
     const event = await prisma.event.update({
       where: { id },
@@ -206,16 +208,16 @@ export async function updateEvent(
   }
 }
 
-export async function deleteEvent(id: string): Promise<ActionResult<void>> {
+export async function deleteEvent(id: string, targetUserId?: string): Promise<ActionResult<void>> {
   try {
-    const dbUser = await getOrCreateDbUser();
     const existing = await prisma.event.findUnique({
       where: { id },
       select: { userId: true },
     });
-    if (!existing || existing.userId !== dbUser.id) {
+    if (!existing) {
       return { success: false, error: "Evento non trovato" };
     }
+    await resolveCalendarUser(targetUserId ?? existing.userId, "FULL");
 
     await prisma.event.delete({ where: { id } });
     return { success: true, data: undefined };
@@ -227,16 +229,16 @@ export async function deleteEvent(id: string): Promise<ActionResult<void>> {
   }
 }
 
-export async function getEvents(start: Date, end: Date): Promise<ActionResult<Event[]>> {
+export async function getEvents(start: Date, end: Date, targetUserId?: string): Promise<ActionResult<Event[]>> {
   try {
-    const dbUser = await getOrCreateDbUser();
+    const { userId } = await resolveCalendarUser(targetUserId, "VIEW_ONLY");
     const rangeStart = new Date(start);
     rangeStart.setUTCDate(rangeStart.getUTCDate() - 1);
     const rangeEnd = new Date(end);
     rangeEnd.setUTCDate(rangeEnd.getUTCDate() + 1);
     const events = await prisma.event.findMany({
       where: {
-        userId: dbUser.id,
+        userId,
         OR: [
           { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
           { subEvents: { some: { dueAt: { gte: rangeStart, lte: rangeEnd } } } },
@@ -254,14 +256,17 @@ export async function getEvents(start: Date, end: Date): Promise<ActionResult<Ev
   }
 }
 
-export async function getEventById(id: string): Promise<ActionResult<Event | null>> {
+export async function getEventById(id: string, targetUserId?: string): Promise<ActionResult<Event | null>> {
   try {
-    const dbUser = await getOrCreateDbUser();
-    const event = await prisma.event.findFirst({
-      where: { id, userId: dbUser.id },
+    const event = await prisma.event.findUnique({
+      where: { id },
       include: { subEvents: { orderBy: { dueAt: "asc" } } },
     });
-    return { success: true, data: event ? toEvent(event) : null };
+    if (!event) {
+      return { success: true, data: null };
+    }
+    await resolveCalendarUser(targetUserId ?? event.userId, "VIEW_ONLY");
+    return { success: true, data: toEvent(event) };
   } catch (e) {
     return {
       success: false,

@@ -38,6 +38,8 @@ import type {
 interface ProsecuzionePanelProps {
   eventId: string;
   onSubEventsChanged?: () => void;
+  targetUserId?: string;
+  readOnly?: boolean;
 }
 
 function toDateOnlyString(d: Date): string {
@@ -211,7 +213,7 @@ function RinvioCard({
   deleting,
 }: {
   rinvio: Rinvio;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   deleting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -275,19 +277,21 @@ function RinvioCard({
             </div>
           )}
 
-          <div className="flex justify-end pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 text-xs"
-              onClick={() => onDelete(rinvio.id)}
-              disabled={deleting}
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Elimina rinvio
-            </Button>
-          </div>
+          {onDelete && (
+            <div className="flex justify-end pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 text-xs"
+                onClick={() => onDelete(rinvio.id)}
+                disabled={deleting}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Elimina rinvio
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -299,6 +303,8 @@ function RinvioCard({
 export function ProsecuzionePanel({
   eventId,
   onSubEventsChanged,
+  targetUserId,
+  readOnly = false,
 }: ProsecuzionePanelProps) {
   const [rinvii, setRinvii] = useState<Rinvio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -315,7 +321,7 @@ export function ProsecuzionePanel({
 
   const loadRinvii = useCallback(async () => {
     setLoading(true);
-    const result = await getRinviiByEventId(eventId);
+    const result = await getRinviiByEventId(eventId, targetUserId);
     if (result.success) {
       setRinvii(result.data);
     }
@@ -384,7 +390,7 @@ export function ProsecuzionePanel({
         tipoUdienzaCustom: tipoUdienza === "ALTRO" ? tipoUdienzaCustom : null,
         note: note || null,
         adempimenti: validAdempimenti,
-      });
+      }, targetUserId);
 
       if (result.success) {
         resetForm();
@@ -402,7 +408,7 @@ export function ProsecuzionePanel({
     setSaving(true);
     setError(null);
     try {
-      const result = await deleteRinvio(id);
+      const result = await deleteRinvio(id, targetUserId);
       if (result.success) {
         setRinvii((prev) => prev.filter((r) => r.id !== id));
         onSubEventsChanged?.();
@@ -433,7 +439,7 @@ export function ProsecuzionePanel({
               <RinvioCard
                 key={r.id}
                 rinvio={r}
-                onDelete={handleDeleteRinvio}
+                onDelete={readOnly ? undefined : handleDeleteRinvio}
                 deleting={saving}
               />
             ))}
@@ -449,7 +455,7 @@ export function ProsecuzionePanel({
       )}
 
       {/* New rinvio form */}
-      {showForm && (
+      {!readOnly && showForm && (
         <div className="space-y-3 rounded-md border border-dashed border-[var(--calendar-brown)] bg-zinc-50/50 p-4">
           <h4 className="text-sm font-medium text-zinc-700">
             Nuovo rinvio di udienza
@@ -575,7 +581,7 @@ export function ProsecuzionePanel({
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {/* Add rinvio button */}
-      {!showForm && (
+      {!readOnly && !showForm && (
         <Button
           type="button"
           variant="outline"

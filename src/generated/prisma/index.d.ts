@@ -38,6 +38,28 @@ export type Rinvio = $Result.DefaultSelection<Prisma.$RinvioPayload>
  * 
  */
 export type Setting = $Result.DefaultSelection<Prisma.$SettingPayload>
+/**
+ * Model CalendarShare
+ * 
+ */
+export type CalendarShare = $Result.DefaultSelection<Prisma.$CalendarSharePayload>
+
+/**
+ * Enums
+ */
+export namespace $Enums {
+  export const SharePermission: {
+  VIEW_ONLY: 'VIEW_ONLY',
+  FULL: 'FULL'
+};
+
+export type SharePermission = (typeof SharePermission)[keyof typeof SharePermission]
+
+}
+
+export type SharePermission = $Enums.SharePermission
+
+export const SharePermission: typeof $Enums.SharePermission
 
 /**
  * ##  Prisma Client ʲˢ
@@ -211,6 +233,16 @@ export class PrismaClient<
     * ```
     */
   get setting(): Prisma.SettingDelegate<ExtArgs>;
+
+  /**
+   * `prisma.calendarShare`: Exposes CRUD operations for the **CalendarShare** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CalendarShares
+    * const calendarShares = await prisma.calendarShare.findMany()
+    * ```
+    */
+  get calendarShare(): Prisma.CalendarShareDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -656,7 +688,8 @@ export namespace Prisma {
     Event: 'Event',
     SubEvent: 'SubEvent',
     Rinvio: 'Rinvio',
-    Setting: 'Setting'
+    Setting: 'Setting',
+    CalendarShare: 'CalendarShare'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -672,7 +705,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "event" | "subEvent" | "rinvio" | "setting"
+      modelProps: "user" | "event" | "subEvent" | "rinvio" | "setting" | "calendarShare"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1026,6 +1059,76 @@ export namespace Prisma {
           }
         }
       }
+      CalendarShare: {
+        payload: Prisma.$CalendarSharePayload<ExtArgs>
+        fields: Prisma.CalendarShareFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CalendarShareFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CalendarShareFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          findFirst: {
+            args: Prisma.CalendarShareFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CalendarShareFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          findMany: {
+            args: Prisma.CalendarShareFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>[]
+          }
+          create: {
+            args: Prisma.CalendarShareCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          createMany: {
+            args: Prisma.CalendarShareCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CalendarShareCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>[]
+          }
+          delete: {
+            args: Prisma.CalendarShareDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          update: {
+            args: Prisma.CalendarShareUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          deleteMany: {
+            args: Prisma.CalendarShareDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CalendarShareUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CalendarShareUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CalendarSharePayload>
+          }
+          aggregate: {
+            args: Prisma.CalendarShareAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCalendarShare>
+          }
+          groupBy: {
+            args: Prisma.CalendarShareGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CalendarShareGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CalendarShareCountArgs<ExtArgs>
+            result: $Utils.Optional<CalendarShareCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1188,10 +1291,14 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     events: number
+    sharedByMe: number
+    sharedWithMe: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     events?: boolean | UserCountOutputTypeCountEventsArgs
+    sharedByMe?: boolean | UserCountOutputTypeCountSharedByMeArgs
+    sharedWithMe?: boolean | UserCountOutputTypeCountSharedWithMeArgs
   }
 
   // Custom InputTypes
@@ -1210,6 +1317,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EventWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSharedByMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarShareWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSharedWithMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarShareWhereInput
   }
 
 
@@ -1422,6 +1543,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     events?: boolean | User$eventsArgs<ExtArgs>
+    sharedByMe?: boolean | User$sharedByMeArgs<ExtArgs>
+    sharedWithMe?: boolean | User$sharedWithMeArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1443,6 +1566,8 @@ export namespace Prisma {
 
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     events?: boolean | User$eventsArgs<ExtArgs>
+    sharedByMe?: boolean | User$sharedByMeArgs<ExtArgs>
+    sharedWithMe?: boolean | User$sharedWithMeArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1451,6 +1576,8 @@ export namespace Prisma {
     name: "User"
     objects: {
       events: Prisma.$EventPayload<ExtArgs>[]
+      sharedByMe: Prisma.$CalendarSharePayload<ExtArgs>[]
+      sharedWithMe: Prisma.$CalendarSharePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1823,6 +1950,8 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     events<T extends User$eventsArgs<ExtArgs> = {}>(args?: Subset<T, User$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany"> | Null>
+    sharedByMe<T extends User$sharedByMeArgs<ExtArgs> = {}>(args?: Subset<T, User$sharedByMeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findMany"> | Null>
+    sharedWithMe<T extends User$sharedWithMeArgs<ExtArgs> = {}>(args?: Subset<T, User$sharedWithMeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2188,6 +2317,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EventScalarFieldEnum | EventScalarFieldEnum[]
+  }
+
+  /**
+   * User.sharedByMe
+   */
+  export type User$sharedByMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    where?: CalendarShareWhereInput
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    cursor?: CalendarShareWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CalendarShareScalarFieldEnum | CalendarShareScalarFieldEnum[]
+  }
+
+  /**
+   * User.sharedWithMe
+   */
+  export type User$sharedWithMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    where?: CalendarShareWhereInput
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    cursor?: CalendarShareWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CalendarShareScalarFieldEnum | CalendarShareScalarFieldEnum[]
   }
 
   /**
@@ -6337,6 +6506,957 @@ export namespace Prisma {
 
 
   /**
+   * Model CalendarShare
+   */
+
+  export type AggregateCalendarShare = {
+    _count: CalendarShareCountAggregateOutputType | null
+    _min: CalendarShareMinAggregateOutputType | null
+    _max: CalendarShareMaxAggregateOutputType | null
+  }
+
+  export type CalendarShareMinAggregateOutputType = {
+    id: string | null
+    ownerId: string | null
+    sharedWithId: string | null
+    permission: $Enums.SharePermission | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CalendarShareMaxAggregateOutputType = {
+    id: string | null
+    ownerId: string | null
+    sharedWithId: string | null
+    permission: $Enums.SharePermission | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CalendarShareCountAggregateOutputType = {
+    id: number
+    ownerId: number
+    sharedWithId: number
+    permission: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CalendarShareMinAggregateInputType = {
+    id?: true
+    ownerId?: true
+    sharedWithId?: true
+    permission?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CalendarShareMaxAggregateInputType = {
+    id?: true
+    ownerId?: true
+    sharedWithId?: true
+    permission?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CalendarShareCountAggregateInputType = {
+    id?: true
+    ownerId?: true
+    sharedWithId?: true
+    permission?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CalendarShareAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CalendarShare to aggregate.
+     */
+    where?: CalendarShareWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarShares to fetch.
+     */
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CalendarShareWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarShares from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarShares.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CalendarShares
+    **/
+    _count?: true | CalendarShareCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CalendarShareMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CalendarShareMaxAggregateInputType
+  }
+
+  export type GetCalendarShareAggregateType<T extends CalendarShareAggregateArgs> = {
+        [P in keyof T & keyof AggregateCalendarShare]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCalendarShare[P]>
+      : GetScalarType<T[P], AggregateCalendarShare[P]>
+  }
+
+
+
+
+  export type CalendarShareGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CalendarShareWhereInput
+    orderBy?: CalendarShareOrderByWithAggregationInput | CalendarShareOrderByWithAggregationInput[]
+    by: CalendarShareScalarFieldEnum[] | CalendarShareScalarFieldEnum
+    having?: CalendarShareScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CalendarShareCountAggregateInputType | true
+    _min?: CalendarShareMinAggregateInputType
+    _max?: CalendarShareMaxAggregateInputType
+  }
+
+  export type CalendarShareGroupByOutputType = {
+    id: string
+    ownerId: string
+    sharedWithId: string
+    permission: $Enums.SharePermission
+    createdAt: Date
+    updatedAt: Date
+    _count: CalendarShareCountAggregateOutputType | null
+    _min: CalendarShareMinAggregateOutputType | null
+    _max: CalendarShareMaxAggregateOutputType | null
+  }
+
+  type GetCalendarShareGroupByPayload<T extends CalendarShareGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CalendarShareGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CalendarShareGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CalendarShareGroupByOutputType[P]>
+            : GetScalarType<T[P], CalendarShareGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CalendarShareSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerId?: boolean
+    sharedWithId?: boolean
+    permission?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    owner?: boolean | UserDefaultArgs<ExtArgs>
+    sharedWith?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["calendarShare"]>
+
+  export type CalendarShareSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerId?: boolean
+    sharedWithId?: boolean
+    permission?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    owner?: boolean | UserDefaultArgs<ExtArgs>
+    sharedWith?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["calendarShare"]>
+
+  export type CalendarShareSelectScalar = {
+    id?: boolean
+    ownerId?: boolean
+    sharedWithId?: boolean
+    permission?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CalendarShareInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    owner?: boolean | UserDefaultArgs<ExtArgs>
+    sharedWith?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CalendarShareIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    owner?: boolean | UserDefaultArgs<ExtArgs>
+    sharedWith?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $CalendarSharePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CalendarShare"
+    objects: {
+      owner: Prisma.$UserPayload<ExtArgs>
+      sharedWith: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ownerId: string
+      sharedWithId: string
+      permission: $Enums.SharePermission
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["calendarShare"]>
+    composites: {}
+  }
+
+  type CalendarShareGetPayload<S extends boolean | null | undefined | CalendarShareDefaultArgs> = $Result.GetResult<Prisma.$CalendarSharePayload, S>
+
+  type CalendarShareCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CalendarShareFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CalendarShareCountAggregateInputType | true
+    }
+
+  export interface CalendarShareDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CalendarShare'], meta: { name: 'CalendarShare' } }
+    /**
+     * Find zero or one CalendarShare that matches the filter.
+     * @param {CalendarShareFindUniqueArgs} args - Arguments to find a CalendarShare
+     * @example
+     * // Get one CalendarShare
+     * const calendarShare = await prisma.calendarShare.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CalendarShareFindUniqueArgs>(args: SelectSubset<T, CalendarShareFindUniqueArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CalendarShare that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CalendarShareFindUniqueOrThrowArgs} args - Arguments to find a CalendarShare
+     * @example
+     * // Get one CalendarShare
+     * const calendarShare = await prisma.calendarShare.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CalendarShareFindUniqueOrThrowArgs>(args: SelectSubset<T, CalendarShareFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CalendarShare that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareFindFirstArgs} args - Arguments to find a CalendarShare
+     * @example
+     * // Get one CalendarShare
+     * const calendarShare = await prisma.calendarShare.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CalendarShareFindFirstArgs>(args?: SelectSubset<T, CalendarShareFindFirstArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CalendarShare that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareFindFirstOrThrowArgs} args - Arguments to find a CalendarShare
+     * @example
+     * // Get one CalendarShare
+     * const calendarShare = await prisma.calendarShare.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CalendarShareFindFirstOrThrowArgs>(args?: SelectSubset<T, CalendarShareFindFirstOrThrowArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CalendarShares that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CalendarShares
+     * const calendarShares = await prisma.calendarShare.findMany()
+     * 
+     * // Get first 10 CalendarShares
+     * const calendarShares = await prisma.calendarShare.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const calendarShareWithIdOnly = await prisma.calendarShare.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CalendarShareFindManyArgs>(args?: SelectSubset<T, CalendarShareFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CalendarShare.
+     * @param {CalendarShareCreateArgs} args - Arguments to create a CalendarShare.
+     * @example
+     * // Create one CalendarShare
+     * const CalendarShare = await prisma.calendarShare.create({
+     *   data: {
+     *     // ... data to create a CalendarShare
+     *   }
+     * })
+     * 
+     */
+    create<T extends CalendarShareCreateArgs>(args: SelectSubset<T, CalendarShareCreateArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CalendarShares.
+     * @param {CalendarShareCreateManyArgs} args - Arguments to create many CalendarShares.
+     * @example
+     * // Create many CalendarShares
+     * const calendarShare = await prisma.calendarShare.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CalendarShareCreateManyArgs>(args?: SelectSubset<T, CalendarShareCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CalendarShares and returns the data saved in the database.
+     * @param {CalendarShareCreateManyAndReturnArgs} args - Arguments to create many CalendarShares.
+     * @example
+     * // Create many CalendarShares
+     * const calendarShare = await prisma.calendarShare.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CalendarShares and only return the `id`
+     * const calendarShareWithIdOnly = await prisma.calendarShare.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CalendarShareCreateManyAndReturnArgs>(args?: SelectSubset<T, CalendarShareCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CalendarShare.
+     * @param {CalendarShareDeleteArgs} args - Arguments to delete one CalendarShare.
+     * @example
+     * // Delete one CalendarShare
+     * const CalendarShare = await prisma.calendarShare.delete({
+     *   where: {
+     *     // ... filter to delete one CalendarShare
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CalendarShareDeleteArgs>(args: SelectSubset<T, CalendarShareDeleteArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CalendarShare.
+     * @param {CalendarShareUpdateArgs} args - Arguments to update one CalendarShare.
+     * @example
+     * // Update one CalendarShare
+     * const calendarShare = await prisma.calendarShare.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CalendarShareUpdateArgs>(args: SelectSubset<T, CalendarShareUpdateArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CalendarShares.
+     * @param {CalendarShareDeleteManyArgs} args - Arguments to filter CalendarShares to delete.
+     * @example
+     * // Delete a few CalendarShares
+     * const { count } = await prisma.calendarShare.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CalendarShareDeleteManyArgs>(args?: SelectSubset<T, CalendarShareDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CalendarShares.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CalendarShares
+     * const calendarShare = await prisma.calendarShare.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CalendarShareUpdateManyArgs>(args: SelectSubset<T, CalendarShareUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CalendarShare.
+     * @param {CalendarShareUpsertArgs} args - Arguments to update or create a CalendarShare.
+     * @example
+     * // Update or create a CalendarShare
+     * const calendarShare = await prisma.calendarShare.upsert({
+     *   create: {
+     *     // ... data to create a CalendarShare
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CalendarShare we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CalendarShareUpsertArgs>(args: SelectSubset<T, CalendarShareUpsertArgs<ExtArgs>>): Prisma__CalendarShareClient<$Result.GetResult<Prisma.$CalendarSharePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CalendarShares.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareCountArgs} args - Arguments to filter CalendarShares to count.
+     * @example
+     * // Count the number of CalendarShares
+     * const count = await prisma.calendarShare.count({
+     *   where: {
+     *     // ... the filter for the CalendarShares we want to count
+     *   }
+     * })
+    **/
+    count<T extends CalendarShareCountArgs>(
+      args?: Subset<T, CalendarShareCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CalendarShareCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CalendarShare.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CalendarShareAggregateArgs>(args: Subset<T, CalendarShareAggregateArgs>): Prisma.PrismaPromise<GetCalendarShareAggregateType<T>>
+
+    /**
+     * Group by CalendarShare.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CalendarShareGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CalendarShareGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CalendarShareGroupByArgs['orderBy'] }
+        : { orderBy?: CalendarShareGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CalendarShareGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCalendarShareGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CalendarShare model
+   */
+  readonly fields: CalendarShareFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CalendarShare.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CalendarShareClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    sharedWith<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CalendarShare model
+   */ 
+  interface CalendarShareFieldRefs {
+    readonly id: FieldRef<"CalendarShare", 'String'>
+    readonly ownerId: FieldRef<"CalendarShare", 'String'>
+    readonly sharedWithId: FieldRef<"CalendarShare", 'String'>
+    readonly permission: FieldRef<"CalendarShare", 'SharePermission'>
+    readonly createdAt: FieldRef<"CalendarShare", 'DateTime'>
+    readonly updatedAt: FieldRef<"CalendarShare", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CalendarShare findUnique
+   */
+  export type CalendarShareFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarShare to fetch.
+     */
+    where: CalendarShareWhereUniqueInput
+  }
+
+  /**
+   * CalendarShare findUniqueOrThrow
+   */
+  export type CalendarShareFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarShare to fetch.
+     */
+    where: CalendarShareWhereUniqueInput
+  }
+
+  /**
+   * CalendarShare findFirst
+   */
+  export type CalendarShareFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarShare to fetch.
+     */
+    where?: CalendarShareWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarShares to fetch.
+     */
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CalendarShares.
+     */
+    cursor?: CalendarShareWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarShares from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarShares.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CalendarShares.
+     */
+    distinct?: CalendarShareScalarFieldEnum | CalendarShareScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarShare findFirstOrThrow
+   */
+  export type CalendarShareFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarShare to fetch.
+     */
+    where?: CalendarShareWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarShares to fetch.
+     */
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CalendarShares.
+     */
+    cursor?: CalendarShareWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarShares from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarShares.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CalendarShares.
+     */
+    distinct?: CalendarShareScalarFieldEnum | CalendarShareScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarShare findMany
+   */
+  export type CalendarShareFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter, which CalendarShares to fetch.
+     */
+    where?: CalendarShareWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CalendarShares to fetch.
+     */
+    orderBy?: CalendarShareOrderByWithRelationInput | CalendarShareOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CalendarShares.
+     */
+    cursor?: CalendarShareWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CalendarShares from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CalendarShares.
+     */
+    skip?: number
+    distinct?: CalendarShareScalarFieldEnum | CalendarShareScalarFieldEnum[]
+  }
+
+  /**
+   * CalendarShare create
+   */
+  export type CalendarShareCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CalendarShare.
+     */
+    data: XOR<CalendarShareCreateInput, CalendarShareUncheckedCreateInput>
+  }
+
+  /**
+   * CalendarShare createMany
+   */
+  export type CalendarShareCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CalendarShares.
+     */
+    data: CalendarShareCreateManyInput | CalendarShareCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CalendarShare createManyAndReturn
+   */
+  export type CalendarShareCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CalendarShares.
+     */
+    data: CalendarShareCreateManyInput | CalendarShareCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CalendarShare update
+   */
+  export type CalendarShareUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CalendarShare.
+     */
+    data: XOR<CalendarShareUpdateInput, CalendarShareUncheckedUpdateInput>
+    /**
+     * Choose, which CalendarShare to update.
+     */
+    where: CalendarShareWhereUniqueInput
+  }
+
+  /**
+   * CalendarShare updateMany
+   */
+  export type CalendarShareUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CalendarShares.
+     */
+    data: XOR<CalendarShareUpdateManyMutationInput, CalendarShareUncheckedUpdateManyInput>
+    /**
+     * Filter which CalendarShares to update
+     */
+    where?: CalendarShareWhereInput
+  }
+
+  /**
+   * CalendarShare upsert
+   */
+  export type CalendarShareUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CalendarShare to update in case it exists.
+     */
+    where: CalendarShareWhereUniqueInput
+    /**
+     * In case the CalendarShare found by the `where` argument doesn't exist, create a new CalendarShare with this data.
+     */
+    create: XOR<CalendarShareCreateInput, CalendarShareUncheckedCreateInput>
+    /**
+     * In case the CalendarShare was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CalendarShareUpdateInput, CalendarShareUncheckedUpdateInput>
+  }
+
+  /**
+   * CalendarShare delete
+   */
+  export type CalendarShareDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+    /**
+     * Filter which CalendarShare to delete.
+     */
+    where: CalendarShareWhereUniqueInput
+  }
+
+  /**
+   * CalendarShare deleteMany
+   */
+  export type CalendarShareDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CalendarShares to delete
+     */
+    where?: CalendarShareWhereInput
+  }
+
+  /**
+   * CalendarShare without action
+   */
+  export type CalendarShareDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CalendarShare
+     */
+    select?: CalendarShareSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CalendarShareInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -6433,6 +7553,18 @@ export namespace Prisma {
   export type SettingScalarFieldEnum = (typeof SettingScalarFieldEnum)[keyof typeof SettingScalarFieldEnum]
 
 
+  export const CalendarShareScalarFieldEnum: {
+    id: 'id',
+    ownerId: 'ownerId',
+    sharedWithId: 'sharedWithId',
+    permission: 'permission',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CalendarShareScalarFieldEnum = (typeof CalendarShareScalarFieldEnum)[keyof typeof CalendarShareScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -6512,6 +7644,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'SharePermission'
+   */
+  export type EnumSharePermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SharePermission'>
+    
+
+
+  /**
+   * Reference to a field of type 'SharePermission[]'
+   */
+  export type ListEnumSharePermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SharePermission[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -6538,6 +7684,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     events?: EventListRelationFilter
+    sharedByMe?: CalendarShareListRelationFilter
+    sharedWithMe?: CalendarShareListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -6547,6 +7695,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     events?: EventOrderByRelationAggregateInput
+    sharedByMe?: CalendarShareOrderByRelationAggregateInput
+    sharedWithMe?: CalendarShareOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -6559,6 +7709,8 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     events?: EventListRelationFilter
+    sharedByMe?: CalendarShareListRelationFilter
+    sharedWithMe?: CalendarShareListRelationFilter
   }, "id" | "clerkUserId">
 
   export type UserOrderByWithAggregationInput = {
@@ -6950,6 +8102,70 @@ export namespace Prisma {
     value?: StringWithAggregatesFilter<"Setting"> | string
   }
 
+  export type CalendarShareWhereInput = {
+    AND?: CalendarShareWhereInput | CalendarShareWhereInput[]
+    OR?: CalendarShareWhereInput[]
+    NOT?: CalendarShareWhereInput | CalendarShareWhereInput[]
+    id?: StringFilter<"CalendarShare"> | string
+    ownerId?: StringFilter<"CalendarShare"> | string
+    sharedWithId?: StringFilter<"CalendarShare"> | string
+    permission?: EnumSharePermissionFilter<"CalendarShare"> | $Enums.SharePermission
+    createdAt?: DateTimeFilter<"CalendarShare"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarShare"> | Date | string
+    owner?: XOR<UserRelationFilter, UserWhereInput>
+    sharedWith?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type CalendarShareOrderByWithRelationInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    sharedWithId?: SortOrder
+    permission?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    owner?: UserOrderByWithRelationInput
+    sharedWith?: UserOrderByWithRelationInput
+  }
+
+  export type CalendarShareWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    ownerId_sharedWithId?: CalendarShareOwnerIdSharedWithIdCompoundUniqueInput
+    AND?: CalendarShareWhereInput | CalendarShareWhereInput[]
+    OR?: CalendarShareWhereInput[]
+    NOT?: CalendarShareWhereInput | CalendarShareWhereInput[]
+    ownerId?: StringFilter<"CalendarShare"> | string
+    sharedWithId?: StringFilter<"CalendarShare"> | string
+    permission?: EnumSharePermissionFilter<"CalendarShare"> | $Enums.SharePermission
+    createdAt?: DateTimeFilter<"CalendarShare"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarShare"> | Date | string
+    owner?: XOR<UserRelationFilter, UserWhereInput>
+    sharedWith?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "ownerId_sharedWithId">
+
+  export type CalendarShareOrderByWithAggregationInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    sharedWithId?: SortOrder
+    permission?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CalendarShareCountOrderByAggregateInput
+    _max?: CalendarShareMaxOrderByAggregateInput
+    _min?: CalendarShareMinOrderByAggregateInput
+  }
+
+  export type CalendarShareScalarWhereWithAggregatesInput = {
+    AND?: CalendarShareScalarWhereWithAggregatesInput | CalendarShareScalarWhereWithAggregatesInput[]
+    OR?: CalendarShareScalarWhereWithAggregatesInput[]
+    NOT?: CalendarShareScalarWhereWithAggregatesInput | CalendarShareScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CalendarShare"> | string
+    ownerId?: StringWithAggregatesFilter<"CalendarShare"> | string
+    sharedWithId?: StringWithAggregatesFilter<"CalendarShare"> | string
+    permission?: EnumSharePermissionWithAggregatesFilter<"CalendarShare"> | $Enums.SharePermission
+    createdAt?: DateTimeWithAggregatesFilter<"CalendarShare"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CalendarShare"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     clerkUserId: string
@@ -6957,6 +8173,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: EventCreateNestedManyWithoutUserInput
+    sharedByMe?: CalendarShareCreateNestedManyWithoutOwnerInput
+    sharedWithMe?: CalendarShareCreateNestedManyWithoutSharedWithInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -6966,6 +8184,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     events?: EventUncheckedCreateNestedManyWithoutUserInput
+    sharedByMe?: CalendarShareUncheckedCreateNestedManyWithoutOwnerInput
+    sharedWithMe?: CalendarShareUncheckedCreateNestedManyWithoutSharedWithInput
   }
 
   export type UserUpdateInput = {
@@ -6975,6 +8195,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: EventUpdateManyWithoutUserNestedInput
+    sharedByMe?: CalendarShareUpdateManyWithoutOwnerNestedInput
+    sharedWithMe?: CalendarShareUpdateManyWithoutSharedWithNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -6984,6 +8206,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     events?: EventUncheckedUpdateManyWithoutUserNestedInput
+    sharedByMe?: CalendarShareUncheckedUpdateManyWithoutOwnerNestedInput
+    sharedWithMe?: CalendarShareUncheckedUpdateManyWithoutSharedWithNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -7435,6 +8659,67 @@ export namespace Prisma {
     value?: StringFieldUpdateOperationsInput | string
   }
 
+  export type CalendarShareCreateInput = {
+    id?: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: UserCreateNestedOneWithoutSharedByMeInput
+    sharedWith: UserCreateNestedOneWithoutSharedWithMeInput
+  }
+
+  export type CalendarShareUncheckedCreateInput = {
+    id?: string
+    ownerId: string
+    sharedWithId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarShareUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: UserUpdateOneRequiredWithoutSharedByMeNestedInput
+    sharedWith?: UserUpdateOneRequiredWithoutSharedWithMeNestedInput
+  }
+
+  export type CalendarShareUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    sharedWithId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarShareCreateManyInput = {
+    id?: string
+    ownerId: string
+    sharedWithId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarShareUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarShareUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    sharedWithId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -7482,12 +8767,22 @@ export namespace Prisma {
     none?: EventWhereInput
   }
 
+  export type CalendarShareListRelationFilter = {
+    every?: CalendarShareWhereInput
+    some?: CalendarShareWhereInput
+    none?: CalendarShareWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
   }
 
   export type EventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CalendarShareOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -7831,6 +9126,55 @@ export namespace Prisma {
     value?: SortOrder
   }
 
+  export type EnumSharePermissionFilter<$PrismaModel = never> = {
+    equals?: $Enums.SharePermission | EnumSharePermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumSharePermissionFilter<$PrismaModel> | $Enums.SharePermission
+  }
+
+  export type CalendarShareOwnerIdSharedWithIdCompoundUniqueInput = {
+    ownerId: string
+    sharedWithId: string
+  }
+
+  export type CalendarShareCountOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    sharedWithId?: SortOrder
+    permission?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CalendarShareMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    sharedWithId?: SortOrder
+    permission?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CalendarShareMinOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    sharedWithId?: SortOrder
+    permission?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumSharePermissionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SharePermission | EnumSharePermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumSharePermissionWithAggregatesFilter<$PrismaModel> | $Enums.SharePermission
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSharePermissionFilter<$PrismaModel>
+    _max?: NestedEnumSharePermissionFilter<$PrismaModel>
+  }
+
   export type EventCreateNestedManyWithoutUserInput = {
     create?: XOR<EventCreateWithoutUserInput, EventUncheckedCreateWithoutUserInput> | EventCreateWithoutUserInput[] | EventUncheckedCreateWithoutUserInput[]
     connectOrCreate?: EventCreateOrConnectWithoutUserInput | EventCreateOrConnectWithoutUserInput[]
@@ -7838,11 +9182,39 @@ export namespace Prisma {
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
   }
 
+  export type CalendarShareCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput> | CalendarShareCreateWithoutOwnerInput[] | CalendarShareUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutOwnerInput | CalendarShareCreateOrConnectWithoutOwnerInput[]
+    createMany?: CalendarShareCreateManyOwnerInputEnvelope
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+  }
+
+  export type CalendarShareCreateNestedManyWithoutSharedWithInput = {
+    create?: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput> | CalendarShareCreateWithoutSharedWithInput[] | CalendarShareUncheckedCreateWithoutSharedWithInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutSharedWithInput | CalendarShareCreateOrConnectWithoutSharedWithInput[]
+    createMany?: CalendarShareCreateManySharedWithInputEnvelope
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+  }
+
   export type EventUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<EventCreateWithoutUserInput, EventUncheckedCreateWithoutUserInput> | EventCreateWithoutUserInput[] | EventUncheckedCreateWithoutUserInput[]
     connectOrCreate?: EventCreateOrConnectWithoutUserInput | EventCreateOrConnectWithoutUserInput[]
     createMany?: EventCreateManyUserInputEnvelope
     connect?: EventWhereUniqueInput | EventWhereUniqueInput[]
+  }
+
+  export type CalendarShareUncheckedCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput> | CalendarShareCreateWithoutOwnerInput[] | CalendarShareUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutOwnerInput | CalendarShareCreateOrConnectWithoutOwnerInput[]
+    createMany?: CalendarShareCreateManyOwnerInputEnvelope
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+  }
+
+  export type CalendarShareUncheckedCreateNestedManyWithoutSharedWithInput = {
+    create?: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput> | CalendarShareCreateWithoutSharedWithInput[] | CalendarShareUncheckedCreateWithoutSharedWithInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutSharedWithInput | CalendarShareCreateOrConnectWithoutSharedWithInput[]
+    createMany?: CalendarShareCreateManySharedWithInputEnvelope
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -7871,6 +9243,34 @@ export namespace Prisma {
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
   }
 
+  export type CalendarShareUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput> | CalendarShareCreateWithoutOwnerInput[] | CalendarShareUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutOwnerInput | CalendarShareCreateOrConnectWithoutOwnerInput[]
+    upsert?: CalendarShareUpsertWithWhereUniqueWithoutOwnerInput | CalendarShareUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: CalendarShareCreateManyOwnerInputEnvelope
+    set?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    disconnect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    delete?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    update?: CalendarShareUpdateWithWhereUniqueWithoutOwnerInput | CalendarShareUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: CalendarShareUpdateManyWithWhereWithoutOwnerInput | CalendarShareUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
+  }
+
+  export type CalendarShareUpdateManyWithoutSharedWithNestedInput = {
+    create?: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput> | CalendarShareCreateWithoutSharedWithInput[] | CalendarShareUncheckedCreateWithoutSharedWithInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutSharedWithInput | CalendarShareCreateOrConnectWithoutSharedWithInput[]
+    upsert?: CalendarShareUpsertWithWhereUniqueWithoutSharedWithInput | CalendarShareUpsertWithWhereUniqueWithoutSharedWithInput[]
+    createMany?: CalendarShareCreateManySharedWithInputEnvelope
+    set?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    disconnect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    delete?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    update?: CalendarShareUpdateWithWhereUniqueWithoutSharedWithInput | CalendarShareUpdateWithWhereUniqueWithoutSharedWithInput[]
+    updateMany?: CalendarShareUpdateManyWithWhereWithoutSharedWithInput | CalendarShareUpdateManyWithWhereWithoutSharedWithInput[]
+    deleteMany?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
+  }
+
   export type EventUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<EventCreateWithoutUserInput, EventUncheckedCreateWithoutUserInput> | EventCreateWithoutUserInput[] | EventUncheckedCreateWithoutUserInput[]
     connectOrCreate?: EventCreateOrConnectWithoutUserInput | EventCreateOrConnectWithoutUserInput[]
@@ -7883,6 +9283,34 @@ export namespace Prisma {
     update?: EventUpdateWithWhereUniqueWithoutUserInput | EventUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: EventUpdateManyWithWhereWithoutUserInput | EventUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: EventScalarWhereInput | EventScalarWhereInput[]
+  }
+
+  export type CalendarShareUncheckedUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput> | CalendarShareCreateWithoutOwnerInput[] | CalendarShareUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutOwnerInput | CalendarShareCreateOrConnectWithoutOwnerInput[]
+    upsert?: CalendarShareUpsertWithWhereUniqueWithoutOwnerInput | CalendarShareUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: CalendarShareCreateManyOwnerInputEnvelope
+    set?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    disconnect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    delete?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    update?: CalendarShareUpdateWithWhereUniqueWithoutOwnerInput | CalendarShareUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: CalendarShareUpdateManyWithWhereWithoutOwnerInput | CalendarShareUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
+  }
+
+  export type CalendarShareUncheckedUpdateManyWithoutSharedWithNestedInput = {
+    create?: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput> | CalendarShareCreateWithoutSharedWithInput[] | CalendarShareUncheckedCreateWithoutSharedWithInput[]
+    connectOrCreate?: CalendarShareCreateOrConnectWithoutSharedWithInput | CalendarShareCreateOrConnectWithoutSharedWithInput[]
+    upsert?: CalendarShareUpsertWithWhereUniqueWithoutSharedWithInput | CalendarShareUpsertWithWhereUniqueWithoutSharedWithInput[]
+    createMany?: CalendarShareCreateManySharedWithInputEnvelope
+    set?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    disconnect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    delete?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    connect?: CalendarShareWhereUniqueInput | CalendarShareWhereUniqueInput[]
+    update?: CalendarShareUpdateWithWhereUniqueWithoutSharedWithInput | CalendarShareUpdateWithWhereUniqueWithoutSharedWithInput[]
+    updateMany?: CalendarShareUpdateManyWithWhereWithoutSharedWithInput | CalendarShareUpdateManyWithWhereWithoutSharedWithInput[]
+    deleteMany?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutEventsInput = {
@@ -8021,6 +9449,38 @@ export namespace Prisma {
     upsert?: EventUpsertWithoutRinviiInput
     connect?: EventWhereUniqueInput
     update?: XOR<XOR<EventUpdateToOneWithWhereWithoutRinviiInput, EventUpdateWithoutRinviiInput>, EventUncheckedUpdateWithoutRinviiInput>
+  }
+
+  export type UserCreateNestedOneWithoutSharedByMeInput = {
+    create?: XOR<UserCreateWithoutSharedByMeInput, UserUncheckedCreateWithoutSharedByMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSharedByMeInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutSharedWithMeInput = {
+    create?: XOR<UserCreateWithoutSharedWithMeInput, UserUncheckedCreateWithoutSharedWithMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSharedWithMeInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumSharePermissionFieldUpdateOperationsInput = {
+    set?: $Enums.SharePermission
+  }
+
+  export type UserUpdateOneRequiredWithoutSharedByMeNestedInput = {
+    create?: XOR<UserCreateWithoutSharedByMeInput, UserUncheckedCreateWithoutSharedByMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSharedByMeInput
+    upsert?: UserUpsertWithoutSharedByMeInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSharedByMeInput, UserUpdateWithoutSharedByMeInput>, UserUncheckedUpdateWithoutSharedByMeInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutSharedWithMeNestedInput = {
+    create?: XOR<UserCreateWithoutSharedWithMeInput, UserUncheckedCreateWithoutSharedWithMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSharedWithMeInput
+    upsert?: UserUpsertWithoutSharedWithMeInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSharedWithMeInput, UserUpdateWithoutSharedWithMeInput>, UserUncheckedUpdateWithoutSharedWithMeInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -8172,6 +9632,23 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedEnumSharePermissionFilter<$PrismaModel = never> = {
+    equals?: $Enums.SharePermission | EnumSharePermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumSharePermissionFilter<$PrismaModel> | $Enums.SharePermission
+  }
+
+  export type NestedEnumSharePermissionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SharePermission | EnumSharePermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SharePermission[] | ListEnumSharePermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumSharePermissionWithAggregatesFilter<$PrismaModel> | $Enums.SharePermission
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSharePermissionFilter<$PrismaModel>
+    _max?: NestedEnumSharePermissionFilter<$PrismaModel>
+  }
+
   export type EventCreateWithoutUserInput = {
     id?: string
     title: string
@@ -8234,6 +9711,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CalendarShareCreateWithoutOwnerInput = {
+    id?: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sharedWith: UserCreateNestedOneWithoutSharedWithMeInput
+  }
+
+  export type CalendarShareUncheckedCreateWithoutOwnerInput = {
+    id?: string
+    sharedWithId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarShareCreateOrConnectWithoutOwnerInput = {
+    where: CalendarShareWhereUniqueInput
+    create: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type CalendarShareCreateManyOwnerInputEnvelope = {
+    data: CalendarShareCreateManyOwnerInput | CalendarShareCreateManyOwnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CalendarShareCreateWithoutSharedWithInput = {
+    id?: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: UserCreateNestedOneWithoutSharedByMeInput
+  }
+
+  export type CalendarShareUncheckedCreateWithoutSharedWithInput = {
+    id?: string
+    ownerId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarShareCreateOrConnectWithoutSharedWithInput = {
+    where: CalendarShareWhereUniqueInput
+    create: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput>
+  }
+
+  export type CalendarShareCreateManySharedWithInputEnvelope = {
+    data: CalendarShareCreateManySharedWithInput | CalendarShareCreateManySharedWithInput[]
+    skipDuplicates?: boolean
+  }
+
   export type EventUpsertWithWhereUniqueWithoutUserInput = {
     where: EventWhereUniqueInput
     update: XOR<EventUpdateWithoutUserInput, EventUncheckedUpdateWithoutUserInput>
@@ -8278,12 +9807,58 @@ export namespace Prisma {
     orgId?: StringNullableFilter<"Event"> | string | null
   }
 
+  export type CalendarShareUpsertWithWhereUniqueWithoutOwnerInput = {
+    where: CalendarShareWhereUniqueInput
+    update: XOR<CalendarShareUpdateWithoutOwnerInput, CalendarShareUncheckedUpdateWithoutOwnerInput>
+    create: XOR<CalendarShareCreateWithoutOwnerInput, CalendarShareUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type CalendarShareUpdateWithWhereUniqueWithoutOwnerInput = {
+    where: CalendarShareWhereUniqueInput
+    data: XOR<CalendarShareUpdateWithoutOwnerInput, CalendarShareUncheckedUpdateWithoutOwnerInput>
+  }
+
+  export type CalendarShareUpdateManyWithWhereWithoutOwnerInput = {
+    where: CalendarShareScalarWhereInput
+    data: XOR<CalendarShareUpdateManyMutationInput, CalendarShareUncheckedUpdateManyWithoutOwnerInput>
+  }
+
+  export type CalendarShareScalarWhereInput = {
+    AND?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
+    OR?: CalendarShareScalarWhereInput[]
+    NOT?: CalendarShareScalarWhereInput | CalendarShareScalarWhereInput[]
+    id?: StringFilter<"CalendarShare"> | string
+    ownerId?: StringFilter<"CalendarShare"> | string
+    sharedWithId?: StringFilter<"CalendarShare"> | string
+    permission?: EnumSharePermissionFilter<"CalendarShare"> | $Enums.SharePermission
+    createdAt?: DateTimeFilter<"CalendarShare"> | Date | string
+    updatedAt?: DateTimeFilter<"CalendarShare"> | Date | string
+  }
+
+  export type CalendarShareUpsertWithWhereUniqueWithoutSharedWithInput = {
+    where: CalendarShareWhereUniqueInput
+    update: XOR<CalendarShareUpdateWithoutSharedWithInput, CalendarShareUncheckedUpdateWithoutSharedWithInput>
+    create: XOR<CalendarShareCreateWithoutSharedWithInput, CalendarShareUncheckedCreateWithoutSharedWithInput>
+  }
+
+  export type CalendarShareUpdateWithWhereUniqueWithoutSharedWithInput = {
+    where: CalendarShareWhereUniqueInput
+    data: XOR<CalendarShareUpdateWithoutSharedWithInput, CalendarShareUncheckedUpdateWithoutSharedWithInput>
+  }
+
+  export type CalendarShareUpdateManyWithWhereWithoutSharedWithInput = {
+    where: CalendarShareScalarWhereInput
+    data: XOR<CalendarShareUpdateManyMutationInput, CalendarShareUncheckedUpdateManyWithoutSharedWithInput>
+  }
+
   export type UserCreateWithoutEventsInput = {
     id?: string
     clerkUserId: string
     email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    sharedByMe?: CalendarShareCreateNestedManyWithoutOwnerInput
+    sharedWithMe?: CalendarShareCreateNestedManyWithoutSharedWithInput
   }
 
   export type UserUncheckedCreateWithoutEventsInput = {
@@ -8292,6 +9867,8 @@ export namespace Prisma {
     email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    sharedByMe?: CalendarShareUncheckedCreateNestedManyWithoutOwnerInput
+    sharedWithMe?: CalendarShareUncheckedCreateNestedManyWithoutSharedWithInput
   }
 
   export type UserCreateOrConnectWithoutEventsInput = {
@@ -8392,6 +9969,8 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sharedByMe?: CalendarShareUpdateManyWithoutOwnerNestedInput
+    sharedWithMe?: CalendarShareUpdateManyWithoutSharedWithNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEventsInput = {
@@ -8400,6 +9979,8 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sharedByMe?: CalendarShareUncheckedUpdateManyWithoutOwnerNestedInput
+    sharedWithMe?: CalendarShareUncheckedUpdateManyWithoutSharedWithNestedInput
   }
 
   export type SubEventUpsertWithWhereUniqueWithoutParentEventInput = {
@@ -8710,6 +10291,118 @@ export namespace Prisma {
     subEvents?: SubEventUncheckedUpdateManyWithoutParentEventNestedInput
   }
 
+  export type UserCreateWithoutSharedByMeInput = {
+    id?: string
+    clerkUserId: string
+    email?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: EventCreateNestedManyWithoutUserInput
+    sharedWithMe?: CalendarShareCreateNestedManyWithoutSharedWithInput
+  }
+
+  export type UserUncheckedCreateWithoutSharedByMeInput = {
+    id?: string
+    clerkUserId: string
+    email?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: EventUncheckedCreateNestedManyWithoutUserInput
+    sharedWithMe?: CalendarShareUncheckedCreateNestedManyWithoutSharedWithInput
+  }
+
+  export type UserCreateOrConnectWithoutSharedByMeInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSharedByMeInput, UserUncheckedCreateWithoutSharedByMeInput>
+  }
+
+  export type UserCreateWithoutSharedWithMeInput = {
+    id?: string
+    clerkUserId: string
+    email?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: EventCreateNestedManyWithoutUserInput
+    sharedByMe?: CalendarShareCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserUncheckedCreateWithoutSharedWithMeInput = {
+    id?: string
+    clerkUserId: string
+    email?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    events?: EventUncheckedCreateNestedManyWithoutUserInput
+    sharedByMe?: CalendarShareUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserCreateOrConnectWithoutSharedWithMeInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSharedWithMeInput, UserUncheckedCreateWithoutSharedWithMeInput>
+  }
+
+  export type UserUpsertWithoutSharedByMeInput = {
+    update: XOR<UserUpdateWithoutSharedByMeInput, UserUncheckedUpdateWithoutSharedByMeInput>
+    create: XOR<UserCreateWithoutSharedByMeInput, UserUncheckedCreateWithoutSharedByMeInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSharedByMeInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSharedByMeInput, UserUncheckedUpdateWithoutSharedByMeInput>
+  }
+
+  export type UserUpdateWithoutSharedByMeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clerkUserId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventUpdateManyWithoutUserNestedInput
+    sharedWithMe?: CalendarShareUpdateManyWithoutSharedWithNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSharedByMeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clerkUserId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventUncheckedUpdateManyWithoutUserNestedInput
+    sharedWithMe?: CalendarShareUncheckedUpdateManyWithoutSharedWithNestedInput
+  }
+
+  export type UserUpsertWithoutSharedWithMeInput = {
+    update: XOR<UserUpdateWithoutSharedWithMeInput, UserUncheckedUpdateWithoutSharedWithMeInput>
+    create: XOR<UserCreateWithoutSharedWithMeInput, UserUncheckedCreateWithoutSharedWithMeInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSharedWithMeInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSharedWithMeInput, UserUncheckedUpdateWithoutSharedWithMeInput>
+  }
+
+  export type UserUpdateWithoutSharedWithMeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clerkUserId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventUpdateManyWithoutUserNestedInput
+    sharedByMe?: CalendarShareUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSharedWithMeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    clerkUserId?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    events?: EventUncheckedUpdateManyWithoutUserNestedInput
+    sharedByMe?: CalendarShareUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
   export type EventCreateManyUserInput = {
     id?: string
     title: string
@@ -8732,6 +10425,22 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     orgId?: string | null
+  }
+
+  export type CalendarShareCreateManyOwnerInput = {
+    id?: string
+    sharedWithId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CalendarShareCreateManySharedWithInput = {
+    id?: string
+    ownerId: string
+    permission?: $Enums.SharePermission
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type EventUpdateWithoutUserInput = {
@@ -8808,6 +10517,54 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orgId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CalendarShareUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sharedWith?: UserUpdateOneRequiredWithoutSharedWithMeNestedInput
+  }
+
+  export type CalendarShareUncheckedUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sharedWithId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarShareUncheckedUpdateManyWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sharedWithId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarShareUpdateWithoutSharedWithInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: UserUpdateOneRequiredWithoutSharedByMeNestedInput
+  }
+
+  export type CalendarShareUncheckedUpdateWithoutSharedWithInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CalendarShareUncheckedUpdateManyWithoutSharedWithInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumSharePermissionFieldUpdateOperationsInput | $Enums.SharePermission
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SubEventCreateManyParentEventInput = {
@@ -8955,6 +10712,10 @@ export namespace Prisma {
      * @deprecated Use SettingDefaultArgs instead
      */
     export type SettingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SettingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CalendarShareDefaultArgs instead
+     */
+    export type CalendarShareArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CalendarShareDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

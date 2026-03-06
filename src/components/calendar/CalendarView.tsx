@@ -93,7 +93,13 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   return out;
 }
 
-export function CalendarView() {
+interface CalendarViewProps {
+  targetUserId?: string;
+  permission?: "VIEW_ONLY" | "FULL";
+}
+
+export function CalendarView({ targetUserId, permission }: CalendarViewProps = {}) {
+  const canEdit = !targetUserId || permission === "FULL";
   const calendarRef = useRef<InstanceType<typeof FullCalendar> | null>(null);
   const [initialView, setInitialView] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<string>("dayGridMonth");
@@ -142,7 +148,7 @@ export function CalendarView() {
       const viewType =
         info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
 
-      getEvents(info.start, info.end)
+      getEvents(info.start, info.end, targetUserId)
         .then((result) => {
           if (result.success && result.data) {
             let eventsData = result.data;
@@ -205,7 +211,7 @@ export function CalendarView() {
           )
         );
     },
-    [isSearchActive, searchFilterEventId, hideSubEvents, draftEvents]
+    [isSearchActive, searchFilterEventId, hideSubEvents, draftEvents, targetUserId]
   );
 
   const applySuggestionSelection = useCallback(
@@ -316,8 +322,7 @@ export function CalendarView() {
   }, []);
 
   const handleSelect = useCallback((arg: DateSelectArg) => {
-    // Normalizza la selezione: se il click/drag parte da mezzanotte (vista Mese),
-    // usiamo come orario di default le 08:00, con durata conservata o 1h.
+    if (!canEdit) return;
     let start = new Date(arg.start);
     let end = arg.end ? new Date(arg.end) : new Date(start.getTime() + 60 * 60 * 1000);
 
@@ -331,7 +336,7 @@ export function CalendarView() {
     }
 
     setModalState({ mode: "create", start, end });
-  }, []);
+  }, [canEdit]);
 
   const handleEventClick = useCallback(
     (arg: EventClickArg) => {
@@ -369,18 +374,19 @@ export function CalendarView() {
 
   const handleEventDrop = useCallback(
     async (arg: EventDropArg) => {
+      if (!canEdit) return;
       if (arg.event.extendedProps.isSubEvent) return;
       const id = arg.event.id as string;
       const result = await updateEvent(id, {
         startAt: arg.event.start ?? new Date(),
         endAt: arg.event.end ?? new Date(),
-      });
+      }, targetUserId);
       if (result.success && result.data?.generateSubEvents) {
-        await regenerateSubEvents(id);
+        await regenerateSubEvents(id, targetUserId);
       }
       calendarRef.current?.getApi()?.refetchEvents();
     },
-    []
+    [canEdit, targetUserId]
   );
 
   const handleModalClose = useCallback(() => {
@@ -478,6 +484,7 @@ export function CalendarView() {
           className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1"
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
+          {canEdit ? (
           <button
             type="button"
             aria-label={isDone ? "Segna come non fatto" : "Segna come fatto"}
@@ -490,7 +497,7 @@ export function CalendarView() {
               e.stopPropagation();
               const id = arg.event.id as string;
               const nextStatus = isDone ? "pending" : "done";
-              const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" });
+              const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" }, targetUserId);
               if (result.success && result.data) {
                 const newStatus = result.data.status;
                 const newBg =
@@ -508,6 +515,11 @@ export function CalendarView() {
               }}
             />
           </button>
+          ) : (
+            <span
+              className={`inline-block h-3 w-3 rounded-full shrink-0 ${isDone ? "bg-emerald-500" : "bg-red-500"}`}
+            />
+          )}
           <span className="fc-list-event-title flex-1 truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
           {kind && (
             <span className="text-calendar-muted text-xs shrink-0">{kind}</span>
@@ -576,7 +588,7 @@ export function CalendarView() {
       );
     }
     return true;
-  }, []);
+  }, [canEdit, targetUserId]);
 
   return (
       <div className="flex h-full flex-col gap-2 sm:gap-3 calendar-theme">
@@ -584,6 +596,7 @@ export function CalendarView() {
         {/* Riga 1: Nuovo evento + ricerca */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-2">
           <div className="flex items-center gap-2">
+            {canEdit && (
             <Button
               variant="outline"
               size="sm"
@@ -593,6 +606,7 @@ export function CalendarView() {
               <span className="mr-1">Nuovo evento</span>
               <span className="text-xs">▾</span>
             </Button>
+            )}
           </div>
           <div className="flex items-center gap-3">
             {/* Toggle promemoria: interruttore con label */}
@@ -778,9 +792,9 @@ export function CalendarView() {
             },
           }}
           events={eventsSource}
-          editable
-          selectable
-          selectMirror
+          editable={canEdit}
+          selectable={canEdit}
+          selectMirror={canEdit}
           dayMaxEvents
           weekends
           datesSet={handleDatesSet}
@@ -811,6 +825,8 @@ export function CalendarView() {
           onDeleted={handleModalDeleted}
           onDraft={handleDraftFromModal}
           onDraftCleared={handleClearDraftFromModal}
+          targetUserId={targetUserId}
+          readOnly={!canEdit}
         />
       )}
     </div>
