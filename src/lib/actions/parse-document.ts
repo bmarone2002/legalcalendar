@@ -42,7 +42,7 @@ Se non riesci a determinare actionType o actionMode, omettili o usa null. Il JSO
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   // pdf-parse@1.1.1: API legacy senza worker (evita errore pdf.worker.mjs su Railway/Next server)
-  const { default: pdfParse } = await import("pdf-parse");
+  const { default: pdfParse } = await import("pdf-parse-debugging-disabled");
   const data = await pdfParse(buffer);
   const text = (data?.text ?? "").trim();
   return text || "(Nessun testo estratto dal PDF)";
