@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { createEvent, updateEvent, getEventById, deleteEvent } from "@/lib/actions/events";
+import { parseDocumentForEvent } from "@/lib/actions/parse-document";
 import {
   regenerateSubEvents,
   getSubEventsPreview,
@@ -220,8 +221,10 @@ export function EventModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<"dettagli" | "regole" | "prosecuzione">("dettagli");
   const [calculating, setCalculating] = useState(false);
+  const [parsingDocument, setParsingDocument] = useState(false);
   const [popoverContainer, setPopoverContainer] = useState<HTMLElement | null>(null);
   const [selectedSubEventId, setSelectedSubEventId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   /** Se true, non sovrascrivere la lista preview con l'useEffect (l'utente ha rimosso elementi con ×). Si resetta solo al click su Calcola. */
   const previewEditedByUserRef = useRef(false);
   /** Se true, l'utente ha cliccato "Calcola" almeno una volta: al Salva usiamo la lista preview (anche se vuota). Altrimenti usiamo regenerateSubEvents per creare tutti i sottoeventi. */
@@ -739,9 +742,68 @@ export function EventModal({
                 </>
               )}
 
-              {/* 4a. Se Atto Giuridico: secondo menu (Sotto-categoria) e terzo menu (Modalità) */}
+              {/* 4a. Se Atto Giuridico: compila da documento (AI) + Sotto-categoria e Modalità */}
               {form.macroType === "ATTO_GIURIDICO" && (
                 <>
+                  {/* Compila da documento: solo in creazione */}
+                  {mode === "create" && !readOnly && (
+                    <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50/80 p-4 space-y-2">
+                      <Label className="text-sm font-medium text-zinc-700">Compila da documento</Label>
+                      <p className="text-xs text-zinc-500">
+                        Allega il PDF o l&apos;immagine della pratica: l&apos;AI estrarrà titolo, tipo, date e campi per precompilare il form. Verifica i dati e salva.
+                      </p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setError(null);
+                          setParsingDocument(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            const result = await parseDocumentForEvent(formData);
+                            if (result.success && result.data) {
+                              const d = result.data;
+                              setForm((f) => ({
+                                ...f,
+                                title: d.title ?? f.title,
+                                description: d.description ?? f.description,
+                                type: (d.type as EventType) ?? f.type,
+                                notes: d.notes ?? f.notes,
+                                ...(d.actionType && { actionType: d.actionType as ActionType }),
+                                ...(d.actionMode && { actionMode: d.actionMode as ActionMode }),
+                                ...(Object.keys(d.inputs ?? {}).length > 0 && { inputs: d.inputs ?? f.inputs }),
+                              }));
+                              setError(null);
+                            } else if (!result.success) {
+                              setError(result.error ?? "Impossibile analizzare il documento.");
+                            }
+                          } catch {
+                            setError("Errore durante l'analisi del documento.");
+                          } finally {
+                            setParsingDocument(false);
+                            e.target.value = "";
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-[var(--calendar-brown)] text-[var(--calendar-brown)] bg-white hover:bg-[var(--calendar-brown-pale)]"
+                          disabled={parsingDocument || saving || calculating}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          {parsingDocument ? "Analisi in corso…" : "Allega file e compila con AI"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <Label>Sotto-categoria</Label>
                     <Select
