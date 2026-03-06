@@ -93,6 +93,36 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   return out;
 }
 
+function findNextAvailableSlot(targetDate: Date, events: AppEvent[]): { start: Date; end: Date } {
+  const dayStart = new Date(targetDate);
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setHours(23, 59, 59, 999);
+
+  const occupiedHours = new Set<number>();
+  for (const e of events) {
+    const eStart = new Date(e.startAt);
+    if (eStart < dayStart || eStart > dayEnd) continue;
+    const h = eStart.getHours();
+    if (h >= 8 && h < 22) occupiedHours.add(h);
+  }
+
+  let startHour = 8;
+  for (let h = 8; h < 22; h++) {
+    if (!occupiedHours.has(h)) {
+      startHour = h;
+      break;
+    }
+    if (h === 21) startHour = 8;
+  }
+
+  const start = new Date(dayStart);
+  start.setHours(startHour, 0, 0, 0);
+  const end = new Date(start);
+  end.setHours(startHour + 1, 0, 0, 0);
+  return { start, end };
+}
+
 interface CalendarViewProps {
   targetUserId?: string;
   permission?: "VIEW_ONLY" | "FULL";
@@ -328,15 +358,13 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
     const isMidnight = start.getHours() === 0 && start.getMinutes() === 0;
     if (isMidnight) {
-      const rawDuration = arg.end ? arg.end.getTime() - arg.start.getTime() : 60 * 60 * 1000;
-      const duration = rawDuration > 0 ? rawDuration : 60 * 60 * 1000;
-
-      start.setHours(8, 0, 0, 0);
-      end = new Date(start.getTime() + duration);
+      const slot = findNextAvailableSlot(arg.start, allEvents);
+      start = slot.start;
+      end = slot.end;
     }
 
     setModalState({ mode: "create", start, end });
-  }, [canEdit]);
+  }, [canEdit, allEvents]);
 
   const handleEventClick = useCallback(
     (arg: EventClickArg) => {
@@ -601,7 +629,10 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               variant="outline"
               size="sm"
               className="h-9 rounded-md px-4 text-sm font-medium border-zinc-300 bg-white text-black hover:bg-zinc-100 dark:!bg-white dark:!text-black dark:hover:!bg-zinc-100 transition-colors shadow-sm hover:shadow-md"
-              onClick={() => setModalState({ mode: "create" })}
+              onClick={() => {
+                const slot = findNextAvailableSlot(new Date(), allEvents);
+                setModalState({ mode: "create", start: slot.start, end: slot.end });
+              }}
             >
               <span className="mr-1">Nuovo evento</span>
               <span className="text-xs">▾</span>

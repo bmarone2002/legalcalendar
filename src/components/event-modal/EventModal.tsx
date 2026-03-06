@@ -53,9 +53,9 @@ interface EventModalProps {
 
 /** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
 const EVENT_TAG_COLORS = [
-  "#5D4037", "#4E342E", "#3E2723", "#6D4C41", "#8D6E63",
+  "#5D4037", "#8D6E63",
   "#2E7D32", "#1565C0", "#6A1B9A", "#C62828", "#E65100",
-  "#00695C", "#283593",
+  "#00695C", "#283593", "#0097A7", "#F9A825", "#AD1457",
 ];
 
 type EventFormState = {
@@ -444,7 +444,7 @@ export function EventModal({
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
           ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
-          color: form.color ?? undefined,
+          color: form.color,
           status: form.status,
         }, targetUserId);
         if (!result.success) {
@@ -479,7 +479,7 @@ export function EventModal({
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
           ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
-          color: form.color ?? undefined,
+          color: form.color,
           status: form.status,
         }, targetUserId);
         if (!result.success) {
@@ -546,7 +546,7 @@ export function EventModal({
         actionMode: form.macroType ? form.actionMode : undefined,
         inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
         ruleParams: !form.macroType ? { reminderOffsets: form.reminderOffsets } : undefined,
-        color: form.color ?? undefined,
+        color: form.color,
         status: form.status,
       }, targetUserId);
       if (!up.success) {
