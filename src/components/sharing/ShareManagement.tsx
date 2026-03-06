@@ -44,7 +44,7 @@ export function ShareManagement() {
   }, [loadShares]);
 
   useEffect(() => {
-    if (email.trim().length < 3) {
+    if (!email.trim()) {
       setSuggestions([]);
       return;
     }
@@ -112,7 +112,7 @@ export function ShareManagement() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Inserisci l'email dell'utente..."
-              className="mt-1"
+              className="mt-1 bg-white text-zinc-800 placeholder-zinc-400 border border-zinc-300 focus-visible:ring-[var(--calendar-brown)] focus-visible:border-[var(--calendar-brown)]"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

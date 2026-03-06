@@ -23,7 +23,8 @@ export async function searchUsers(
   query: string
 ): Promise<ActionResult<Array<{ id: string; email: string | null }>>> {
   try {
-    if (!query || query.trim().length < 3) {
+    const trimmed = query.trim();
+    if (!trimmed) {
       return { success: true, data: [] };
     }
 
@@ -32,7 +33,7 @@ export async function searchUsers(
     const users = await prisma.user.findMany({
       where: {
         id: { not: currentUser.id },
-        email: { contains: query.trim(), mode: "insensitive" },
+        email: { contains: trimmed, mode: "insensitive" },
       },
       select: { id: true, email: true },
       take: 10,
