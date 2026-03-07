@@ -1,8 +1,9 @@
 "use client";
 
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import Link from "next/link";
-import { Sidebar } from "./Sidebar";
+import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sidebar, SidebarContent } from "./Sidebar";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -11,6 +12,19 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, headerTitle }: AppShellProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <div className="flex min-h-screen flex-col bg-[var(--surface)]" style={{ backgroundColor: "var(--surface)" }}>
       <div className="flex min-h-screen w-full flex-1">
@@ -20,6 +34,15 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
             className="flex h-14 shrink-0 items-center justify-end gap-3 border-b border-[var(--gold)]/20 bg-[var(--navy)] px-4 sm:px-6"
             style={{ backgroundColor: "var(--navy)", borderRight: "1px solid rgba(212, 175, 55, 0.2)" }}
           >
+            <button
+              type="button"
+              className="mr-2 flex h-9 w-9 items-center justify-center rounded-md text-white/90 hover:bg-white/10 md:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Apri menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
             {headerTitle && (
               <div className="mr-auto flex items-center gap-2 text-white/90">
                 {headerTitle}
@@ -50,6 +73,34 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
           </main>
         </div>
       </div>
+
+      {/* Drawer mobile: overlay + pannello */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menu di navigazione">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50 transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Chiudi menu"
+          />
+          <div
+            className="absolute left-0 top-0 bottom-0 z-50 flex w-[220px] flex-col border-r border-[var(--gold)]/20 bg-[var(--navy)] shadow-xl transition-transform"
+            style={{ backgroundColor: "var(--navy)" }}
+          >
+            <div className="flex min-h-[56px] items-center justify-end border-b border-[var(--gold)]/30 px-3">
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-white/90 hover:bg-white/10"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Chiudi menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <SidebarContent onNavigate={() => setMobileMenuOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

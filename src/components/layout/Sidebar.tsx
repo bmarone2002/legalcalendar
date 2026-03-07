@@ -32,17 +32,14 @@ function ShareIcon({ className }: { className?: string }) {
   );
 }
 
-export function Sidebar() {
+/** Contenuto logo + nav riutilizzabile in Sidebar e drawer mobile */
+export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const isSharedPage = pathname.startsWith("/shared");
   const [logoError, setLogoError] = useState(false);
 
   return (
-    <aside
-      className="flex w-[220px] shrink-0 flex-col border-r border-[var(--gold)]/20 bg-[var(--navy)]"
-      style={{ backgroundColor: "var(--navy)" }}
-    >
-      {/* Solo logo (immagine PNG, senza scritte aggiunte) */}
+    <>
       <div className="flex min-h-[72px] w-full items-center justify-center border-b border-[var(--gold)]/30 bg-[var(--navy)] px-3 py-3" style={{ backgroundColor: "var(--navy)" }}>
         {!logoError ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -66,6 +63,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
                   ? "border-l-2 border-[var(--gold)] bg-[var(--navy-light)]/80 text-[var(--gold)]"
@@ -83,6 +81,17 @@ export function Sidebar() {
           );
         })}
       </nav>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside
+      className="hidden md:flex w-[220px] shrink-0 flex-col border-r border-[var(--gold)]/20 bg-[var(--navy)]"
+      style={{ backgroundColor: "var(--navy)" }}
+    >
+      <SidebarContent />
     </aside>
   );
 }
