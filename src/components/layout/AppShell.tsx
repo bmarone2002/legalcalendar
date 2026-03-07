@@ -13,12 +13,12 @@ interface AppShellProps {
 export function AppShell({ children, headerTitle }: AppShellProps) {
   return (
     <div className="flex min-h-screen flex-col bg-[var(--surface)]" style={{ backgroundColor: "var(--surface)" }}>
-      <div className="flex min-h-screen flex-1">
+      <div className="flex min-h-screen w-full flex-1">
         <Sidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header
-            className="flex h-14 shrink-0 items-center justify-end gap-3 border-b border-[var(--navy)]/20 bg-[var(--navy)] px-4 sm:px-6"
-            style={{ backgroundColor: "var(--navy)" }}
+            className="flex h-14 shrink-0 items-center justify-end gap-3 border-b border-[var(--gold)]/20 bg-[var(--navy)] px-4 sm:px-6"
+            style={{ backgroundColor: "var(--navy)", borderRight: "1px solid rgba(212, 175, 55, 0.2)" }}
           >
             {headerTitle && (
               <div className="mr-auto flex items-center gap-2 text-white/90">
@@ -45,7 +45,7 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
               </SignInButton>
             </SignedOut>
           </header>
-          <main className="flex-1 p-3 sm:p-4 md:p-5 lg:p-6 overflow-auto">
+          <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-5 lg:p-6" style={{ backgroundColor: "var(--surface)" }}>
             {children}
           </main>
         </div>

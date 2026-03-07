@@ -42,16 +42,21 @@ export function Sidebar() {
       className="flex w-[220px] shrink-0 flex-col border-r border-[var(--gold)]/20 bg-[var(--navy)]"
       style={{ backgroundColor: "var(--navy)" }}
     >
-      {/* Logo completo (bilancia, libro, calendario, Agenda LEGALE) in tutto lo spigolo in alto a sinistra */}
-      <div className="flex min-h-[72px] w-full items-center justify-center border-b border-[var(--gold)]/30 px-3 py-3">
+      {/* Logo completo + scritta "Agenda Legale" in oro (leggibile su navy) */}
+      <div className="flex min-h-[72px] w-full flex-col items-center justify-center gap-1.5 border-b border-[var(--gold)]/30 px-3 py-3">
         {!logoError ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src="/logo-agenda-legale.png"
-            alt="Agenda Legale"
-            className="h-14 w-full max-w-[180px] object-contain object-center"
-            onError={() => setLogoError(true)}
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-agenda-legale.png"
+              alt=""
+              className="h-12 w-full max-w-[160px] object-contain object-center"
+              onError={() => setLogoError(true)}
+            />
+            <span className="text-center text-sm font-semibold tracking-tight text-[var(--gold)]">
+              Agenda Legale
+            </span>
+          </>
         ) : (
           <div className="flex flex-col items-center gap-1">
             <div className="flex h-10 w-10 items-center justify-center rounded bg-[var(--gold)]/20 text-[var(--gold)]">
