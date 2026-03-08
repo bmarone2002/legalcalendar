@@ -32,6 +32,7 @@
   --font-sans: var(--font-geist-sans);
 }
 
+html, body { overflow-x: hidden; }
 body {
   background: #fff;
   color: #171717;
@@ -116,9 +117,10 @@ body {
 .calendar-theme .fc-event.fc-event-madre .fc-event-main * { color: #171717 !important; text-shadow: none; }
 .calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-title { font-weight: 600; color: #171717 !important; text-shadow: none; }
 .calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-time { color: #171717 !important; }
-/* Sottoeventi: singola cornice colorata (solo interno), testo scuro */
+/* Sottoeventi: icona promemoria poco invasiva, più spazio al testo */
 .calendar-theme .fc-event.fc-event-sub { border-left-width: 0; border-left-style: none; }
 .calendar-theme .fc-event.fc-event-sub .fc-event-main * { color: #171717 !important; }
+.calendar-theme .fc-event.fc-event-sub .text-calendar-sub-event-icon { font-size: 0.65rem; line-height: 1; }
 
 /* Modale evento: sempre sfondo chiaro, niente barre nere */
 .event-modal-light input { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }

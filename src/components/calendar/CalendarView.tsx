@@ -583,11 +583,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       const borderColor = arg.event.borderColor as string | undefined;
       return (
         <div
-          className="fc-event-main-frame flex items-center gap-1 rounded border-l-4 pl-0.5"
+          className="fc-event-main-frame flex items-center gap-1 rounded border-l-2 pl-1"
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
-          <span className="text-calendar-sub-event-icon shrink-0" aria-hidden>↳</span>
-          <span className="truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
+          <span className="text-calendar-sub-event-icon shrink-0 text-[10px] leading-none opacity-80" aria-hidden title="Promemoria">↳</span>
+          <span className="truncate min-w-0 flex-1 text-[inherit]" style={{ color: "#171717" }}>{arg.event.title}</span>
         </div>
       );
     }
@@ -638,7 +638,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   }, [canEdit, targetUserId]);
 
   return (
-      <div className="flex h-full flex-col gap-2 sm:gap-3 calendar-theme">
+      <div className="flex h-full min-w-0 flex-col gap-2 sm:gap-3 calendar-theme">
       <div className="flex flex-col gap-2 sm:gap-3 mb-1">
         {/* Riga 1: Nuovo evento + ricerca */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-3">
@@ -796,7 +796,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           </div>
         </div>
       </div>
-      <div className="w-full calendar-month-container">
+      <div className="w-full min-w-0 max-w-full overflow-x-auto calendar-month-container">
         {initialView && (
         <FullCalendar
           ref={calendarRef}
