@@ -201,6 +201,11 @@ body {
   background: #fffdf2;
   box-shadow: inset 0 0 0 2px var(--gold);
 }
+.calendar-theme .fc .fc-timegrid-col.fc-day-today .fc-timegrid-col-frame,
+.calendar-theme .fc .fc-timegrid-col.fc-day-today .fc-timegrid-col-bg,
+.calendar-theme .fc .fc-timegrid-col.fc-day-today .fc-timegrid-slot-lane {
+  background: #fffdf2;
+}
 .calendar-theme .fc .fc-col-header-cell.fc-day-today,
 .calendar-theme .fc .fc-timegrid .fc-col-header-cell.fc-day-today {
   background: #102035;

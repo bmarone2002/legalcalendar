@@ -31,20 +31,6 @@ type DraftEvent = {
   form: any;
 };
 
-function filterEventsFromToday(events: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  return events.filter((ev) => {
-    const evStart = ev.start as Date | string | undefined;
-    if (!evStart) return false;
-    const d =
-      typeof evStart === "string"
-        ? new Date(evStart)
-        : new Date(evStart.getTime());
-    return d >= todayStart;
-  });
-}
-
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
   const rawColor = (e.color ?? "").trim();
@@ -228,10 +214,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             // Filtro "Solo eventi principali": nasconde promemoria e sottoeventi
             if (hideSubEvents) {
               events = events.filter((ev) => !(ev.extendedProps as { isSubEvent?: boolean }).isSubEvent);
-            }
-            // In Agenda: mostrare solo eventi a partire dal giorno corrente (incluso)
-            if (viewType === "listFromToday") {
-              events = filterEventsFromToday(events);
             }
             successCallback(events);
           } else {
