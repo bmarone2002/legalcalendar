@@ -8,7 +8,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import itLocale from "@fullcalendar/core/locales/it";
 import type { EventClickArg, DateSelectArg, EventDropArg, EventContentArg } from "@fullcalendar/core";
-import { getEvents, updateEvent } from "@/lib/actions/events";
+import { getEvents, updateEvent, deleteEvent } from "@/lib/actions/events";
 import { regenerateSubEvents, updateSubEvent, deleteSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
@@ -30,6 +30,27 @@ type DraftEvent = {
   id: string;
   form: any;
 };
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14" />
+    </svg>
+  );
+}
 
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
@@ -558,12 +579,12 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               ← {parentTitle}
             </span>
           )}
-          {canEdit && isReminder && (
+          {canEdit && (
             <button
               type="button"
-              aria-label="Rimuovi promemoria"
-              title="Rimuovi solo questo promemoria"
-              className="ml-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full h-5 w-5 flex items-center justify-center shrink-0"
+              aria-label="Rimuovi sottoevento"
+              title="Rimuovi questo elemento"
+              className="ml-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full h-6 w-6 flex items-center justify-center shrink-0"
               onClick={async (e) => {
                 e.stopPropagation();
                 const id = arg.event.id as string;
@@ -573,7 +594,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 }
               }}
             >
-              ×
+              <TrashIcon className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -605,7 +626,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
         </div>
       );
     }
-    // Evento madre in vista Agenda: mostra spunta verde se completato
+    // Evento madre in vista Agenda: mostra spunta verde se completato + icona cestino per eliminare
     if (isListView) {
       const evStatus = arg.event.extendedProps.status as string | undefined;
       const isDoneEv = evStatus === "done";
@@ -624,6 +645,36 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           >
             {arg.event.title}
           </span>
+          {canEdit && (
+            <button
+              type="button"
+              aria-label="Rimuovi evento"
+              title="Rimuovi evento principale e relativi sottoeventi"
+              className="ml-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full h-6 w-6 flex items-center justify-center shrink-0"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const id = arg.event.id as string;
+                const result = await deleteEvent(id, targetUserId);
+                if (result.success) {
+                  const api = calendarRef.current?.getApi();
+                  if (!api) {
+                    arg.event.remove();
+                    return;
+                  }
+                  const events = api.getEvents();
+                  events.forEach((ev) => {
+                    const isSub = ev.extendedProps.isSubEvent as boolean | undefined;
+                    const parentId = ev.extendedProps.parentEventId as string | undefined;
+                    if (ev.id === id || (isSub && parentId === id)) {
+                      ev.remove();
+                    }
+                  });
+                }
+              }}
+            >
+              <TrashIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       );
     }
