@@ -7,6 +7,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/", label: "Calendario", icon: CalendarIcon },
   { href: "/shared", label: "Condivisioni", icon: ShareIcon },
+  { href: "/backup", label: "Backup", icon: BackupIcon },
 ];
 
 function CalendarIcon({ className }: { className?: string }) {
@@ -28,6 +29,25 @@ function ShareIcon({ className }: { className?: string }) {
       <circle cx="18" cy="19" r="3" />
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  );
+}
+
+function BackupIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 4h16v12H5a1 1 0 0 1-1-1V4z" />
+      <polyline points="14 2 14 8 10 8 10 2" />
+      <path d="M9 20h10a1 1 0 0 0 1-1v-3" />
+      <polyline points="7 16 3 20 7 20" />
     </svg>
   );
 }
