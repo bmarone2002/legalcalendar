@@ -55,7 +55,6 @@ function BackupIcon({ className }: { className?: string }) {
 /** Contenuto logo + nav riutilizzabile in Sidebar e drawer mobile */
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const isSharedPage = pathname.startsWith("/shared");
   const [logoError, setLogoError] = useState(false);
 
   return (
@@ -78,7 +77,9 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex flex-col gap-0.5 p-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
-            (href === "/" && !isSharedPage) || (href === "/shared" && isSharedPage);
+            href === "/"
+              ? pathname === "/"
+              : pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={href}
