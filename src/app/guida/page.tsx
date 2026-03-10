@@ -136,10 +136,10 @@ export default function GuidaPage() {
             rapidamente vista e periodo, filtrare i promemoria per stato e tenere sempre sotto
             controllo cosa ti aspetta.
           </p>
-          <ul className="mt-3 grid gap-2 text-xs text-zinc-700 sm:grid-cols-3 sm:text-sm">
-            <li>• Usa il selettore in alto a destra per passare da Giorno, Settimana, Mese, Agenda.</li>
-            <li>• Clicca su un giorno o su &quot;Nuovo evento&quot; per aggiungere un impegno.</li>
-            <li>• Attiva i filtri a destra per vedere solo i promemoria &quot;Da fare&quot; o &quot;Completati&quot;.</li>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-zinc-700 sm:text-sm">
+            <li>Usa il selettore in alto a destra per passare da Giorno, Settimana, Mese, Agenda.</li>
+            <li>Clicca su un giorno o su &quot;Nuovo evento&quot; per aggiungere un impegno.</li>
+            <li>Attiva i filtri a destra per vedere solo i promemoria &quot;Da fare&quot; o &quot;Completati&quot;.</li>
           </ul>
         </section>
 
