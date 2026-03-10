@@ -157,15 +157,17 @@ function LandingPage() {
                     Studio Legale
                   </span>
                 </div>
-                <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-gradient-to-br from-white to-[var(--surface)]">
-                  <p className="px-6 text-center text-xs text-zinc-500">
-                    Qui puoi vedere in anteprima il calendario che userai ogni giorno, con viste
-                    Mese, Settimana, Giorno e Agenda.
-                  </p>
+                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/screenshot-calendario.png"
+                    alt="Calendario di Agenda Legale"
+                    className="h-auto w-full object-cover"
+                  />
                 </div>
                 <p className="mt-3 text-xs text-zinc-600">
-                  Se vuoi, potremo sostituire questo riquadro con uno screenshot reale del tuo
-                  calendario.
+                  Vista Mese, Settimana, Giorno e Agenda con colori e filtri personalizzati per
+                  udienze, scadenze e appuntamenti.
                 </p>
               </div>
             </div>

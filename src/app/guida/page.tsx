@@ -136,14 +136,6 @@ export default function GuidaPage() {
             rapidamente vista e periodo, filtrare i promemoria per stato e tenere sempre sotto
             controllo cosa ti aspetta.
           </p>
-          <div className="flex items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-gradient-to-br from-white to-[var(--surface)] px-6 py-8 text-center">
-            <p className="text-xs text-zinc-600">
-              In questa sezione del sito vedrai il{" "}
-              <span className="font-medium">calendario completo</span> con tutte le tue udienze,
-              scadenze e appuntamenti. Le viste Giorno, Settimana, Mese e Agenda ti permettono di
-              scegliere il livello di dettaglio più adatto al tuo lavoro.
-            </p>
-          </div>
           <ul className="mt-3 grid gap-2 text-xs text-zinc-700 sm:grid-cols-3 sm:text-sm">
             <li>• Usa il selettore in alto a destra per passare da Giorno, Settimana, Mese, Agenda.</li>
             <li>• Clicca su un giorno o su &quot;Nuovo evento&quot; per aggiungere un impegno.</li>
