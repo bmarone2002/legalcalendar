@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
