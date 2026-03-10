@@ -42,8 +42,9 @@ export default function GuidaPage() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-zinc-700 sm:text-base">
             Questa guida ti accompagna nell&apos;uso del calendario, dei promemoria, del calcolo dei
-            termini e dei backup, così puoi gestire il tuo studio legale in modo ordinato e
-            sicuro.
+            termini, dei backup e dell&apos;
+            <span className="font-medium">estrazione automatica delle informazioni con l&apos;AI</span>,
+            così puoi gestire il tuo studio legale in modo ordinato e sicuro.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
             <SignedIn>
@@ -77,6 +78,47 @@ export default function GuidaPage() {
               Scopri come fare il backup
             </Link>
           </div>
+        </section>
+
+        {/* Sezione 0 – Estrazione automatica con AI */}
+        <section id="ai" className="mb-10 scroll-mt-20">
+          <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
+            0. Estrazione automatica di date e procedimenti con l&apos;AI
+          </h2>
+          <p className="mb-3 text-sm text-zinc-700">
+            Una delle funzioni più importanti di Agenda Legale è la capacità di{" "}
+            <span className="font-medium">leggere i documenti e proporre automaticamente eventi e scadenze</span>.
+            In questo modo riduci al minimo l&apos;inserimento manuale.
+          </p>
+          <ul className="grid gap-3 text-sm text-zinc-700 md:grid-cols-3">
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Come funziona
+              </p>
+              <p className="text-xs">
+                Fornisci i dati o i documenti di partenza e l&apos;AI identifica termini, date e
+                riferimenti procedurali rilevanti.
+              </p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Cosa ottieni
+              </p>
+              <p className="text-xs">
+                Proposte di eventi e scadenze già pronte per essere inserite nel calendario, con
+                meno errori e molto meno tempo impiegato.
+              </p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Controllo sempre tuo
+              </p>
+              <p className="text-xs">
+                Puoi sempre verificare e confermare le informazioni suggerite, mantenendo il pieno
+                controllo sulle scadenze del tuo studio.
+              </p>
+            </li>
+          </ul>
         </section>
 
         {/* Sezione 1 – Calendario */}

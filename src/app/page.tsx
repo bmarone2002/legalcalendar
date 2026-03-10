@@ -83,11 +83,16 @@ function LandingPage() {
                 <span className="text-[var(--gold)]">in modo intelligente</span>
               </h1>
               <p className="mb-6 text-sm text-zinc-700 sm:text-base">
-                Agenda Legale è il calendario pensato per avvocati e studi legali: gestisci udienze,
-                scadenze, promemoria e termini in un&apos;unica interfaccia chiara e sempre
-                sincronizzata.
+                Agenda Legale è il calendario pensato per avvocati e studi legali: grazie
+                all&apos;AI estrae automaticamente date, procedimenti ed eventi dai documenti, così
+                puoi gestire udienze, scadenze, promemoria e termini in un&apos;unica interfaccia
+                chiara e sempre sincronizzata.
               </p>
               <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
+                <FeatureBullet title="Estrazione automatica con AI">
+                  Carica o inserisci i tuoi atti e lascia che l&apos;intelligenza artificiale ricavi
+                  in autonomia date, termini e impegni da inserire in agenda.
+                </FeatureBullet>
                 <FeatureBullet title="Calendario avanzato">
                   Viste Giorno, Settimana, Mese e Agenda per avere sempre sotto controllo impegni e
                   cause.
@@ -133,35 +138,34 @@ function LandingPage() {
 
             {/* Calendar preview / card column */}
             <div className="flex flex-1 items-center justify-center">
-              <div className="relative w-full max-w-xl rounded-2xl border border-[var(--gold)]/30 bg-[var(--surface-card)]/95 p-4 shadow-2xl shadow-black/30 backdrop-blur-sm">
+              <div className="relative w-full max-w-xl rounded-2xl border border-[var(--gold)]/30 bg-[var(--surface-card)]/95 p-4 shadow-2xl shadow-black/10">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[var(--navy)] text-[var(--gold)] shadow">
-                      {/* small calendar glyph */}
                       <span className="text-lg font-semibold">✓</span>
                     </span>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--navy)]">
                         Vista Calendario
                       </p>
-                      <p className="text-xs text-zinc-600">Tutti i tuoi impegni in un&apos;unica schermata</p>
+                      <p className="text-xs text-zinc-600">
+                        Tutti i tuoi impegni in un&apos;unica schermata
+                      </p>
                     </div>
                   </div>
                   <span className="rounded-full bg-[var(--gold)]/15 px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--gold)]">
                     Studio Legale
                   </span>
                 </div>
-                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/screenshot-calendario.png"
-                    alt="Calendario di Agenda Legale"
-                    className="h-auto w-full object-cover"
-                  />
+                <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-gradient-to-br from-white to-[var(--surface)]">
+                  <p className="px-6 text-center text-xs text-zinc-500">
+                    Qui puoi vedere in anteprima il calendario che userai ogni giorno, con viste
+                    Mese, Settimana, Giorno e Agenda.
+                  </p>
                 </div>
                 <p className="mt-3 text-xs text-zinc-600">
-                  Vista Mese, Settimana, Giorno e Agenda con colori e filtri personalizzati per
-                  udienze, scadenze e appuntamenti.
+                  Se vuoi, potremo sostituire questo riquadro con uno screenshot reale del tuo
+                  calendario.
                 </p>
               </div>
             </div>
