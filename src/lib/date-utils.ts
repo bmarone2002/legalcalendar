@@ -131,6 +131,7 @@ export function assignTimeSlots(
   const dayMap = new Map<string, number>();
 
   return candidates.map((c) => {
+    if (!c.dueAt) return c;
     const dayKey = startOfDay(c.dueAt).toISOString();
     const count = dayMap.get(dayKey) ?? 0;
     dayMap.set(dayKey, count + 1);

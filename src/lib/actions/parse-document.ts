@@ -7,11 +7,31 @@ const OPENAI_MODEL = "gpt-4o-mini";
 const ACTION_TYPE_VALUES = ["CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"] as const;
 const ACTION_MODE_VALUES = ["COSTITUZIONE", "DA_NOTIFICARE"] as const;
 
+const MACRO_AREA_VALUES = ["CIVILE_CONTENZIOSO", "PROCEDIMENTI_SPECIALI", "ESECUZIONI", "LAVORO", "TRIBUTARIO", "CASSAZIONE", "STRAGIUDIZIALE", "AMMINISTRATIVO"] as const;
+const PROCEDIMENTO_VALUES = [
+  "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE",
+  "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA",
+  "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE",
+  "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO",
+  "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI",
+  "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI",
+  "RICORSO_LAVORO", "APPELLO_LAVORO",
+  "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO",
+  "RICORSO_CASSAZIONE", "CONTRORICORSO",
+  "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE",
+  "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO",
+  "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA",
+] as const;
+const PARTE_PROCESSUALE_VALUES = ["ATTORE", "CONVENUTO"] as const;
+
 /** Risposta strutturata dall'AI per precompilare il form Atto Giuridico */
 const parsedDocumentSchema = z.object({
   title: z.string().optional().default(""),
   description: z.string().optional().default(""),
   type: z.enum(["udienza", "notifica", "deposito", "scadenza", "altro"]).optional().default("altro"),
+  macroArea: z.enum(MACRO_AREA_VALUES).optional(),
+  procedimento: z.enum(PROCEDIMENTO_VALUES).optional(),
+  parteProcessuale: z.enum(PARTE_PROCESSUALE_VALUES).optional(),
   actionType: z.enum(ACTION_TYPE_VALUES).optional(),
   actionMode: z.enum(ACTION_MODE_VALUES).optional(),
   inputs: z.record(z.unknown()).optional().default({}),
@@ -33,19 +53,23 @@ Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste
 - title: stringa breve che riassume la pratica (es. "Citazione Tizio vs Caio"); se presente nel documento, includi anche l'autorità giudiziaria (es. Tribunale di Napoli, Giudice di pace di Salerno) e il numero di RG (Ruolo Generale)
 - description: stringa opzionale con dettagli o adempimenti
 - type: uno tra "udienza", "notifica", "deposito", "scadenza", "altro"
-- actionType: uno tra "CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"
-- actionMode: uno tra "COSTITUZIONE", "DA_NOTIFICARE". Interpreta così: se il documento riguarda la parte CONVENUTO/RESISTENTE (costituzione in giudizio) restituisci "COSTITUZIONE"; se riguarda ATTORE/RICORRENTE (notifica dell'atto) restituisci "DA_NOTIFICARE"
+- macroArea: la macro area del procedimento, uno tra: "CIVILE_CONTENZIOSO" (civile ordinario), "PROCEDIMENTI_SPECIALI" (decreto ingiuntivo, cautelari, ATP, sommario, sfratto), "ESECUZIONI" (pignoramenti, opposizioni esecuzione), "LAVORO" (ricorso/appello lavoro), "TRIBUTARIO" (ricorso/appello tributario), "CASSAZIONE" (ricorso cassazione, controricorso), "STRAGIUDIZIALE" (diffida, mediazione, negoziazione assistita, transazione), "AMMINISTRATIVO" (TAR, Consiglio di Stato, revocazione)
+- procedimento: il tipo specifico, uno tra: "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE", "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA", "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE", "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO", "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI", "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI", "RICORSO_LAVORO", "APPELLO_LAVORO", "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE", "CONTRORICORSO", "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE", "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO", "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA"
+- parteProcessuale: "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se riguarda la parte passiva (convenuto, resistente, appellato, debitore)
+- actionType: (legacy, opzionale) uno tra "CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"
+- actionMode: (legacy, opzionale) "COSTITUZIONE" o "DA_NOTIFICARE"
 - inputs: OGGETTO OBBLIGATORIO con le date trovate nel documento. Usa ESATTAMENTE queste chiavi quando applicabile:
-  * Per citazione/notifica: dataNotifica, dataNotificaCitazione
-  * Per udienza: dataUdienzaComparizione, dataUdienzaRiferimentoMemorie (usa dataUdienzaComparizione per la data dell'udienza/comparizione)
+  * Per citazione/notifica: dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione
+  * Per udienza: dataUdienzaComparizione, dataUdienzaRiferimentoMemorie (usa dataPrimaUdienza per la data dell'udienza/comparizione nella citazione civile)
   * Per decreto/opposizione: dataNotificaDecretoIngiuntivo
   * Per ricorso/sentenza: dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato
-  * Per appello: dataNotificaAppello, dataNotificaSentenza, dataPubblicazioneSentenza (valgono per qualsiasi sentenza, non solo tributaria)
+  * Per appello: dataNotificaAppello, dataNotificaSentenza, dataPubblicazioneSentenza
+  * Per esecuzioni: dataNotificaPrecetto, dataNotificaPignoramento
   * Altri: giorniOpposizione, giorniIscrizioneRuolo, giorniCostituzione (numero), sceltaTermineImpugnazione ("BREVE" o "LUNGO")
   Ogni data deve essere in formato ISO (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss). Inserisci in inputs TUTTE le date che trovi nel testo.
 - notes: stringa opzionale con note
 
-Esempio: se nel testo c'è "udienza fissata per il 15/04/2025 alle 9:30" e "data notifica 10 marzo 2025", inputs deve contenere almeno: { "dataUdienzaComparizione": "2025-04-15T09:30:00", "dataNotifica": "2025-03-10" } (e altre chiavi se le riconosci). Il JSON deve essere parsabile.`;
+Esempio: se nel testo c'è "udienza fissata per il 15/04/2025 alle 9:30" e "data notifica 10 marzo 2025", inputs deve contenere almeno: { "dataPrimaUdienza": "2025-04-15T09:30:00", "dataPrimaNotificaCitazione": "2025-03-10" } (e altre chiavi se le riconosci). Il JSON deve essere parsabile.`;
 
 // ── Rinvio (verbale / comunicazione cancelleria) ─────────────────────
 
@@ -174,6 +198,9 @@ export async function parseDocumentForEvent(formData: FormData): Promise<ParseDo
       title: parsed.title ?? "",
       description: parsed.description ?? "",
       type: parsed.type ?? "altro",
+      macroArea: parsed.macroArea ?? undefined,
+      procedimento: parsed.procedimento ?? undefined,
+      parteProcessuale: parsed.parteProcessuale ?? undefined,
       actionType: parsed.actionType ?? undefined,
       actionMode: parsed.actionMode ?? undefined,
       inputs: parsed.inputs ?? {},

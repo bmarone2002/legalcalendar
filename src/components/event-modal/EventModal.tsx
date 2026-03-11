@@ -29,7 +29,10 @@ import { RULE_TEMPLATES } from "@/types";
 import type { ActionType, ActionMode } from "@/types/atto-giuridico";
 import { ACTION_TYPES, ACTION_MODES, ACTION_TYPE_LABELS, ACTION_MODE_LABELS } from "@/types/atto-giuridico";
 import { AttoGiuridicoPanel } from "./AttoGiuridicoPanel";
+import { MacroAreaPanel } from "./MacroAreaPanel";
 import { ProsecuzionePanel } from "./ProsecuzionePanel";
+import type { MacroAreaCode, ProcedimentoCode, ParteProcessuale } from "@/types/macro-areas";
+import { LEGACY_ACTION_TYPE_MAP, LEGACY_ACTION_MODE_MAP } from "@/types/macro-areas";
 import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
@@ -72,6 +75,9 @@ type EventFormState = {
   generateSubEvents: boolean;
   ruleTemplateId: string;
   macroType: "ATTO_GIURIDICO" | null;
+  macroArea: MacroAreaCode | null;
+  procedimento: ProcedimentoCode | null;
+  parteProcessuale: ParteProcessuale | null;
   actionType: ActionType;
   actionMode: ActionMode;
   inputs: Record<string, unknown>;
@@ -95,8 +101,11 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
   tags: [],
   notes: "",
   generateSubEvents: true,
-  ruleTemplateId: "atto-giuridico",
+  ruleTemplateId: "data-driven",
   macroType: "ATTO_GIURIDICO",
+  macroArea: null,
+  procedimento: null,
+  parteProcessuale: null,
   actionType: ACTION_TYPES[0],
   actionMode: ACTION_MODES[0],
   inputs: {},
@@ -210,12 +219,13 @@ export function EventModal({
     Array<{
       id: string;
       title: string;
-      dueAt: Date;
+      dueAt: Date | null;
       explanation: string;
       ruleId: string;
       ruleParams?: Record<string, unknown> | null;
       kind: string;
       priority?: number;
+      isPlaceholder?: boolean;
     }>
   >([]);
   const [loading, setLoading] = useState(false);
@@ -257,6 +267,9 @@ export function EventModal({
         generateSubEvents: e.generateSubEvents,
         ruleTemplateId: e.ruleTemplateId ?? RULE_TEMPLATES[0].id,
         macroType: e.macroType ?? null,
+        macroArea: (e.macroArea as MacroAreaCode) ?? null,
+        procedimento: (e.procedimento as ProcedimentoCode) ?? null,
+        parteProcessuale: (e.parteProcessuale as ParteProcessuale) ?? null,
         actionType: (e.actionType as ActionType) ?? ACTION_TYPES[0],
         actionMode: (e.actionMode as ActionMode) ?? ACTION_MODES[0],
         inputs: (e.inputs as Record<string, unknown>) ?? {},
@@ -313,7 +326,15 @@ export function EventModal({
           type: form.type,
           tags: form.tags,
           ruleTemplateId: form.ruleTemplateId,
-          ...(form.ruleTemplateId === "atto-giuridico"
+          ...(form.ruleTemplateId === "data-driven"
+            ? {
+                macroType: "ATTO_GIURIDICO",
+                macroArea: form.macroArea,
+                procedimento: form.procedimento,
+                parteProcessuale: form.parteProcessuale,
+                inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
+              }
+            : form.ruleTemplateId === "atto-giuridico"
             ? {
                 macroType: "ATTO_GIURIDICO",
                 actionType: form.actionType,
@@ -331,12 +352,13 @@ export function EventModal({
             result.data.map((c) => ({
               id: c.id,
               title: c.title,
-              dueAt: new Date(c.dueAt),
+              dueAt: c.dueAt ? new Date(c.dueAt) : null,
               explanation: c.explanation,
               ruleId: c.ruleId,
               ruleParams: c.ruleParams ?? null,
               kind: c.kind,
               priority: c.priority,
+              isPlaceholder: (c as { isPlaceholder?: boolean }).isPlaceholder ?? false,
             }))
           );
         } else {
@@ -354,6 +376,9 @@ export function EventModal({
     form.generateSubEvents,
     form.ruleTemplateId,
     form.macroType,
+    form.macroArea,
+    form.procedimento,
+    form.parteProcessuale,
     form.actionType,
     form.actionMode,
     form.inputs,
@@ -380,7 +405,15 @@ export function EventModal({
         type: form.type,
         tags: form.tags,
         ruleTemplateId: form.ruleTemplateId,
-        ...(form.ruleTemplateId === "atto-giuridico"
+        ...(form.ruleTemplateId === "data-driven"
+          ? {
+              macroType: "ATTO_GIURIDICO",
+              macroArea: form.macroArea,
+              procedimento: form.procedimento,
+              parteProcessuale: form.parteProcessuale,
+              inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
+            }
+          : form.ruleTemplateId === "atto-giuridico"
           ? {
               macroType: "ATTO_GIURIDICO",
               actionType: form.actionType,
@@ -399,12 +432,13 @@ export function EventModal({
           result.data.map((c) => ({
             id: c.id,
             title: c.title,
-            dueAt: new Date(c.dueAt),
+            dueAt: c.dueAt ? new Date(c.dueAt) : null,
             explanation: c.explanation,
             ruleId: c.ruleId,
             ruleParams: c.ruleParams ?? null,
             kind: c.kind,
             priority: c.priority,
+            isPlaceholder: (c as { isPlaceholder?: boolean }).isPlaceholder ?? false,
           }))
         );
         setError(null);
@@ -413,7 +447,7 @@ export function EventModal({
         if (
           result.success &&
           (!result.data || result.data.length === 0) &&
-          form.ruleTemplateId === "atto-giuridico" &&
+          (form.ruleTemplateId === "atto-giuridico" || form.ruleTemplateId === "data-driven") &&
           form.macroType === "ATTO_GIURIDICO"
         ) {
           setError("Inserire tutte le date e i campi necessari per effettuare il calcolo.");
@@ -463,6 +497,9 @@ export function EventModal({
           generateSubEvents: form.generateSubEvents,
           ruleTemplateId: form.ruleTemplateId || null,
           macroType: form.macroType ?? undefined,
+          macroArea: form.macroArea,
+          procedimento: form.procedimento,
+          parteProcessuale: form.parteProcessuale,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -498,6 +535,9 @@ export function EventModal({
           generateSubEvents: form.generateSubEvents,
           ruleTemplateId: form.ruleTemplateId || null,
           macroType: form.macroType ?? undefined,
+          macroArea: form.macroArea,
+          procedimento: form.procedimento,
+          parteProcessuale: form.parteProcessuale,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -565,6 +605,9 @@ export function EventModal({
         generateSubEvents: form.generateSubEvents,
         ruleTemplateId: form.ruleTemplateId || null,
         macroType: form.macroType ?? undefined,
+        macroArea: form.macroArea,
+        procedimento: form.procedimento,
+        parteProcessuale: form.parteProcessuale,
         actionType: form.macroType ? form.actionType : undefined,
         actionMode: form.macroType ? form.actionMode : undefined,
         inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -692,11 +735,11 @@ export function EventModal({
                     setForm((f) => ({
                       ...f,
                       macroType: isAtto ? "ATTO_GIURIDICO" : null,
-                      ruleTemplateId: isAtto ? "atto-giuridico" : "reminder",
+                      ruleTemplateId: isAtto ? "data-driven" : "reminder",
                       generateSubEvents: true,
                       ...(isAtto
-                        ? {}
-                        : { actionType: ACTION_TYPES[0], actionMode: ACTION_MODES[0], inputs: {} }),
+                        ? { macroArea: null, procedimento: null, parteProcessuale: null, inputs: {} }
+                        : { macroArea: null, procedimento: null, parteProcessuale: null, actionType: ACTION_TYPES[0], actionMode: ACTION_MODES[0], inputs: {} }),
                     }));
                   }}
                 >
@@ -762,7 +805,7 @@ export function EventModal({
                 </>
               )}
 
-              {/* 4a. Se Atto Giuridico: compila da documento (AI) + Sotto-categoria e Modalità */}
+              {/* 4a. Se Atto Giuridico: compila da documento (AI) + gerarchia 4 livelli */}
               {form.macroType === "ATTO_GIURIDICO" && (
                 <>
                   {/* Compila da documento: solo in creazione */}
@@ -790,12 +833,16 @@ export function EventModal({
                               const d = result.data;
                               let mergedInputs = (d.inputs ?? {}) as Record<string, unknown>;
                               if (Object.keys(mergedInputs).length > 0) {
-                                // Rule engine expects dataUdienza in many flows; AI returns only dataUdienzaComparizione
                                 const dataComp = mergedInputs.dataUdienzaComparizione as string | undefined;
                                 if (dataComp && mergedInputs.dataUdienza == null) {
                                   mergedInputs = { ...mergedInputs, dataUdienza: dataComp.slice(0, 10) };
                                 }
                               }
+                              const aiMacroArea = (d as { macroArea?: string }).macroArea as MacroAreaCode | undefined;
+                              const aiProcedimento = (d as { procedimento?: string }).procedimento as ProcedimentoCode | undefined;
+                              const aiParte = (d as { parteProcessuale?: string }).parteProcessuale as ParteProcessuale | undefined;
+                              const legacyMapping = !aiMacroArea && d.actionType ? LEGACY_ACTION_TYPE_MAP[d.actionType] : null;
+                              const legacyParte = !aiParte && d.actionMode ? LEGACY_ACTION_MODE_MAP[d.actionMode] : null;
                               setForm((f) => ({
                                 ...f,
                                 title: d.title ?? f.title,
@@ -804,6 +851,10 @@ export function EventModal({
                                 notes: d.notes ?? f.notes,
                                 ...(d.actionType && { actionType: d.actionType as ActionType }),
                                 ...(d.actionMode && { actionMode: d.actionMode as ActionMode }),
+                                ...(aiMacroArea ? { macroArea: aiMacroArea } : legacyMapping ? { macroArea: legacyMapping.macroArea } : {}),
+                                ...(aiProcedimento ? { procedimento: aiProcedimento } : legacyMapping ? { procedimento: legacyMapping.procedimento } : {}),
+                                ...(aiParte ? { parteProcessuale: aiParte } : legacyParte ? { parteProcessuale: legacyParte } : {}),
+                                ...((aiMacroArea || legacyMapping) && { ruleTemplateId: "data-driven" }),
                                 ...(Object.keys(mergedInputs).length > 0 && { inputs: mergedInputs }),
                               }));
                               setError(null);
@@ -832,50 +883,87 @@ export function EventModal({
                       </div>
                     </div>
                   )}
-                  <div>
-                    <Label>Sotto-categoria</Label>
-                    <Select
-                      value={form.actionType}
-                      onValueChange={(v) => setForm((f) => ({ ...f, actionType: v as ActionType }))}
-                    >
-                      <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-                        <SelectValue placeholder="Seleziona sotto-categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ACTION_TYPES.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {ACTION_TYPE_LABELS[t]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Modalità</Label>
-                    <Select
-                      value={form.actionMode}
-                      onValueChange={(v) => setForm((f) => ({ ...f, actionMode: v as ActionMode }))}
-                    >
-                      <SelectTrigger className="bg-white dark:bg-white border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-                        <SelectValue placeholder="Seleziona modalità" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ACTION_MODES.map((m) => (
-                          <SelectItem key={m} value={m}>
-                            {ACTION_MODE_LABELS[m]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="pt-1">
-                    <AttoGiuridicoPanel
-                      actionType={form.actionType}
-                      actionMode={form.actionMode}
-                      inputs={form.inputs}
-                      onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
-                    />
-                  </div>
+
+                  {/* Nuova gerarchia a 4 livelli: Macro Area -> Procedimento -> Parte -> Input */}
+                  <MacroAreaPanel
+                    macroArea={form.macroArea}
+                    procedimento={form.procedimento}
+                    parteProcessuale={form.parteProcessuale}
+                    inputs={form.inputs}
+                    onMacroAreaChange={(ma) =>
+                      setForm((f) => ({
+                        ...f,
+                        macroArea: ma,
+                        procedimento: null,
+                        parteProcessuale: null,
+                        inputs: {},
+                        ruleTemplateId: "data-driven",
+                      }))
+                    }
+                    onProcedimentoChange={(p) =>
+                      setForm((f) => ({
+                        ...f,
+                        procedimento: p,
+                        parteProcessuale: null,
+                        inputs: {},
+                      }))
+                    }
+                    onParteProcessualeChange={(p) =>
+                      setForm((f) => ({ ...f, parteProcessuale: p, inputs: {} }))
+                    }
+                    onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
+                  />
+
+                  {/* Legacy: pannello vecchio (visibile solo se evento caricato con vecchio actionType senza macroArea) */}
+                  {!form.macroArea && form.actionType && (
+                    <>
+                      <div className="pt-2 border-t border-zinc-200">
+                        <p className="text-xs text-amber-600 mb-2">Evento creato con la struttura precedente. Seleziona una Macro Area sopra per migrarlo.</p>
+                        <Label>Sotto-categoria (legacy)</Label>
+                        <Select
+                          value={form.actionType}
+                          onValueChange={(v) => setForm((f) => ({ ...f, actionType: v as ActionType }))}
+                        >
+                          <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
+                            <SelectValue placeholder="Seleziona sotto-categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ACTION_TYPES.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {ACTION_TYPE_LABELS[t]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Modalità (legacy)</Label>
+                        <Select
+                          value={form.actionMode}
+                          onValueChange={(v) => setForm((f) => ({ ...f, actionMode: v as ActionMode }))}
+                        >
+                          <SelectTrigger className="bg-white dark:bg-white border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
+                            <SelectValue placeholder="Seleziona modalità" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ACTION_MODES.map((m) => (
+                              <SelectItem key={m} value={m}>
+                                {ACTION_MODE_LABELS[m]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="pt-1">
+                        <AttoGiuridicoPanel
+                          actionType={form.actionType}
+                          actionMode={form.actionMode}
+                          inputs={form.inputs}
+                          onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
+                        />
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -924,7 +1012,7 @@ export function EventModal({
                             ...f,
                             reminderOffsets: f.reminderOffsets.filter((_, idx) => idx !== i),
                             generateSubEvents: f.reminderOffsets.length > 1,
-                            ruleTemplateId: f.reminderOffsets.length > 1 ? (f.macroType === "ATTO_GIURIDICO" ? "atto-giuridico" : "reminder") : f.ruleTemplateId,
+                            ruleTemplateId: f.reminderOffsets.length > 1 ? (f.macroType === "ATTO_GIURIDICO" ? (f.macroArea ? "data-driven" : "atto-giuridico") : "reminder") : f.ruleTemplateId,
                           }))
                         }
                         className="text-red-500 hover:text-red-700 text-lg leading-none px-1"
@@ -943,7 +1031,7 @@ export function EventModal({
                         ...f,
                         reminderOffsets: [...f.reminderOffsets, 7],
                         generateSubEvents: true,
-                        ruleTemplateId: form.macroType === "ATTO_GIURIDICO" ? "atto-giuridico" : "reminder",
+                        ruleTemplateId: form.macroType === "ATTO_GIURIDICO" ? (form.macroArea ? "data-driven" : "atto-giuridico") : "reminder",
                       }))
                     }
                     className="mt-1 border-zinc-300 text-zinc-700 hover:bg-zinc-50"
@@ -1088,7 +1176,10 @@ export function EventModal({
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium">{s.title}</div>
                                 <div className="text-sm text-zinc-500">
-                                  {formatDateTime(s.dueAt)}
+                                  {(s as { isPlaceholder?: boolean }).isPlaceholder || !s.dueAt || (s.dueAt instanceof Date && s.dueAt.getTime() === 0)
+                                    ? <span className="italic text-amber-600">Data da inserire</span>
+                                    : formatDateTime(s.dueAt)
+                                  }
                                 </div>
                                 <div className="text-xs text-zinc-500 mt-1">
                                   Calcolo: {(s as { explanation?: string | null }).explanation ?? ""}

@@ -81,6 +81,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   (e.subEvents ?? []).forEach((se: SubEvent) => {
+    if (se.isPlaceholder || !se.dueAt || (se.dueAt instanceof Date && se.dueAt.getTime() === 0)) return;
     const isDone = se.status === "done";
     const isPromemoria = se.kind === "promemoria";
     const dueDate = new Date(se.dueAt);

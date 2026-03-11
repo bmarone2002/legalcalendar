@@ -2398,6 +2398,9 @@ export namespace Prisma {
     ruleTemplateId: string | null
     ruleParams: string | null
     macroType: string | null
+    macroArea: string | null
+    procedimento: string | null
+    parteProcessuale: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2423,6 +2426,9 @@ export namespace Prisma {
     ruleTemplateId: string | null
     ruleParams: string | null
     macroType: string | null
+    macroArea: string | null
+    procedimento: string | null
+    parteProcessuale: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2448,6 +2454,9 @@ export namespace Prisma {
     ruleTemplateId: number
     ruleParams: number
     macroType: number
+    macroArea: number
+    procedimento: number
+    parteProcessuale: number
     actionType: number
     actionMode: number
     inputs: number
@@ -2475,6 +2484,9 @@ export namespace Prisma {
     ruleTemplateId?: true
     ruleParams?: true
     macroType?: true
+    macroArea?: true
+    procedimento?: true
+    parteProcessuale?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2500,6 +2512,9 @@ export namespace Prisma {
     ruleTemplateId?: true
     ruleParams?: true
     macroType?: true
+    macroArea?: true
+    procedimento?: true
+    parteProcessuale?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2525,6 +2540,9 @@ export namespace Prisma {
     ruleTemplateId?: true
     ruleParams?: true
     macroType?: true
+    macroArea?: true
+    procedimento?: true
+    parteProcessuale?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2623,6 +2641,9 @@ export namespace Prisma {
     ruleTemplateId: string | null
     ruleParams: string | null
     macroType: string | null
+    macroArea: string | null
+    procedimento: string | null
+    parteProcessuale: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2665,6 +2686,9 @@ export namespace Prisma {
     ruleTemplateId?: boolean
     ruleParams?: boolean
     macroType?: boolean
+    macroArea?: boolean
+    procedimento?: boolean
+    parteProcessuale?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2694,6 +2718,9 @@ export namespace Prisma {
     ruleTemplateId?: boolean
     ruleParams?: boolean
     macroType?: boolean
+    macroArea?: boolean
+    procedimento?: boolean
+    parteProcessuale?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2720,6 +2747,9 @@ export namespace Prisma {
     ruleTemplateId?: boolean
     ruleParams?: boolean
     macroType?: boolean
+    macroArea?: boolean
+    procedimento?: boolean
+    parteProcessuale?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2762,6 +2792,9 @@ export namespace Prisma {
       ruleTemplateId: string | null
       ruleParams: string | null
       macroType: string | null
+      macroArea: string | null
+      procedimento: string | null
+      parteProcessuale: string | null
       actionType: string | null
       actionMode: string | null
       inputs: string | null
@@ -3180,6 +3213,9 @@ export namespace Prisma {
     readonly ruleTemplateId: FieldRef<"Event", 'String'>
     readonly ruleParams: FieldRef<"Event", 'String'>
     readonly macroType: FieldRef<"Event", 'String'>
+    readonly macroArea: FieldRef<"Event", 'String'>
+    readonly procedimento: FieldRef<"Event", 'String'>
+    readonly parteProcessuale: FieldRef<"Event", 'String'>
     readonly actionType: FieldRef<"Event", 'String'>
     readonly actionMode: FieldRef<"Event", 'String'>
     readonly inputs: FieldRef<"Event", 'String'>
@@ -3594,6 +3630,7 @@ export namespace Prisma {
     explanation: string | null
     createdBy: string | null
     locked: boolean | null
+    isPlaceholder: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3611,6 +3648,7 @@ export namespace Prisma {
     explanation: string | null
     createdBy: string | null
     locked: boolean | null
+    isPlaceholder: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3628,6 +3666,7 @@ export namespace Prisma {
     explanation: number
     createdBy: number
     locked: number
+    isPlaceholder: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -3655,6 +3694,7 @@ export namespace Prisma {
     explanation?: true
     createdBy?: true
     locked?: true
+    isPlaceholder?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3672,6 +3712,7 @@ export namespace Prisma {
     explanation?: true
     createdBy?: true
     locked?: true
+    isPlaceholder?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3689,6 +3730,7 @@ export namespace Prisma {
     explanation?: true
     createdBy?: true
     locked?: true
+    isPlaceholder?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -3785,7 +3827,7 @@ export namespace Prisma {
     parentEventId: string
     title: string
     kind: string
-    dueAt: Date
+    dueAt: Date | null
     status: string
     priority: number
     ruleId: string | null
@@ -3793,6 +3835,7 @@ export namespace Prisma {
     explanation: string | null
     createdBy: string
     locked: boolean
+    isPlaceholder: boolean
     createdAt: Date
     updatedAt: Date
     _count: SubEventCountAggregateOutputType | null
@@ -3829,6 +3872,7 @@ export namespace Prisma {
     explanation?: boolean
     createdBy?: boolean
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     parentEvent?: boolean | EventDefaultArgs<ExtArgs>
@@ -3847,6 +3891,7 @@ export namespace Prisma {
     explanation?: boolean
     createdBy?: boolean
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     parentEvent?: boolean | EventDefaultArgs<ExtArgs>
@@ -3865,6 +3910,7 @@ export namespace Prisma {
     explanation?: boolean
     createdBy?: boolean
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -3886,7 +3932,7 @@ export namespace Prisma {
       parentEventId: string
       title: string
       kind: string
-      dueAt: Date
+      dueAt: Date | null
       status: string
       priority: number
       ruleId: string | null
@@ -3894,6 +3940,7 @@ export namespace Prisma {
       explanation: string | null
       createdBy: string
       locked: boolean
+      isPlaceholder: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["subEvent"]>
@@ -4302,6 +4349,7 @@ export namespace Prisma {
     readonly explanation: FieldRef<"SubEvent", 'String'>
     readonly createdBy: FieldRef<"SubEvent", 'String'>
     readonly locked: FieldRef<"SubEvent", 'Boolean'>
+    readonly isPlaceholder: FieldRef<"SubEvent", 'Boolean'>
     readonly createdAt: FieldRef<"SubEvent", 'DateTime'>
     readonly updatedAt: FieldRef<"SubEvent", 'DateTime'>
   }
@@ -7495,6 +7543,9 @@ export namespace Prisma {
     ruleTemplateId: 'ruleTemplateId',
     ruleParams: 'ruleParams',
     macroType: 'macroType',
+    macroArea: 'macroArea',
+    procedimento: 'procedimento',
+    parteProcessuale: 'parteProcessuale',
     actionType: 'actionType',
     actionMode: 'actionMode',
     inputs: 'inputs',
@@ -7522,6 +7573,7 @@ export namespace Prisma {
     explanation: 'explanation',
     createdBy: 'createdBy',
     locked: 'locked',
+    isPlaceholder: 'isPlaceholder',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -7752,6 +7804,9 @@ export namespace Prisma {
     ruleTemplateId?: StringNullableFilter<"Event"> | string | null
     ruleParams?: StringNullableFilter<"Event"> | string | null
     macroType?: StringNullableFilter<"Event"> | string | null
+    macroArea?: StringNullableFilter<"Event"> | string | null
+    procedimento?: StringNullableFilter<"Event"> | string | null
+    parteProcessuale?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -7780,6 +7835,9 @@ export namespace Prisma {
     ruleTemplateId?: SortOrderInput | SortOrder
     ruleParams?: SortOrderInput | SortOrder
     macroType?: SortOrderInput | SortOrder
+    macroArea?: SortOrderInput | SortOrder
+    procedimento?: SortOrderInput | SortOrder
+    parteProcessuale?: SortOrderInput | SortOrder
     actionType?: SortOrderInput | SortOrder
     actionMode?: SortOrderInput | SortOrder
     inputs?: SortOrderInput | SortOrder
@@ -7811,6 +7869,9 @@ export namespace Prisma {
     ruleTemplateId?: StringNullableFilter<"Event"> | string | null
     ruleParams?: StringNullableFilter<"Event"> | string | null
     macroType?: StringNullableFilter<"Event"> | string | null
+    macroArea?: StringNullableFilter<"Event"> | string | null
+    procedimento?: StringNullableFilter<"Event"> | string | null
+    parteProcessuale?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -7839,6 +7900,9 @@ export namespace Prisma {
     ruleTemplateId?: SortOrderInput | SortOrder
     ruleParams?: SortOrderInput | SortOrder
     macroType?: SortOrderInput | SortOrder
+    macroArea?: SortOrderInput | SortOrder
+    procedimento?: SortOrderInput | SortOrder
+    parteProcessuale?: SortOrderInput | SortOrder
     actionType?: SortOrderInput | SortOrder
     actionMode?: SortOrderInput | SortOrder
     inputs?: SortOrderInput | SortOrder
@@ -7870,6 +7934,9 @@ export namespace Prisma {
     ruleTemplateId?: StringNullableWithAggregatesFilter<"Event"> | string | null
     ruleParams?: StringNullableWithAggregatesFilter<"Event"> | string | null
     macroType?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    macroArea?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    procedimento?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    parteProcessuale?: StringNullableWithAggregatesFilter<"Event"> | string | null
     actionType?: StringNullableWithAggregatesFilter<"Event"> | string | null
     actionMode?: StringNullableWithAggregatesFilter<"Event"> | string | null
     inputs?: StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -7889,7 +7956,7 @@ export namespace Prisma {
     parentEventId?: StringFilter<"SubEvent"> | string
     title?: StringFilter<"SubEvent"> | string
     kind?: StringFilter<"SubEvent"> | string
-    dueAt?: DateTimeFilter<"SubEvent"> | Date | string
+    dueAt?: DateTimeNullableFilter<"SubEvent"> | Date | string | null
     status?: StringFilter<"SubEvent"> | string
     priority?: IntFilter<"SubEvent"> | number
     ruleId?: StringNullableFilter<"SubEvent"> | string | null
@@ -7897,6 +7964,7 @@ export namespace Prisma {
     explanation?: StringNullableFilter<"SubEvent"> | string | null
     createdBy?: StringFilter<"SubEvent"> | string
     locked?: BoolFilter<"SubEvent"> | boolean
+    isPlaceholder?: BoolFilter<"SubEvent"> | boolean
     createdAt?: DateTimeFilter<"SubEvent"> | Date | string
     updatedAt?: DateTimeFilter<"SubEvent"> | Date | string
     parentEvent?: XOR<EventRelationFilter, EventWhereInput>
@@ -7907,7 +7975,7 @@ export namespace Prisma {
     parentEventId?: SortOrder
     title?: SortOrder
     kind?: SortOrder
-    dueAt?: SortOrder
+    dueAt?: SortOrderInput | SortOrder
     status?: SortOrder
     priority?: SortOrder
     ruleId?: SortOrderInput | SortOrder
@@ -7915,6 +7983,7 @@ export namespace Prisma {
     explanation?: SortOrderInput | SortOrder
     createdBy?: SortOrder
     locked?: SortOrder
+    isPlaceholder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     parentEvent?: EventOrderByWithRelationInput
@@ -7928,7 +7997,7 @@ export namespace Prisma {
     parentEventId?: StringFilter<"SubEvent"> | string
     title?: StringFilter<"SubEvent"> | string
     kind?: StringFilter<"SubEvent"> | string
-    dueAt?: DateTimeFilter<"SubEvent"> | Date | string
+    dueAt?: DateTimeNullableFilter<"SubEvent"> | Date | string | null
     status?: StringFilter<"SubEvent"> | string
     priority?: IntFilter<"SubEvent"> | number
     ruleId?: StringNullableFilter<"SubEvent"> | string | null
@@ -7936,6 +8005,7 @@ export namespace Prisma {
     explanation?: StringNullableFilter<"SubEvent"> | string | null
     createdBy?: StringFilter<"SubEvent"> | string
     locked?: BoolFilter<"SubEvent"> | boolean
+    isPlaceholder?: BoolFilter<"SubEvent"> | boolean
     createdAt?: DateTimeFilter<"SubEvent"> | Date | string
     updatedAt?: DateTimeFilter<"SubEvent"> | Date | string
     parentEvent?: XOR<EventRelationFilter, EventWhereInput>
@@ -7946,7 +8016,7 @@ export namespace Prisma {
     parentEventId?: SortOrder
     title?: SortOrder
     kind?: SortOrder
-    dueAt?: SortOrder
+    dueAt?: SortOrderInput | SortOrder
     status?: SortOrder
     priority?: SortOrder
     ruleId?: SortOrderInput | SortOrder
@@ -7954,6 +8024,7 @@ export namespace Prisma {
     explanation?: SortOrderInput | SortOrder
     createdBy?: SortOrder
     locked?: SortOrder
+    isPlaceholder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: SubEventCountOrderByAggregateInput
@@ -7971,7 +8042,7 @@ export namespace Prisma {
     parentEventId?: StringWithAggregatesFilter<"SubEvent"> | string
     title?: StringWithAggregatesFilter<"SubEvent"> | string
     kind?: StringWithAggregatesFilter<"SubEvent"> | string
-    dueAt?: DateTimeWithAggregatesFilter<"SubEvent"> | Date | string
+    dueAt?: DateTimeNullableWithAggregatesFilter<"SubEvent"> | Date | string | null
     status?: StringWithAggregatesFilter<"SubEvent"> | string
     priority?: IntWithAggregatesFilter<"SubEvent"> | number
     ruleId?: StringNullableWithAggregatesFilter<"SubEvent"> | string | null
@@ -7979,6 +8050,7 @@ export namespace Prisma {
     explanation?: StringNullableWithAggregatesFilter<"SubEvent"> | string | null
     createdBy?: StringWithAggregatesFilter<"SubEvent"> | string
     locked?: BoolWithAggregatesFilter<"SubEvent"> | boolean
+    isPlaceholder?: BoolWithAggregatesFilter<"SubEvent"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"SubEvent"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"SubEvent"> | Date | string
   }
@@ -8248,6 +8320,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8275,6 +8350,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8302,6 +8380,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8329,6 +8410,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8356,6 +8440,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8381,6 +8468,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8405,6 +8495,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8420,7 +8513,7 @@ export namespace Prisma {
     id?: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -8428,6 +8521,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     parentEvent: EventCreateNestedOneWithoutSubEventsInput
@@ -8438,7 +8532,7 @@ export namespace Prisma {
     parentEventId: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -8446,6 +8540,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -8454,7 +8549,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8462,6 +8557,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parentEvent?: EventUpdateOneRequiredWithoutSubEventsNestedInput
@@ -8472,7 +8568,7 @@ export namespace Prisma {
     parentEventId?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8480,6 +8576,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8489,7 +8586,7 @@ export namespace Prisma {
     parentEventId: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -8497,6 +8594,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -8505,7 +8603,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8513,6 +8611,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8522,7 +8621,7 @@ export namespace Prisma {
     parentEventId?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8530,6 +8629,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -8904,6 +9004,9 @@ export namespace Prisma {
     ruleTemplateId?: SortOrder
     ruleParams?: SortOrder
     macroType?: SortOrder
+    macroArea?: SortOrder
+    procedimento?: SortOrder
+    parteProcessuale?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -8929,6 +9032,9 @@ export namespace Prisma {
     ruleTemplateId?: SortOrder
     ruleParams?: SortOrder
     macroType?: SortOrder
+    macroArea?: SortOrder
+    procedimento?: SortOrder
+    parteProcessuale?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -8954,6 +9060,9 @@ export namespace Prisma {
     ruleTemplateId?: SortOrder
     ruleParams?: SortOrder
     macroType?: SortOrder
+    macroArea?: SortOrder
+    procedimento?: SortOrder
+    parteProcessuale?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -8971,6 +9080,17 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -9002,6 +9122,7 @@ export namespace Prisma {
     explanation?: SortOrder
     createdBy?: SortOrder
     locked?: SortOrder
+    isPlaceholder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -9023,6 +9144,7 @@ export namespace Prisma {
     explanation?: SortOrder
     createdBy?: SortOrder
     locked?: SortOrder
+    isPlaceholder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -9040,12 +9162,27 @@ export namespace Prisma {
     explanation?: SortOrder
     createdBy?: SortOrder
     locked?: SortOrder
+    isPlaceholder?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type SubEventSumOrderByAggregateInput = {
     priority?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -9421,6 +9558,10 @@ export namespace Prisma {
     connect?: EventWhereUniqueInput
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -9605,6 +9746,31 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -9663,6 +9829,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -9689,6 +9858,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -9796,6 +9968,9 @@ export namespace Prisma {
     ruleTemplateId?: StringNullableFilter<"Event"> | string | null
     ruleParams?: StringNullableFilter<"Event"> | string | null
     macroType?: StringNullableFilter<"Event"> | string | null
+    macroArea?: StringNullableFilter<"Event"> | string | null
+    procedimento?: StringNullableFilter<"Event"> | string | null
+    parteProcessuale?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -9880,7 +10055,7 @@ export namespace Prisma {
     id?: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -9888,6 +10063,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9896,7 +10072,7 @@ export namespace Prisma {
     id?: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -9904,6 +10080,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10007,7 +10184,7 @@ export namespace Prisma {
     parentEventId?: StringFilter<"SubEvent"> | string
     title?: StringFilter<"SubEvent"> | string
     kind?: StringFilter<"SubEvent"> | string
-    dueAt?: DateTimeFilter<"SubEvent"> | Date | string
+    dueAt?: DateTimeNullableFilter<"SubEvent"> | Date | string | null
     status?: StringFilter<"SubEvent"> | string
     priority?: IntFilter<"SubEvent"> | number
     ruleId?: StringNullableFilter<"SubEvent"> | string | null
@@ -10015,6 +10192,7 @@ export namespace Prisma {
     explanation?: StringNullableFilter<"SubEvent"> | string | null
     createdBy?: StringFilter<"SubEvent"> | string
     locked?: BoolFilter<"SubEvent"> | boolean
+    isPlaceholder?: BoolFilter<"SubEvent"> | boolean
     createdAt?: DateTimeFilter<"SubEvent"> | Date | string
     updatedAt?: DateTimeFilter<"SubEvent"> | Date | string
   }
@@ -10065,6 +10243,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10091,6 +10272,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10133,6 +10317,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10159,6 +10346,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10185,6 +10375,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10211,6 +10404,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10253,6 +10449,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10279,6 +10478,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10417,6 +10619,9 @@ export namespace Prisma {
     ruleTemplateId?: string | null
     ruleParams?: string | null
     macroType?: string | null
+    macroArea?: string | null
+    procedimento?: string | null
+    parteProcessuale?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10457,6 +10662,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10483,6 +10691,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10509,6 +10720,9 @@ export namespace Prisma {
     ruleTemplateId?: NullableStringFieldUpdateOperationsInput | string | null
     ruleParams?: NullableStringFieldUpdateOperationsInput | string | null
     macroType?: NullableStringFieldUpdateOperationsInput | string | null
+    macroArea?: NullableStringFieldUpdateOperationsInput | string | null
+    procedimento?: NullableStringFieldUpdateOperationsInput | string | null
+    parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10571,7 +10785,7 @@ export namespace Prisma {
     id?: string
     title: string
     kind: string
-    dueAt: Date | string
+    dueAt?: Date | string | null
     status?: string
     priority?: number
     ruleId?: string | null
@@ -10579,6 +10793,7 @@ export namespace Prisma {
     explanation?: string | null
     createdBy?: string
     locked?: boolean
+    isPlaceholder?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10599,7 +10814,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10607,6 +10822,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10615,7 +10831,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10623,6 +10839,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10631,7 +10848,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    dueAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     ruleId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10639,6 +10856,7 @@ export namespace Prisma {
     explanation?: NullableStringFieldUpdateOperationsInput | string | null
     createdBy?: StringFieldUpdateOperationsInput | string
     locked?: BoolFieldUpdateOperationsInput | boolean
+    isPlaceholder?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

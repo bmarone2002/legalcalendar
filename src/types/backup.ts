@@ -32,6 +32,9 @@ export interface BackupEvent {
   ruleTemplateId: string | null;
   ruleParams: Record<string, unknown> | null;
   macroType: Event["macroType"] | null | undefined;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
   actionType: Event["actionType"] | null | undefined;
   actionMode: Event["actionMode"] | null | undefined;
   inputs: Record<string, unknown> | null | undefined;

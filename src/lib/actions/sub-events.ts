@@ -45,6 +45,9 @@ async function loadParentContext(parentEventId: string): Promise<ParentContext |
     ruleTemplateId: parent.ruleTemplateId,
     ruleParams: parseJsonField(parent.ruleParams),
     macroType: parent.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+    macroArea: parent.macroArea ?? null,
+    procedimento: parent.procedimento ?? null,
+    parteProcessuale: parent.parteProcessuale ?? null,
     actionType: parent.actionType ?? undefined,
     actionMode: parent.actionMode ?? undefined,
     inputs: inputsParsed,
@@ -85,13 +88,14 @@ async function replaceSubEvents(
         explanation: c.explanation,
         createdBy: "automatico",
         locked: false,
+        isPlaceholder: c.isPlaceholder ?? false,
       })),
     });
   }
 
   const list = await prisma.subEvent.findMany({
     where: { parentEventId },
-    orderBy: { dueAt: "asc" },
+    orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }],
   });
   return list.map(toSubEvent);
 }
@@ -106,6 +110,9 @@ export interface PreviewSubEventInput {
   tags: string[];
   ruleTemplateId: string;
   macroType?: string | null;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
@@ -143,6 +150,9 @@ export async function getSubEventsPreview(
       ruleTemplateId: input.ruleTemplateId,
       ruleParams: null,
       macroType: input.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+      macroArea: input.macroArea ?? null,
+      procedimento: input.procedimento ?? null,
+      parteProcessuale: input.parteProcessuale ?? null,
       actionType: input.actionType ?? undefined,
       actionMode: input.actionMode ?? undefined,
       inputs: input.inputs ?? undefined,
@@ -157,14 +167,15 @@ export async function getSubEventsPreview(
     return {
       success: true,
       data: candidates.map((c, index) => ({
-        id: `${c.ruleId}-${index}-${c.dueAt.toISOString()}`,
+        id: `${c.ruleId}-${index}-${c.dueAt ? c.dueAt.toISOString() : "placeholder"}`,
         title: c.title,
-        dueAt: c.dueAt.toISOString(),
+        dueAt: c.dueAt ? c.dueAt.toISOString() : "",
         explanation: c.explanation,
         ruleId: c.ruleId,
         ruleParams: c.ruleParams ?? null,
         kind: c.kind,
         priority: c.priority,
+        isPlaceholder: c.isPlaceholder ?? false,
       })),
     };
   } catch (e) {
@@ -226,7 +237,7 @@ export async function createSubEventsFromPreview(
     const selectedSet = new Set(selectedPreviewIds);
     const filtered = candidates.filter((_c, index) => {
       const c = candidates[index];
-      const previewId = `${c.ruleId}-${index}-${c.dueAt.toISOString()}`;
+      const previewId = `${c.ruleId}-${index}-${c.dueAt ? c.dueAt.toISOString() : "placeholder"}`;
       return selectedSet.has(previewId);
     });
 

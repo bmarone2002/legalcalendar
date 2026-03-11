@@ -83,6 +83,9 @@ export async function POST(req: Request) {
                 ? JSON.stringify(eventData.ruleParams)
                 : null,
             macroType: eventData.macroType ?? null,
+            macroArea: (eventData as { macroArea?: string | null }).macroArea ?? null,
+            procedimento: (eventData as { procedimento?: string | null }).procedimento ?? null,
+            parteProcessuale: (eventData as { parteProcessuale?: string | null }).parteProcessuale ?? null,
             actionType: eventData.actionType ?? null,
             actionMode: eventData.actionMode ?? null,
             inputs:
@@ -100,7 +103,8 @@ export async function POST(req: Request) {
                 parentEventId: createdEvent.id,
                 title: sub.title,
                 kind: sub.kind,
-                dueAt: toDate(sub.dueAt, "subEvent.dueAt"),
+                dueAt: sub.dueAt ? toDate(sub.dueAt, "subEvent.dueAt") : null,
+                isPlaceholder: (sub as { isPlaceholder?: boolean }).isPlaceholder ?? false,
                 status: sub.status,
                 priority: sub.priority,
                 ruleId: sub.ruleId,

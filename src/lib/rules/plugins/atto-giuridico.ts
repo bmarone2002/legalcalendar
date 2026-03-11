@@ -74,10 +74,11 @@ function makeTermineFromDate(
 
 function addReminders(
   titlePrefix: string,
-  scadenzaDate: Date,
+  scadenzaDate: Date | null,
   settings: AppSettings,
   offsets: number[]
 ): SubEventCandidate[] {
+  if (!scadenzaDate) return [];
   return offsets.map((daysBefore) => {
     const raw = addDays(scadenzaDate, daysBefore);
     const adjusted = adjustToNextBusinessDay(raw, settings);

@@ -31,6 +31,9 @@ function toEvent(r: {
   ruleTemplateId: string | null;
   ruleParams: string | null;
   macroType?: string | null;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: string | null;
@@ -43,7 +46,7 @@ function toEvent(r: {
     parentEventId: string;
     title: string;
     kind: string;
-    dueAt: Date;
+    dueAt: Date | null;
     status: string;
     priority: number;
     ruleId: string | null;
@@ -51,6 +54,7 @@ function toEvent(r: {
     explanation: string | null;
     createdBy: string;
     locked: boolean;
+    isPlaceholder?: boolean;
     createdAt: Date;
     updatedAt: Date;
   }>;
@@ -69,6 +73,9 @@ function toEvent(r: {
     ruleTemplateId: r.ruleTemplateId,
     ruleParams: parseJsonField(r.ruleParams),
     macroType: r.macroType === "ATTO_GIURIDICO" ? "ATTO_GIURIDICO" : undefined,
+    macroArea: r.macroArea ?? null,
+    procedimento: r.procedimento ?? null,
+    parteProcessuale: r.parteProcessuale ?? null,
     actionType: r.actionType ?? undefined,
     actionMode: r.actionMode ?? undefined,
     inputs: parseJsonField(r.inputs ?? null),
@@ -95,6 +102,9 @@ const createEventSchema = z.object({
   ruleTemplateId: z.string().nullable().optional(),
   ruleParams: z.record(z.unknown()).nullable().optional(),
   macroType: z.enum(["ATTO_GIURIDICO"]).nullable().optional(),
+  macroArea: z.string().nullable().optional(),
+  procedimento: z.string().nullable().optional(),
+  parteProcessuale: z.string().nullable().optional(),
   actionType: z.string().nullable().optional(),
   actionMode: z.string().nullable().optional(),
   inputs: z.record(z.unknown()).nullable().optional(),
@@ -137,6 +147,9 @@ export async function createEvent(data: CreateEventInput, targetUserId?: string)
         ruleTemplateId: p.ruleTemplateId ?? null,
         ruleParams: p.ruleParams != null ? JSON.stringify(p.ruleParams) : null,
         macroType: p.macroType ?? null,
+        macroArea: p.macroArea ?? null,
+        procedimento: p.procedimento ?? null,
+        parteProcessuale: p.parteProcessuale ?? null,
         actionType: p.actionType ?? null,
         actionMode: p.actionMode ?? null,
         inputs: p.inputs != null ? JSON.stringify(p.inputs) : null,
@@ -190,6 +203,9 @@ export async function updateEvent(
           ruleParams: p.ruleParams != null ? JSON.stringify(p.ruleParams) : null,
         }),
         ...(p.macroType !== undefined && { macroType: p.macroType }),
+        ...(p.macroArea !== undefined && { macroArea: p.macroArea }),
+        ...(p.procedimento !== undefined && { procedimento: p.procedimento }),
+        ...(p.parteProcessuale !== undefined && { parteProcessuale: p.parteProcessuale }),
         ...(p.actionType !== undefined && { actionType: p.actionType }),
         ...(p.actionMode !== undefined && { actionMode: p.actionMode }),
         ...(p.inputs !== undefined && {
@@ -244,7 +260,7 @@ export async function getEvents(start: Date, end: Date, targetUserId?: string): 
           { subEvents: { some: { dueAt: { gte: rangeStart, lte: rangeEnd } } } },
         ],
       },
-      include: { subEvents: { orderBy: { dueAt: "asc" } } },
+      include: { subEvents: { orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }] } },
       orderBy: { startAt: "asc" },
     });
     return { success: true, data: events.map(toEvent) };
@@ -260,7 +276,7 @@ export async function getEventById(id: string, targetUserId?: string): Promise<A
   try {
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { subEvents: { orderBy: { dueAt: "asc" } } },
+      include: { subEvents: { orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }] } },
     });
     if (!event) {
       return { success: true, data: null };

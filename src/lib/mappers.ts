@@ -6,7 +6,7 @@ export function toSubEvent(r: {
   parentEventId: string;
   title: string;
   kind: string;
-  dueAt: Date;
+  dueAt: Date | null;
   status: string;
   priority: number;
   ruleId: string | null;
@@ -14,6 +14,7 @@ export function toSubEvent(r: {
   explanation: string | null;
   createdBy: string;
   locked: boolean;
+  isPlaceholder?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): SubEvent {
@@ -22,7 +23,7 @@ export function toSubEvent(r: {
     parentEventId: r.parentEventId,
     title: r.title,
     kind: r.kind as "termine" | "promemoria" | "attivita",
-    dueAt: r.dueAt,
+    dueAt: r.dueAt ?? new Date(0),
     status: r.status as "pending" | "done" | "cancelled",
     priority: r.priority,
     ruleId: r.ruleId,
@@ -30,6 +31,7 @@ export function toSubEvent(r: {
     explanation: r.explanation,
     createdBy: r.createdBy as "manuale" | "automatico",
     locked: r.locked,
+    isPlaceholder: r.isPlaceholder ?? false,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   };

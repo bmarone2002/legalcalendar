@@ -31,13 +31,14 @@ export interface RuleInput {
 export interface SubEventCandidate {
   title: string;
   kind: SubEventKind;
-  dueAt: Date;
+  dueAt: Date | null;
   status?: SubEventStatus;
   priority?: number;
   ruleId: string;
   ruleParams?: Record<string, unknown>;
   explanation: string;
   createdBy: "manuale" | "automatico";
+  isPlaceholder?: boolean;
 }
 
 export interface RuleOutput {

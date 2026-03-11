@@ -8,6 +8,11 @@ import type { Event } from "@/types";
 import type { AppSettings } from "../types";
 import { addDays } from "date-fns";
 
+function asDate(d: Date | null): Date {
+  if (!d) throw new Error("Expected Date but got null");
+  return d;
+}
+
 const baseSettings: AppSettings = {
   defaultReminderTime: "09:00",
   defaultReminderOffsets: [7, 1],
@@ -87,7 +92,7 @@ const attesoIscrizione = addDays(new Date("2026-03-01T12:00:00"), 10); // 11 mar
 
 assert(iscrizioneRuoloAttore != null, "CITAZIONE DA_NOT: esiste iscrizione a ruolo attore");
 assert(
-  iscrizioneRuoloAttore ? sameDay(iscrizioneRuoloAttore.dueAt, attesoIscrizione) : false,
+  iscrizioneRuoloAttore ? sameDay(asDate(iscrizioneRuoloAttore.dueAt), attesoIscrizione) : false,
   "CITAZIONE DA_NOT: iscrizione a ruolo = notifica + 10 gg"
 );
 
@@ -115,7 +120,7 @@ const attesoCostituzione = addDays(new Date("2026-09-15T12:00:00"), -70);
 
 assert(costituzioneConvenuto != null, "CITAZIONE COST: esiste costituzione convenuto");
 assert(
-  costituzioneConvenuto ? sameDay(costituzioneConvenuto.dueAt, attesoCostituzione) : false,
+  costituzioneConvenuto ? sameDay(asDate(costituzioneConvenuto.dueAt), attesoCostituzione) : false,
   "CITAZIONE COST: costituzione = udienza - 70 gg"
 );
 assert(
@@ -145,7 +150,7 @@ const attesoOpposizione = addDays(new Date("2026-04-01T12:00:00"), 40);
 
 assert(termineOpposizione != null, "RIC.OPP DA_NOT: esiste termine opposizione");
 assert(
-  termineOpposizione ? sameDay(termineOpposizione.dueAt, attesoOpposizione) : false,
+  termineOpposizione ? sameDay(asDate(termineOpposizione.dueAt), attesoOpposizione) : false,
   "RIC.OPP DA_NOT: opposizione = notifica + 40 gg"
 );
 
@@ -185,7 +190,7 @@ const attesoRicorso = addDays(new Date("2026-03-01T12:00:00"), 60);
 
 assert(ricorsoTrib != null, "RIC.TRIB DA_NOT: esiste termine ricorso");
 assert(
-  ricorsoTrib ? sameDay(ricorsoTrib.dueAt, attesoRicorso) : false,
+  ricorsoTrib ? sameDay(asDate(ricorsoTrib.dueAt), attesoRicorso) : false,
   "RIC.TRIB DA_NOT: ricorso = notifica atto + 60 gg"
 );
 
@@ -234,7 +239,7 @@ const attesoAppello = addDays(new Date("2026-03-01T12:00:00"), 30);
 
 assert(termineAppello != null, "APP.CIV DA_NOT BREVE: esiste termine appello");
 assert(
-  termineAppello ? sameDay(termineAppello.dueAt, attesoAppello) : false,
+  termineAppello ? sameDay(asDate(termineAppello.dueAt), attesoAppello) : false,
   "APP.CIV BREVE: data = notifica sentenza + 30"
 );
 assert(
@@ -362,14 +367,15 @@ assert(alertLibere.length === 2, "MEMORIE LIBERE: 2 alert a -5 gg");
 // SLOT SCHEDULING: sotto-eventi nello stesso giorno hanno orari diversi
 // ────────────────────────────────────────────────────────────────────
 
-const allHours = outCitNot.subEvents.map((s) => s.dueAt.getHours());
+const allHours = outCitNot.subEvents.filter((s) => s.dueAt).map((s) => asDate(s.dueAt).getHours());
 const uniqueHours = new Set(
   outCitNot.subEvents
+    .filter((s) => s.dueAt != null)
     .filter((_, i, arr) => {
-      const day = arr[i].dueAt.toDateString();
-      return arr.findIndex((s) => s.dueAt.toDateString() === day) !== i;
+      const day = asDate(arr[i].dueAt).toDateString();
+      return arr.findIndex((s) => asDate(s.dueAt).toDateString() === day) !== i;
     })
-    .map((s) => `${s.dueAt.toDateString()}-${s.dueAt.getHours()}`)
+    .map((s) => `${asDate(s.dueAt).toDateString()}-${asDate(s.dueAt).getHours()}`)
 );
 // No duplicates means slots are staggered
 assert(true, "SLOT SCHEDULING: orari assegnati (verificato visivamente)");

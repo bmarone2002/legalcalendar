@@ -4,8 +4,12 @@ import { reminderRule } from "./plugins/reminder";
 import { genericDeadlineRule } from "./plugins/generic-deadline";
 import { checklistRule } from "./plugins/checklist";
 import { attoGiuridicoRule } from "./plugins/atto-giuridico";
+import { dataDrivenRule } from "./plugins/data-driven-engine";
 
-[reminderRule, genericDeadlineRule, checklistRule, attoGiuridicoRule].forEach((r) => register(r));
+// Side-effect: registra tutte le EventRule[] dai file dati
+import "./data";
+
+[reminderRule, genericDeadlineRule, checklistRule, attoGiuridicoRule, dataDrivenRule].forEach((r) => register(r));
 
 export function runRulesForEvent(
   templateId: string | null,

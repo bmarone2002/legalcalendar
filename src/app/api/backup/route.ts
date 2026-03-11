@@ -11,7 +11,7 @@ export async function GET() {
       where: { userId },
       include: {
         subEvents: {
-          orderBy: { dueAt: "asc" },
+          orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }],
         },
       },
       orderBy: { startAt: "asc" },
@@ -32,6 +32,9 @@ export async function GET() {
         ruleTemplateId: e.ruleTemplateId,
         ruleParams: e.ruleParams ? (JSON.parse(e.ruleParams) as Record<string, unknown>) : null,
         macroType: (e.macroType as BackupEvent["macroType"]) ?? null,
+        macroArea: e.macroArea,
+        procedimento: e.procedimento,
+        parteProcessuale: e.parteProcessuale,
         actionType: e.actionType,
         actionMode: e.actionMode,
         inputs: e.inputs ? (JSON.parse(e.inputs) as Record<string, unknown>) : null,
@@ -45,7 +48,7 @@ export async function GET() {
           parentEventId: s.parentEventId,
           title: s.title,
           kind: s.kind as BackupSubEvent["kind"],
-          dueAt: s.dueAt.toISOString(),
+          dueAt: s.dueAt?.toISOString() ?? "",
           status: s.status as BackupSubEvent["status"],
           priority: s.priority,
           ruleId: s.ruleId,

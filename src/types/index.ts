@@ -12,6 +12,8 @@ export type EventStatus = "pending" | "done";
 /** Macro-tipo: ATTO_GIURIDICO attiva actionType/actionMode/inputs */
 export type MacroType = "ATTO_GIURIDICO" | null;
 
+export type { MacroAreaCode, ProcedimentoCode, ParteProcessuale } from "./macro-areas";
+
 export type SubEventKind = "termine" | "promemoria" | "attivita";
 export type SubEventStatus = "pending" | "done" | "cancelled";
 export type CreatedBy = "manuale" | "automatico";
@@ -31,6 +33,11 @@ export interface Event {
   ruleParams: Record<string, unknown> | null;
   /** Se "ATTO_GIURIDICO": sottocategoria e modalità con inputs per regole */
   macroType?: MacroType;
+  /** Nuova gerarchia a 4 livelli */
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
+  /** Legacy: mantenuti per retrocompatibilità */
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
@@ -56,6 +63,8 @@ export interface SubEvent {
   explanation: string | null;
   createdBy: CreatedBy;
   locked: boolean;
+  /** Sotto-evento placeholder: data non ancora nota, l'utente la inserirà in seguito */
+  isPlaceholder: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,6 +82,9 @@ export interface CreateEventInput {
   ruleTemplateId?: string | null;
   ruleParams?: Record<string, unknown> | null;
   macroType?: MacroType;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
@@ -93,6 +105,9 @@ export interface UpdateEventInput {
   ruleTemplateId?: string | null;
   ruleParams?: Record<string, unknown> | null;
   macroType?: MacroType;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;

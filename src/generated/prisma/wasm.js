@@ -144,6 +144,9 @@ exports.Prisma.EventScalarFieldEnum = {
   ruleTemplateId: 'ruleTemplateId',
   ruleParams: 'ruleParams',
   macroType: 'macroType',
+  macroArea: 'macroArea',
+  procedimento: 'procedimento',
+  parteProcessuale: 'parteProcessuale',
   actionType: 'actionType',
   actionMode: 'actionMode',
   inputs: 'inputs',
@@ -168,6 +171,7 @@ exports.Prisma.SubEventScalarFieldEnum = {
   explanation: 'explanation',
   createdBy: 'createdBy',
   locked: 'locked',
+  isPlaceholder: 'isPlaceholder',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
