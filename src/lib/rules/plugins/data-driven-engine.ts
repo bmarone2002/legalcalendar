@@ -2,8 +2,13 @@
  * Data-driven rule engine: genera sotto-eventi a partire da EventRule[].
  * Sostituisce la logica if/else hardcoded di atto-giuridico.ts per la nuova gerarchia.
  *
- * Supporta chaining: se una regola calcolata ha providesInputKey, la data
- * calcolata viene re-iniettata come input per le regole successive (iterativo).
+ * Modalità attuale (atto giuridico data-driven):
+ * - viene sempre selezionato un singolo "Evento" (riga Excel) dal form
+ * - il motore genera i sotto-eventi SOLO per quella riga (singola scadenza/attività + promemoria)
+ *
+ * Le proprietà `eventoBaseKey` / `providesInputKey` restano supportate a livello di dati
+ * ma non viene più usato il chaining iterativo multi-riga: ogni invocazione lavora
+ * su una sola EventRule filtrata dal code dell'evento selezionato.
  */
 
 import type { RuleDefinition, SubEventCandidate, AppSettings } from "../types";
@@ -50,8 +55,6 @@ function toDateOnlyString(d: Date): string {
 
 interface ProcessResult {
   subEvents: SubEventCandidate[];
-  /** If the rule has providesInputKey and was calculated, returns the key → date string to feed back. */
-  chainedInput?: { key: string; value: string };
 }
 
 function processRule(
@@ -144,11 +147,10 @@ function processRule(
       });
     }
 
-    const chainedInput = rule.providesInputKey
-      ? { key: rule.providesInputKey, value: toDateOnlyString(dueDate) }
-      : undefined;
-
-    return { subEvents: out, chainedInput };
+    // Anche se la riga ha providesInputKey, nella modalità corrente non
+    // re-iniettiamo più la data come nuovo input per altre righe: ogni invocazione
+    // lavora su un solo evento selezionato dal form.
+    return { subEvents: out };
   }
 
   // Caso 2: riga senza calcolo → evento alla data base + promemoria legati a quella data.
@@ -211,20 +213,29 @@ export const dataDrivenRule: RuleDefinition = {
       return { subEvents: [] };
     }
 
-    let rules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
-    if (rules.length === 0) return { subEvents: [] };
+    // In modalità data-driven attuale è obbligatorio che il form (o l'AI)
+    // abbiano selezionato un singolo evento (eventoCode): se manca, non
+    // generiamo nulla per evitare combinazioni ambigue multi-riga.
+    const eventoCode =
+      (event as { eventoCode?: string | null }).eventoCode ??
+      (inputs.eventoCode as string | undefined);
+    if (!eventoCode) {
+      return { subEvents: [] };
+    }
 
-    // Se è stato selezionato un Evento specifico nel form (eventoCode),
-    // limita la generazione dei sotto-eventi SOLO alle regole collegate a quell'evento
-    // e usa la sua inputKey come data evento quando la riga non ha eventoBaseKey.
-    const eventoCode = (event as { eventoCode?: string | null }).eventoCode ?? (inputs.eventoCode as string | undefined);
-    let selectedEventoInputKey: string | undefined;
-    if (eventoCode) {
-      const ev = getEventoByCode(procedimento, eventoCode);
-      if (ev) {
-        rules = rules.filter((r) => r.eventoLabel === ev.label);
-        selectedEventoInputKey = ev.inputKey;
-      }
+    const ev = getEventoByCode(procedimento, eventoCode);
+    if (!ev) {
+      return { subEvents: [] };
+    }
+
+    const selectedEventoInputKey = ev.inputKey;
+
+    // Recupera tutte le regole per la combinazione (macroArea, procedimento, parte)
+    // e poi filtra per etichetta esatta dell'evento selezionato (una singola riga).
+    const allRules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
+    const rules = allRules.filter((r) => r.eventoLabel === ev.label);
+    if (rules.length === 0) {
+      return { subEvents: [] };
     }
 
     const rawOffsets = (inputs.reminderOffsets as number[] | undefined)
@@ -233,30 +244,16 @@ export const dataDrivenRule: RuleDefinition = {
     const reminderOffsets = rawOffsets.map((d) => (d > 0 ? -d : d));
 
     const out: SubEventCandidate[] = [];
-    const processed = new Set<number>();
 
-    const MAX_ITERATIONS = 10;
-    for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
-      let newInputs = false;
-      for (let i = 0; i < rules.length; i++) {
-        if (processed.has(i)) continue;
-        const rule = rules[i];
-
-        const isManual = rule.tipoTermine === "manuale" || rule.tipoTermine === "da_parametrizzare";
-        const hasBase = rule.eventoBaseKey && inputs[rule.eventoBaseKey];
-
-        if (!isManual && !hasBase) continue;
-
-        const result = processRule(rule, inputs, settings, reminderOffsets, selectedEventoInputKey);
-        out.push(...result.subEvents);
-        processed.add(i);
-
-        if (result.chainedInput && !inputs[result.chainedInput.key]) {
-          inputs[result.chainedInput.key] = result.chainedInput.value;
-          newInputs = true;
-        }
-      }
-      if (!newInputs) break;
+    for (const rule of rules) {
+      const result = processRule(
+        rule,
+        inputs,
+        settings,
+        reminderOffsets,
+        selectedEventoInputKey,
+      );
+      out.push(...result.subEvents);
     }
 
     const withDates = out.filter((s) => s.dueAt != null);
