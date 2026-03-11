@@ -25,6 +25,7 @@ const CITAZIONE_CIVILE_RULES: EventRule[] = [
     norma: "Art. 163 e 163 bis c.p.c.",
     noteOperative: "Evento da parametrizzare in base al termine a comparire; utile abbreviazione termini",
     ordine: 1,
+    providesInputKey: "dataPrimaNotificaCitazione",
   },
   {
     macroArea: "CIVILE_CONTENZIOSO",

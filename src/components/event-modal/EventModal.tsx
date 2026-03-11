@@ -78,6 +78,7 @@ type EventFormState = {
   macroArea: MacroAreaCode | null;
   procedimento: ProcedimentoCode | null;
   parteProcessuale: ParteProcessuale | null;
+  eventoCode: string | null;
   actionType: ActionType;
   actionMode: ActionMode;
   inputs: Record<string, unknown>;
@@ -104,9 +105,10 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
   ruleTemplateId: "data-driven",
   macroType: "ATTO_GIURIDICO",
   macroArea: null,
-  procedimento: null,
-  parteProcessuale: null,
-  actionType: ACTION_TYPES[0],
+    procedimento: null,
+    parteProcessuale: null,
+    eventoCode: null,
+    actionType: ACTION_TYPES[0],
   actionMode: ACTION_MODES[0],
   inputs: {},
   color: null,
@@ -270,6 +272,7 @@ export function EventModal({
         macroArea: (e.macroArea as MacroAreaCode) ?? null,
         procedimento: (e.procedimento as ProcedimentoCode) ?? null,
         parteProcessuale: (e.parteProcessuale as ParteProcessuale) ?? null,
+        eventoCode: (e as { eventoCode?: string | null }).eventoCode ?? null,
         actionType: (e.actionType as ActionType) ?? ACTION_TYPES[0],
         actionMode: (e.actionMode as ActionMode) ?? ACTION_MODES[0],
         inputs: (e.inputs as Record<string, unknown>) ?? {},
@@ -332,6 +335,7 @@ export function EventModal({
                 macroArea: form.macroArea,
                 procedimento: form.procedimento,
                 parteProcessuale: form.parteProcessuale,
+                eventoCode: form.eventoCode,
                 inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
               }
             : form.ruleTemplateId === "atto-giuridico"
@@ -379,6 +383,7 @@ export function EventModal({
     form.macroArea,
     form.procedimento,
     form.parteProcessuale,
+    form.eventoCode,
     form.actionType,
     form.actionMode,
     form.inputs,
@@ -411,6 +416,7 @@ export function EventModal({
               macroArea: form.macroArea,
               procedimento: form.procedimento,
               parteProcessuale: form.parteProcessuale,
+              eventoCode: form.eventoCode,
               inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
             }
           : form.ruleTemplateId === "atto-giuridico"
@@ -500,6 +506,7 @@ export function EventModal({
           macroArea: form.macroArea,
           procedimento: form.procedimento,
           parteProcessuale: form.parteProcessuale,
+          eventoCode: form.eventoCode,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -538,6 +545,7 @@ export function EventModal({
           macroArea: form.macroArea,
           procedimento: form.procedimento,
           parteProcessuale: form.parteProcessuale,
+          eventoCode: form.eventoCode,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -608,6 +616,7 @@ export function EventModal({
         macroArea: form.macroArea,
         procedimento: form.procedimento,
         parteProcessuale: form.parteProcessuale,
+        eventoCode: form.eventoCode,
         actionType: form.macroType ? form.actionType : undefined,
         actionMode: form.macroType ? form.actionMode : undefined,
         inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
@@ -738,8 +747,8 @@ export function EventModal({
                       ruleTemplateId: isAtto ? "data-driven" : "reminder",
                       generateSubEvents: true,
                       ...(isAtto
-                        ? { macroArea: null, procedimento: null, parteProcessuale: null, inputs: {} }
-                        : { macroArea: null, procedimento: null, parteProcessuale: null, actionType: ACTION_TYPES[0], actionMode: ACTION_MODES[0], inputs: {} }),
+                        ? { macroArea: null, procedimento: null, parteProcessuale: null, eventoCode: null, inputs: {} }
+                        : { macroArea: null, procedimento: null, parteProcessuale: null, eventoCode: null, actionType: ACTION_TYPES[0], actionMode: ACTION_MODES[0], inputs: {} }),
                     }));
                   }}
                 >
@@ -841,6 +850,7 @@ export function EventModal({
                               const aiMacroArea = (d as { macroArea?: string }).macroArea as MacroAreaCode | undefined;
                               const aiProcedimento = (d as { procedimento?: string }).procedimento as ProcedimentoCode | undefined;
                               const aiParte = (d as { parteProcessuale?: string }).parteProcessuale as ParteProcessuale | undefined;
+                              const aiEventoCode = (d as { eventoCode?: string }).eventoCode ?? null;
                               const legacyMapping = !aiMacroArea && d.actionType ? LEGACY_ACTION_TYPE_MAP[d.actionType] : null;
                               const legacyParte = !aiParte && d.actionMode ? LEGACY_ACTION_MODE_MAP[d.actionMode] : null;
                               setForm((f) => ({
@@ -854,6 +864,7 @@ export function EventModal({
                                 ...(aiMacroArea ? { macroArea: aiMacroArea } : legacyMapping ? { macroArea: legacyMapping.macroArea } : {}),
                                 ...(aiProcedimento ? { procedimento: aiProcedimento } : legacyMapping ? { procedimento: legacyMapping.procedimento } : {}),
                                 ...(aiParte ? { parteProcessuale: aiParte } : legacyParte ? { parteProcessuale: legacyParte } : {}),
+                                ...(aiEventoCode && { eventoCode: aiEventoCode }),
                                 ...((aiMacroArea || legacyMapping) && { ruleTemplateId: "data-driven" }),
                                 ...(Object.keys(mergedInputs).length > 0 && { inputs: mergedInputs }),
                               }));
@@ -884,11 +895,12 @@ export function EventModal({
                     </div>
                   )}
 
-                  {/* Nuova gerarchia a 4 livelli: Macro Area -> Procedimento -> Parte -> Input */}
+                  {/* Gerarchia: Macro Area -> Procedimento -> Parte -> Evento -> Data */}
                   <MacroAreaPanel
                     macroArea={form.macroArea}
                     procedimento={form.procedimento}
                     parteProcessuale={form.parteProcessuale}
+                    eventoCode={form.eventoCode}
                     inputs={form.inputs}
                     onMacroAreaChange={(ma) =>
                       setForm((f) => ({
@@ -896,6 +908,7 @@ export function EventModal({
                         macroArea: ma,
                         procedimento: null,
                         parteProcessuale: null,
+                        eventoCode: null,
                         inputs: {},
                         ruleTemplateId: "data-driven",
                       }))
@@ -905,11 +918,15 @@ export function EventModal({
                         ...f,
                         procedimento: p,
                         parteProcessuale: null,
+                        eventoCode: null,
                         inputs: {},
                       }))
                     }
                     onParteProcessualeChange={(p) =>
-                      setForm((f) => ({ ...f, parteProcessuale: p, inputs: {} }))
+                      setForm((f) => ({ ...f, parteProcessuale: p, eventoCode: null, inputs: {} }))
+                    }
+                    onEventoChange={(code) =>
+                      setForm((f) => ({ ...f, eventoCode: code, inputs: {} }))
                     }
                     onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
                   />

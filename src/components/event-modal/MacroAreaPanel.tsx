@@ -22,17 +22,20 @@ import {
   PROCEDIMENTO_LABELS,
   PARTI_PROCESSUALI,
   PARTI_LABELS,
-  getRequiredInputKeys,
+  getEventiDisponibili,
+  getEventoByCode,
 } from "@/types/macro-areas";
 
 interface MacroAreaPanelProps {
   macroArea: MacroAreaCode | null;
   procedimento: ProcedimentoCode | null;
   parteProcessuale: ParteProcessuale | null;
+  eventoCode: string | null;
   inputs: Record<string, unknown>;
   onMacroAreaChange: (v: MacroAreaCode) => void;
   onProcedimentoChange: (v: ProcedimentoCode) => void;
   onParteProcessualeChange: (v: ParteProcessuale) => void;
+  onEventoChange: (code: string) => void;
   onInputsChange: (inputs: Record<string, unknown>) => void;
 }
 
@@ -49,42 +52,16 @@ function toDateOrNull(v: unknown): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-const INPUT_LABELS: Record<string, string> = {
-  dataPrimaUdienza: "Data prima udienza",
-  dataPrimaNotificaCitazione: "Data prima notifica atto di citazione",
-  dataNotifica: "Data notifica",
-  dataNotificaCitazione: "Data notifica citazione",
-  dataUdienzaComparizione: "Data udienza di comparizione",
-  dataUdienzaRiferimentoMemorie: "Data udienza rif. memorie",
-  dataSlittamentoUdienza: "Data slittamento udienza",
-  dataUdienzaIstruttoria: "Data udienza istruttoria",
-  dataUdienzaConclusioni: "Data udienza conclusioni",
-  dataPubblicazioneSentenza: "Data pubblicazione/deposito sentenza",
-  dataNotificaSentenza: "Data notifica sentenza",
-  dataNotificaDecretoIngiuntivo: "Data notifica decreto ingiuntivo",
-  dataNotificaAttoImpugnato: "Data notifica atto impugnato",
-  dataNotificaRicorso: "Data notifica ricorso",
-  dataNotificaAppello: "Data notifica appello",
-  dataUdienza: "Data udienza",
-  dataDepositoRicorso: "Data deposito ricorso",
-  dataNotificaPrecetto: "Data notifica precetto",
-  dataNotificaPignoramento: "Data notifica pignoramento",
-  dataInvioDiffida: "Data invio diffida",
-  dataIncontroMediazione: "Data incontro mediazione",
-};
-
-function labelForKey(key: string): string {
-  return INPUT_LABELS[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
-}
-
 export function MacroAreaPanel({
   macroArea,
   procedimento,
   parteProcessuale,
+  eventoCode,
   inputs,
   onMacroAreaChange,
   onProcedimentoChange,
   onParteProcessualeChange,
+  onEventoChange,
   onInputsChange,
 }: MacroAreaPanelProps) {
   const procedimenti = macroArea
@@ -97,14 +74,25 @@ export function MacroAreaPanel({
     ? (PARTI_PROCESSUALI.filter((p) => p !== "COMUNE") as ParteProcessuale[])
     : [];
 
-  const inputKeys =
+  const eventiDisponibili =
     macroArea && procedimento && parteProcessuale
-      ? getRequiredInputKeys(macroArea, procedimento, parteProcessuale)
+      ? getEventiDisponibili(macroArea, procedimento, parteProcessuale)
       : [];
 
-  const updateInput = (key: string, value: unknown) => {
-    onInputsChange({ ...inputs, [key]: value });
+  const selectedEvento =
+    procedimento && eventoCode
+      ? getEventoByCode(procedimento, eventoCode)
+      : undefined;
+
+  const handleDateChange = (d: Date | null) => {
+    if (!selectedEvento) return;
+    const value = d ? toDateOnlyString(d) : "";
+    onInputsChange({ ...inputs, [selectedEvento.inputKey]: value });
   };
+
+  const currentDate = selectedEvento
+    ? toDateOrNull(inputs[selectedEvento.inputKey])
+    : null;
 
   return (
     <div className="space-y-4">
@@ -175,20 +163,39 @@ export function MacroAreaPanel({
         </div>
       )}
 
-      {/* Livello 4: Campi input dinamici */}
-      {inputKeys.length > 0 && (
-        <div className="space-y-3 pt-2 border-t border-zinc-200">
-          <Label className="text-sm font-semibold text-zinc-700">Dati per il calcolo</Label>
-          {inputKeys.map((key) => (
-            <div key={key}>
-              <Label className="text-xs">{labelForKey(key)}</Label>
-              <DatePicker
-                value={toDateOrNull(inputs[key])}
-                onChange={(d) => updateInput(key, d ? toDateOnlyString(d) : "")}
-                placeholder={labelForKey(key)}
-              />
-            </div>
-          ))}
+      {/* Livello 4: Evento */}
+      {eventiDisponibili.length > 0 && (
+        <div>
+          <Label>Evento</Label>
+          <Select
+            value={eventoCode ?? ""}
+            onValueChange={(v) => onEventoChange(v)}
+          >
+            <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
+              <SelectValue placeholder="Seleziona evento" />
+            </SelectTrigger>
+            <SelectContent>
+              {eventiDisponibili.map((ev) => (
+                <SelectItem key={ev.code} value={ev.code}>
+                  {ev.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Livello 5: Data */}
+      {selectedEvento && (
+        <div className="pt-2 border-t border-zinc-200">
+          <Label className="text-sm font-semibold text-zinc-700">
+            Data – {selectedEvento.label}
+          </Label>
+          <DatePicker
+            value={currentDate}
+            onChange={handleDateChange}
+            placeholder={`Inserisci data ${selectedEvento.label.toLowerCase()}`}
+          />
         </div>
       )}
     </div>

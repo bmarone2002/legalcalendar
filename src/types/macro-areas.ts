@@ -190,6 +190,49 @@ export const PARTI_LABELS: Record<MacroAreaCode, Record<ParteProcessuale, string
   },
 };
 
+// ── EventoDisponibile: voce nel dropdown "Evento" ──────────────────
+
+export interface EventoDisponibile {
+  code: string;
+  label: string;
+  /** Chiave input che questo evento fornisce quando l'utente inserisce la data */
+  inputKey: string;
+  parteProcessuale: ParteProcessuale;
+  ordine: number;
+}
+
+export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDisponibile[]>> = {
+  CITAZIONE_CIVILE: [
+    { code: "PRIMA_UDIENZA", label: "Prima udienza", inputKey: "dataPrimaUdienza", parteProcessuale: "COMUNE", ordine: 1 },
+    { code: "NOTIFICA_CITAZIONE", label: "Notifica atto di citazione", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 2 },
+    { code: "SLITTAMENTO_UDIENZA", label: "Eventuale slittamento prima udienza", inputKey: "dataSlittamentoUdienza", parteProcessuale: "COMUNE", ordine: 3 },
+    { code: "UDIENZA_ISTRUTTORIA", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoria", parteProcessuale: "COMUNE", ordine: 4 },
+    { code: "UDIENZA_CONCLUSIONI", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioni", parteProcessuale: "COMUNE", ordine: 5 },
+    { code: "SENTENZA", label: "Sentenza", inputKey: "dataPubblicazioneSentenza", parteProcessuale: "COMUNE", ordine: 6 },
+    { code: "NOTIFICA_SENTENZA", label: "Notifica sentenza", inputKey: "dataNotificaSentenza", parteProcessuale: "COMUNE", ordine: 7 },
+  ],
+};
+
+/** Restituisce gli eventi disponibili nel dropdown, filtrati per parte + COMUNE, ordinati. */
+export function getEventiDisponibili(
+  _macroArea: MacroAreaCode,
+  procedimento: ProcedimentoCode,
+  parteProcessuale: ParteProcessuale,
+): EventoDisponibile[] {
+  const all = EVENTI_PER_PROCEDIMENTO[procedimento] ?? [];
+  return all
+    .filter((e) => e.parteProcessuale === parteProcessuale || e.parteProcessuale === "COMUNE")
+    .sort((a, b) => a.ordine - b.ordine);
+}
+
+/** Trova un EventoDisponibile per code all'interno di un procedimento. */
+export function getEventoByCode(
+  procedimento: ProcedimentoCode,
+  code: string,
+): EventoDisponibile | undefined {
+  return (EVENTI_PER_PROCEDIMENTO[procedimento] ?? []).find((e) => e.code === code);
+}
+
 // ── EventRule: singola riga dell'Excel → dato per il rule engine ────
 
 export type TipoTermine = "perentorio" | "ordinatorio" | "manuale" | "da_parametrizzare";
@@ -223,6 +266,8 @@ export interface EventRule {
   noteOperative: string | null;
   /** Ordine di visualizzazione nella timeline */
   ordine: number;
+  /** Se la regola, una volta calcolata, fornisce un input per altre regole (chaining) */
+  providesInputKey?: string | null;
 }
 
 // ── Registry delle regole (data-driven) ─────────────────────────────

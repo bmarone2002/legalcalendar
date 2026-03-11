@@ -35,6 +35,7 @@ export interface BackupEvent {
   macroArea?: string | null;
   procedimento?: string | null;
   parteProcessuale?: string | null;
+  eventoCode?: string | null;
   actionType: Event["actionType"] | null | undefined;
   actionMode: Event["actionMode"] | null | undefined;
   inputs: Record<string, unknown> | null | undefined;

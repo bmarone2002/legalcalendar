@@ -32,6 +32,7 @@ const parsedDocumentSchema = z.object({
   macroArea: z.enum(MACRO_AREA_VALUES).optional(),
   procedimento: z.enum(PROCEDIMENTO_VALUES).optional(),
   parteProcessuale: z.enum(PARTE_PROCESSUALE_VALUES).optional(),
+  eventoCode: z.string().optional(),
   actionType: z.enum(ACTION_TYPE_VALUES).optional(),
   actionMode: z.enum(ACTION_MODE_VALUES).optional(),
   inputs: z.record(z.unknown()).optional().default({}),
@@ -56,6 +57,7 @@ Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste
 - macroArea: la macro area del procedimento, uno tra: "CIVILE_CONTENZIOSO" (civile ordinario), "PROCEDIMENTI_SPECIALI" (decreto ingiuntivo, cautelari, ATP, sommario, sfratto), "ESECUZIONI" (pignoramenti, opposizioni esecuzione), "LAVORO" (ricorso/appello lavoro), "TRIBUTARIO" (ricorso/appello tributario), "CASSAZIONE" (ricorso cassazione, controricorso), "STRAGIUDIZIALE" (diffida, mediazione, negoziazione assistita, transazione), "AMMINISTRATIVO" (TAR, Consiglio di Stato, revocazione)
 - procedimento: il tipo specifico, uno tra: "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE", "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA", "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE", "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO", "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI", "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI", "RICORSO_LAVORO", "APPELLO_LAVORO", "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE", "CONTRORICORSO", "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE", "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO", "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA"
 - parteProcessuale: "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se riguarda la parte passiva (convenuto, resistente, appellato, debitore)
+- eventoCode: (opzionale) l'evento specifico del procedimento. Per CITAZIONE_CIVILE usa uno tra: "PRIMA_UDIENZA", "NOTIFICA_CITAZIONE", "SLITTAMENTO_UDIENZA", "UDIENZA_ISTRUTTORIA", "UDIENZA_CONCLUSIONI", "SENTENZA", "NOTIFICA_SENTENZA". Scegli l'evento piu' rilevante in base al contenuto del documento.
 - actionType: (legacy, opzionale) uno tra "CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"
 - actionMode: (legacy, opzionale) "COSTITUZIONE" o "DA_NOTIFICARE"
 - inputs: OGGETTO OBBLIGATORIO con le date trovate nel documento. Usa ESATTAMENTE queste chiavi quando applicabile:
@@ -201,6 +203,7 @@ export async function parseDocumentForEvent(formData: FormData): Promise<ParseDo
       macroArea: parsed.macroArea ?? undefined,
       procedimento: parsed.procedimento ?? undefined,
       parteProcessuale: parsed.parteProcessuale ?? undefined,
+      eventoCode: parsed.eventoCode ?? undefined,
       actionType: parsed.actionType ?? undefined,
       actionMode: parsed.actionMode ?? undefined,
       inputs: parsed.inputs ?? {},

@@ -86,6 +86,7 @@ export async function POST(req: Request) {
             macroArea: (eventData as { macroArea?: string | null }).macroArea ?? null,
             procedimento: (eventData as { procedimento?: string | null }).procedimento ?? null,
             parteProcessuale: (eventData as { parteProcessuale?: string | null }).parteProcessuale ?? null,
+            eventoCode: (eventData as { eventoCode?: string | null }).eventoCode ?? null,
             actionType: eventData.actionType ?? null,
             actionMode: eventData.actionMode ?? null,
             inputs:

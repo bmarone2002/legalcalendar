@@ -2401,6 +2401,7 @@ export namespace Prisma {
     macroArea: string | null
     procedimento: string | null
     parteProcessuale: string | null
+    eventoCode: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2429,6 +2430,7 @@ export namespace Prisma {
     macroArea: string | null
     procedimento: string | null
     parteProcessuale: string | null
+    eventoCode: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2457,6 +2459,7 @@ export namespace Prisma {
     macroArea: number
     procedimento: number
     parteProcessuale: number
+    eventoCode: number
     actionType: number
     actionMode: number
     inputs: number
@@ -2487,6 +2490,7 @@ export namespace Prisma {
     macroArea?: true
     procedimento?: true
     parteProcessuale?: true
+    eventoCode?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2515,6 +2519,7 @@ export namespace Prisma {
     macroArea?: true
     procedimento?: true
     parteProcessuale?: true
+    eventoCode?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2543,6 +2548,7 @@ export namespace Prisma {
     macroArea?: true
     procedimento?: true
     parteProcessuale?: true
+    eventoCode?: true
     actionType?: true
     actionMode?: true
     inputs?: true
@@ -2644,6 +2650,7 @@ export namespace Prisma {
     macroArea: string | null
     procedimento: string | null
     parteProcessuale: string | null
+    eventoCode: string | null
     actionType: string | null
     actionMode: string | null
     inputs: string | null
@@ -2689,6 +2696,7 @@ export namespace Prisma {
     macroArea?: boolean
     procedimento?: boolean
     parteProcessuale?: boolean
+    eventoCode?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2721,6 +2729,7 @@ export namespace Prisma {
     macroArea?: boolean
     procedimento?: boolean
     parteProcessuale?: boolean
+    eventoCode?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2750,6 +2759,7 @@ export namespace Prisma {
     macroArea?: boolean
     procedimento?: boolean
     parteProcessuale?: boolean
+    eventoCode?: boolean
     actionType?: boolean
     actionMode?: boolean
     inputs?: boolean
@@ -2795,6 +2805,7 @@ export namespace Prisma {
       macroArea: string | null
       procedimento: string | null
       parteProcessuale: string | null
+      eventoCode: string | null
       actionType: string | null
       actionMode: string | null
       inputs: string | null
@@ -3216,6 +3227,7 @@ export namespace Prisma {
     readonly macroArea: FieldRef<"Event", 'String'>
     readonly procedimento: FieldRef<"Event", 'String'>
     readonly parteProcessuale: FieldRef<"Event", 'String'>
+    readonly eventoCode: FieldRef<"Event", 'String'>
     readonly actionType: FieldRef<"Event", 'String'>
     readonly actionMode: FieldRef<"Event", 'String'>
     readonly inputs: FieldRef<"Event", 'String'>
@@ -7546,6 +7558,7 @@ export namespace Prisma {
     macroArea: 'macroArea',
     procedimento: 'procedimento',
     parteProcessuale: 'parteProcessuale',
+    eventoCode: 'eventoCode',
     actionType: 'actionType',
     actionMode: 'actionMode',
     inputs: 'inputs',
@@ -7807,6 +7820,7 @@ export namespace Prisma {
     macroArea?: StringNullableFilter<"Event"> | string | null
     procedimento?: StringNullableFilter<"Event"> | string | null
     parteProcessuale?: StringNullableFilter<"Event"> | string | null
+    eventoCode?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -7838,6 +7852,7 @@ export namespace Prisma {
     macroArea?: SortOrderInput | SortOrder
     procedimento?: SortOrderInput | SortOrder
     parteProcessuale?: SortOrderInput | SortOrder
+    eventoCode?: SortOrderInput | SortOrder
     actionType?: SortOrderInput | SortOrder
     actionMode?: SortOrderInput | SortOrder
     inputs?: SortOrderInput | SortOrder
@@ -7872,6 +7887,7 @@ export namespace Prisma {
     macroArea?: StringNullableFilter<"Event"> | string | null
     procedimento?: StringNullableFilter<"Event"> | string | null
     parteProcessuale?: StringNullableFilter<"Event"> | string | null
+    eventoCode?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -7903,6 +7919,7 @@ export namespace Prisma {
     macroArea?: SortOrderInput | SortOrder
     procedimento?: SortOrderInput | SortOrder
     parteProcessuale?: SortOrderInput | SortOrder
+    eventoCode?: SortOrderInput | SortOrder
     actionType?: SortOrderInput | SortOrder
     actionMode?: SortOrderInput | SortOrder
     inputs?: SortOrderInput | SortOrder
@@ -7937,6 +7954,7 @@ export namespace Prisma {
     macroArea?: StringNullableWithAggregatesFilter<"Event"> | string | null
     procedimento?: StringNullableWithAggregatesFilter<"Event"> | string | null
     parteProcessuale?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    eventoCode?: StringNullableWithAggregatesFilter<"Event"> | string | null
     actionType?: StringNullableWithAggregatesFilter<"Event"> | string | null
     actionMode?: StringNullableWithAggregatesFilter<"Event"> | string | null
     inputs?: StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -8323,6 +8341,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8353,6 +8372,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8383,6 +8403,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8413,6 +8434,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8443,6 +8465,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -8471,6 +8494,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8498,6 +8522,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -9007,6 +9032,7 @@ export namespace Prisma {
     macroArea?: SortOrder
     procedimento?: SortOrder
     parteProcessuale?: SortOrder
+    eventoCode?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -9035,6 +9061,7 @@ export namespace Prisma {
     macroArea?: SortOrder
     procedimento?: SortOrder
     parteProcessuale?: SortOrder
+    eventoCode?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -9063,6 +9090,7 @@ export namespace Prisma {
     macroArea?: SortOrder
     procedimento?: SortOrder
     parteProcessuale?: SortOrder
+    eventoCode?: SortOrder
     actionType?: SortOrder
     actionMode?: SortOrder
     inputs?: SortOrder
@@ -9832,6 +9860,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -9861,6 +9890,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -9971,6 +10001,7 @@ export namespace Prisma {
     macroArea?: StringNullableFilter<"Event"> | string | null
     procedimento?: StringNullableFilter<"Event"> | string | null
     parteProcessuale?: StringNullableFilter<"Event"> | string | null
+    eventoCode?: StringNullableFilter<"Event"> | string | null
     actionType?: StringNullableFilter<"Event"> | string | null
     actionMode?: StringNullableFilter<"Event"> | string | null
     inputs?: StringNullableFilter<"Event"> | string | null
@@ -10246,6 +10277,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10275,6 +10307,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10320,6 +10353,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10349,6 +10383,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10378,6 +10413,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10407,6 +10443,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10452,6 +10489,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10481,6 +10519,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10622,6 +10661,7 @@ export namespace Prisma {
     macroArea?: string | null
     procedimento?: string | null
     parteProcessuale?: string | null
+    eventoCode?: string | null
     actionType?: string | null
     actionMode?: string | null
     inputs?: string | null
@@ -10665,6 +10705,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10694,6 +10735,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10723,6 +10765,7 @@ export namespace Prisma {
     macroArea?: NullableStringFieldUpdateOperationsInput | string | null
     procedimento?: NullableStringFieldUpdateOperationsInput | string | null
     parteProcessuale?: NullableStringFieldUpdateOperationsInput | string | null
+    eventoCode?: NullableStringFieldUpdateOperationsInput | string | null
     actionType?: NullableStringFieldUpdateOperationsInput | string | null
     actionMode?: NullableStringFieldUpdateOperationsInput | string | null
     inputs?: NullableStringFieldUpdateOperationsInput | string | null

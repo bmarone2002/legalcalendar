@@ -37,6 +37,7 @@ export interface Event {
   macroArea?: string | null;
   procedimento?: string | null;
   parteProcessuale?: string | null;
+  eventoCode?: string | null;
   /** Legacy: mantenuti per retrocompatibilità */
   actionType?: string | null;
   actionMode?: string | null;
@@ -85,6 +86,7 @@ export interface CreateEventInput {
   macroArea?: string | null;
   procedimento?: string | null;
   parteProcessuale?: string | null;
+  eventoCode?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
@@ -108,6 +110,7 @@ export interface UpdateEventInput {
   macroArea?: string | null;
   procedimento?: string | null;
   parteProcessuale?: string | null;
+  eventoCode?: string | null;
   actionType?: string | null;
   actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
