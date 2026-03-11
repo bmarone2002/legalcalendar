@@ -232,7 +232,21 @@ function evaluateMultiRowFromEventoCode(
 
   for (const rule of rulesFromPhase) {
     if (rule.ordine === startOrdine) {
-      // Fase selezionata: usa la data manuale come riferimento, crea solo attività (no -120 gg).
+      // Fase selezionata con formula (es. Memorie 1,2,3): calcola con processRule, non attività alla data utente.
+      const hasFormula =
+        rule.direzioneCalcolo != null && rule.numero != null && rule.unita != null;
+      if (hasFormula && rule.eventoBaseKey && initialInputKeys.has(rule.eventoBaseKey)) {
+        const result = processRule(
+          rule,
+          inputsCorrenti,
+          settings,
+          reminderOffsets,
+          selectedEventoInputKey,
+        );
+        out.push(...result.subEvents);
+        continue;
+      }
+      // Fase selezionata senza formula (es. Notifica): crea attività alla data manuale (no -120 gg).
       const baseValue = inputsCorrenti[selectedEventoInputKey] as string | undefined;
       if (baseValue && typeof baseValue === "string" && baseValue.trim()) {
         const baseDate = new Date(

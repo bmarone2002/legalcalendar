@@ -71,7 +71,7 @@ export function MacroAreaPanel({
   const partiLabels = macroArea ? PARTI_LABELS[macroArea] : null;
 
   const selectableParti: ParteProcessuale[] = partiLabels
-    ? (PARTI_PROCESSUALI.filter((p) => p !== "COMUNE") as ParteProcessuale[])
+    ? ([...PARTI_PROCESSUALI] as ParteProcessuale[])
     : [];
 
   const eventiDisponibili =
@@ -91,6 +91,14 @@ export function MacroAreaPanel({
 
   const isNotificaCitazioneConDueDate =
     procedimento === "CITAZIONE_CIVILE" && eventoCode === "NOTIFICA_CITAZIONE";
+
+  /** Iscrizione a ruolo e Memorie 1,2,3: basta Data prima udienza, che da sola calcola tutte le date. */
+  const soloDataPrimaUdienza =
+    procedimento === "CITAZIONE_CIVILE" &&
+    (eventoCode === "ISCRIZIONE_RUOLO" ||
+      eventoCode === "MEMORIA_171TER_1" ||
+      eventoCode === "MEMORIA_171TER_2" ||
+      eventoCode === "MEMORIA_171TER_3");
 
   /** Per Citazione civile: Data prima udienza serve fino a Memoria 3 (ordine 7) per creare Prima udienza e Memorie 1,2,3. */
   const showDataPrimaUdienza =
@@ -193,8 +201,23 @@ export function MacroAreaPanel({
         </div>
       )}
 
-      {/* Livello 5: Data (una o due date se Notifica citazione; Data prima udienza fino a Memoria 3) */}
-      {selectedEvento && !isNotificaCitazioneConDueDate && (
+      {/* Livello 5: Data (solo Data prima udienza per Iscrizione/Memorie 1,2,3; altrimenti data evento + eventuale Data prima udienza) */}
+      {selectedEvento && soloDataPrimaUdienza && (
+        <div className="pt-2 border-t border-zinc-200">
+          <Label className="text-sm font-semibold text-zinc-700">
+            Data prima udienza
+          </Label>
+          <DatePicker
+            value={dataPrimaUdienza}
+            onChange={handleDateChange("dataPrimaUdienza")}
+            placeholder="Inserisci data prima udienza"
+          />
+          <p className="text-xs text-zinc-500 mt-1">
+            Da questa data vengono calcolati l&apos;evento Prima udienza e le Memorie 171 ter n.1, n.2, n.3.
+          </p>
+        </div>
+      )}
+      {selectedEvento && !isNotificaCitazioneConDueDate && !soloDataPrimaUdienza && (
         <div className="pt-2 border-t border-zinc-200 space-y-4">
           <div>
             <Label className="text-sm font-semibold text-zinc-700">

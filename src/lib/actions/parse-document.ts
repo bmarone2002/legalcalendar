@@ -22,7 +22,7 @@ const PROCEDIMENTO_VALUES = [
   "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO",
   "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA",
 ] as const;
-const PARTE_PROCESSUALE_VALUES = ["ATTORE", "CONVENUTO"] as const;
+const PARTE_PROCESSUALE_VALUES = ["ATTORE", "CONVENUTO", "COMUNE"] as const;
 
 /** Risposta strutturata dall'AI per precompilare il form Atto Giuridico */
 const parsedDocumentSchema = z.object({
@@ -45,48 +45,36 @@ export type ParseDocumentActionResult =
   | { success: true; data: ParsedDocumentResult }
   | { success: false; error: string };
 
-const EXTRACT_PROMPT = `Sei un assistente che estrae dati da documenti legali italiani (citazioni, ricorsi, opposizioni, appelli, decreti ingiuntivi, sentenze, ecc.).
-Dal testo del documento estrai TUTTI i dati utili per un calendario legale, in particolare LE DATE.
+const EXTRACT_PROMPT = `Sei un assistente legale che analizza documenti italiani (citazioni, ricorsi, opposizioni, appelli, decreti ingiuntivi, verbali, sentenze, comunicazioni della cancelleria).
 
-REGOLA FONDAMENTALE: Cerca sempre nel testo ogni data (udienza, notifica, deposito, scadenza, pubblicazione, ecc.) e inseriscila in "inputs" con la chiave corretta. Le date in Italia sono spesso scritte come gg/mm/aaaa, "il 15 marzo 2024", "udienza del 20/04/2024", "data notifica 10.05.2024". Converti SEMPRE in formato ISO: YYYY-MM-DD (es. 2024-03-15). Se è indicata anche l'ora, usa YYYY-MM-DDTHH:mm:ss.
+METODO: Analizza il documento DA CIMA A FONDO come farebbe un legale: prima il tipo di atto e l’autorità, poi le parti e il rito, poi la fase processuale in cui ci si trova, infine OGNI data menzionata. Ogni data deve essere assegnata alla chiave corretta in "inputs" in base al contesto (notifica della citazione vs data udienza vs deposito, ecc.).
+
+PASSI OBBLIGATORI:
+1) MACRO AREA e PROCEDIMENTO: dal tipo di atto (citazione, ricorso, opposizione, decreto ingiuntivo, appello, ecc.) e dall’autorità (Tribunale, GIP, TAR, ecc.) determina macroArea e procedimento.
+2) MODALITÀ (parte processuale): "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se la parte passiva (convenuto, resistente, appellato, debitore), "COMUNE" solo se il documento è neutro o riguarda entrambe le parti (es. verbale di udienza, comunicazione del tribunale).
+3) EVENTO (eventoCode): individua la FASE processuale a cui si riferisce il documento (notifica citazione, prima udienza, memorie 171-ter, udienza istruttoria, conclusioni, sentenza, notifica sentenza, ecc.) e mappa su uno dei codici evento previsti per quel procedimento.
+4) DATE: cerca OGNI data nel testo (gg/mm/aaaa, "il 15 marzo 2025", "udienza del 20.04.2025", "notifica in data 10/03/2025"). Converti SEMPRE in ISO: YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss. Assegna ogni data alla chiave corretta in "inputs".
+
+REGOLA CRITICA – DUE DATE PER CITAZIONE CIVILE (Notifica citazione):
+Se il procedimento è CITAZIONE_CIVILE e l’evento è NOTIFICA_CITAZIONE (o il documento parla di notifica della citazione e di udienza di comparizione), nel documento ci sono DUE date da distinguere e inserire in inputs:
+- dataPrimaNotificaCitazione: la data in cui la citazione è stata (o sarà) notificata al convenuto. Cerca espressioni come "notifica in data", "notificata il", "data di notifica della citazione", "notifica effettuata il".
+- dataPrimaUdienza: la data fissata per l’udienza di comparizione / prima udienza. Cerca "udienza fissata per il", "data di comparizione", "prima udienza il", "audience fixée le", "comparizione dinanzi al giudice il", "fissata per il giorno", decreto che fissa l’udienza.
+Non confondere le due: la notifica è di solito PRIMA dell’udienza. Inserisci entrambe con le chiavi corrette.
 
 Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste chiavi:
-- title: stringa breve che riassume la pratica (es. "Citazione Tizio vs Caio"); se presente nel documento, includi anche l'autorità giudiziaria (es. Tribunale di Napoli, Giudice di pace di Salerno) e il numero di RG (Ruolo Generale)
-- description: stringa opzionale con dettagli o adempimenti
+- title: stringa breve (es. "Citazione Tizio vs Caio – Tribunale di Napoli R.G. 1234/2025")
+- description: opzionale, dettagli o adempimenti
 - type: uno tra "udienza", "notifica", "deposito", "scadenza", "altro"
-- macroArea: la macro area del procedimento, uno tra: "CIVILE_CONTENZIOSO" (civile ordinario), "PROCEDIMENTI_SPECIALI" (decreto ingiuntivo, cautelari, ATP, sommario, sfratto), "ESECUZIONI" (pignoramenti, opposizioni esecuzione), "LAVORO" (ricorso/appello lavoro), "TRIBUTARIO" (ricorso/appello tributario), "CASSAZIONE" (ricorso cassazione, controricorso), "STRAGIUDIZIALE" (diffida, mediazione, negoziazione assistita, transazione), "AMMINISTRATIVO" (TAR, Consiglio di Stato, revocazione)
-- procedimento: il tipo specifico, uno tra: "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE", "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA", "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE", "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO", "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI", "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI", "RICORSO_LAVORO", "APPELLO_LAVORO", "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE", "CONTRORICORSO", "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE", "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO", "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA"
-- parteProcessuale: "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se riguarda la parte passiva (convenuto, resistente, appellato, debitore)
-- eventoCode: (opzionale) l'evento specifico del procedimento. Per CITAZIONE_CIVILE usa ESATTAMENTE uno tra:
-  "NOTIFICA_CITAZIONE",
-  "ISCRIZIONE_RUOLO",
-  "COSTITUZIONE_CONVENUTO",
-  "SLITTAMENTO_UDIENZA",
-  "MEMORIA_171TER_1",
-  "MEMORIA_171TER_2",
-  "MEMORIA_171TER_3",
-  "UDIENZA_ISTRUTTORIA",
-  "UDIENZA_CONCLUSIONI",
-  "NOTE_PRECISAZIONE_CONCLUSIONI",
-  "COMPARSA_CONCLUSIONALE",
-  "MEMORIA_REPLICA",
-  "SENTENZA",
-  "NOTIFICA_SENTENZA".
-  Scegli l'evento più rilevante in base al contenuto del documento. Se non riesci a individuarlo con sufficiente certezza, NON valorizzare eventoCode.
-- actionType: (legacy, opzionale) uno tra "CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"
-- actionMode: (legacy, opzionale) "COSTITUZIONE" o "DA_NOTIFICARE"
-- inputs: OGGETTO OBBLIGATORIO con le date trovate nel documento. Usa ESATTAMENTE queste chiavi quando applicabile:
-  * Per citazione/notifica: dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione
-  * Per udienza: dataUdienzaComparizione, dataUdienzaRiferimentoMemorie (usa dataPrimaUdienza per la data dell'udienza/comparizione nella citazione civile)
-  * Per decreto/opposizione: dataNotificaDecretoIngiuntivo
-  * Per ricorso/sentenza: dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato
-  * Per appello: dataNotificaAppello, dataNotificaSentenza, dataPubblicazioneSentenza
-  * Per esecuzioni: dataNotificaPrecetto, dataNotificaPignoramento
-  * Altri: giorniOpposizione, giorniIscrizioneRuolo, giorniCostituzione (numero), sceltaTermineImpugnazione ("BREVE" o "LUNGO")
-  Ogni data deve essere in formato ISO (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss). Inserisci in inputs TUTTE le date che trovi nel testo.
-- notes: stringa opzionale con note
+- macroArea: uno tra "CIVILE_CONTENZIOSO", "PROCEDIMENTI_SPECIALI", "ESECUZIONI", "LAVORO", "TRIBUTARIO", "CASSAZIONE", "STRAGIUDIZIALE", "AMMINISTRATIVO"
+- procedimento: uno tra "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE", "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA", "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE", "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO", "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI", "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI", "RICORSO_LAVORO", "APPELLO_LAVORO", "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE", "CONTRORICORSO", "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE", "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO", "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA"
+- parteProcessuale: "ATTORE" | "CONVENUTO" | "COMUNE"
+- eventoCode: per CITAZIONE_CIVILE uno tra "NOTIFICA_CITAZIONE", "ISCRIZIONE_RUOLO", "COSTITUZIONE_CONVENUTO", "SLITTAMENTO_UDIENZA", "MEMORIA_171TER_1", "MEMORIA_171TER_2", "MEMORIA_171TER_3", "UDIENZA_ISTRUTTORIA", "UDIENZA_CONCLUSIONI", "NOTE_PRECISAZIONE_CONCLUSIONI", "COMPARSA_CONCLUSIONALE", "MEMORIA_REPLICA", "SENTENZA", "NOTIFICA_SENTENZA"; per altri procedimenti il codice evento coerente. Se incerto, non valorizzare.
+- actionType: (legacy) "CITAZIONE" | "RICORSO_OPPOSIZIONE" | "RICORSO_TRIBUTARIO" | "APPELLO_CIVILE" | "APPELLO_TRIBUTARIO" | "RICORSO_CASSAZIONE"
+- actionMode: (legacy) "COSTITUZIONE" | "DA_NOTIFICARE"
+- inputs: OGGETTO con TUTTE le date estratte, con chiavi esatte: dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione, dataUdienzaComparizione, dataUdienzaRiferimentoMemorie, dataNotificaDecretoIngiuntivo, dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato, dataNotificaAppello, dataNotificaPrecetto, dataNotificaPignoramento; numerici: giorniOpposizione, giorniIscrizioneRuolo, giorniCostituzione; sceltaTermineImpugnazione: "BREVE" | "LUNGO". Date sempre in ISO.
+- notes: opzionale
 
-Esempio: se nel testo c'è "udienza fissata per il 15/04/2025 alle 9:30" e "data notifica 10 marzo 2025", inputs deve contenere almeno: { "dataPrimaUdienza": "2025-04-15T09:30:00", "dataPrimaNotificaCitazione": "2025-03-10" } (e altre chiavi se le riconosci). Il JSON deve essere parsabile.`;
+Esempio citazione con due date: testo con "notifica della citazione in data 10 marzo 2025" e "udienza di comparizione fissata per il 15 aprile 2025 alle 9:30" → inputs: { "dataPrimaNotificaCitazione": "2025-03-10", "dataPrimaUdienza": "2025-04-15T09:30:00" }. Il JSON deve essere parsabile.`;
 
 // ── Rinvio (verbale / comunicazione cancelleria) ─────────────────────
 

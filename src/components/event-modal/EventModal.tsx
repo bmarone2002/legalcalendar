@@ -409,15 +409,20 @@ export function EventModal({
       const hasDataPrimaUdienza =
         typeof form.inputs?.dataPrimaUdienza === "string" &&
         String(form.inputs.dataPrimaUdienza).trim().length > 0;
+      const soloDataPrimaUdienza = new Set([
+        "ISCRIZIONE_RUOLO", "MEMORIA_171TER_1", "MEMORIA_171TER_2", "MEMORIA_171TER_3",
+      ]).has(form.eventoCode ?? "");
       const hasBaseDate = isNotificaCitazione
         ? typeof form.inputs?.dataPrimaNotificaCitazione === "string" &&
           String(form.inputs.dataPrimaNotificaCitazione).trim().length > 0 &&
           hasDataPrimaUdienza
         : richiedeDataPrimaUdienza
-          ? hasDataPrimaUdienza &&
-            Object.entries(form.inputs ?? {}).some(
-              ([k, v]) => k !== "dataPrimaUdienza" && typeof v === "string" && v.trim().length > 0
-            )
+          ? soloDataPrimaUdienza
+            ? hasDataPrimaUdienza
+            : hasDataPrimaUdienza &&
+              Object.entries(form.inputs ?? {}).some(
+                ([k, v]) => k !== "dataPrimaUdienza" && typeof v === "string" && v.trim().length > 0
+              )
           : Object.values(form.inputs ?? {}).some(
               (v) => typeof v === "string" && v.trim().length > 0,
             );
@@ -426,7 +431,9 @@ export function EventModal({
           isNotificaCitazione
             ? "Inserisci entrambe le date: Notifica atto di citazione e Data prima udienza, poi clicca Calcola."
             : richiedeDataPrimaUdienza
-              ? "Inserisci la data dell'evento e la Data prima udienza, poi clicca Calcola."
+              ? soloDataPrimaUdienza
+                ? "Inserisci la Data prima udienza, poi clicca Calcola."
+                : "Inserisci la data dell'evento e la Data prima udienza, poi clicca Calcola."
               : "Seleziona macro area, procedimento, parte, evento e inserisci la data base (es. data udienza) prima di calcolare. Calcola genera tutte le fasi future dalla fase scelta."
         );
         return;
