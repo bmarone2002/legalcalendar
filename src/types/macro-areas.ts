@@ -230,6 +230,31 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     { code: "SENTENZA", label: "Sentenza", inputKey: "dataPubblicazioneSentenza", parteProcessuale: "COMUNE", ordine: 13 },
     { code: "NOTIFICA_SENTENZA", label: "Notifica sentenza", inputKey: "dataNotificaSentenza", parteProcessuale: "COMUNE", ordine: 14 },
   ],
+  RICORSO_RITO_SEMPLIFICATO: [
+    // ATTORE / RICORRENTE
+    { code: "NOTIFICA_RICORSO_DECRETO", label: "Notifica Ricorso e decreto", inputKey: "dataPrimaUdienzaRicorso", parteProcessuale: "ATTORE", ordine: 2 },
+
+    // CONVENUTO / RESISTENTE
+    { code: "COSTITUZIONE_CONVENUTO_RICORSO", label: "Costituzione convenuto", inputKey: "dataPrimaUdienzaRicorso", parteProcessuale: "CONVENUTO", ordine: 3 },
+
+    // COMUNE (eventi condivisi tra le parti)
+    { code: "PRIMA_UDIENZA_RICORSO", label: "Prima udienza", inputKey: "dataPrimaUdienzaRicorso", parteProcessuale: "COMUNE", ordine: 4 },
+
+    // Eventuali memorie 171-ter su richiesta del giudice (inserimento manuale)
+    { code: "MEMORIA_171TER_1_RICORSO", label: "Memoria 171 ter n.1", inputKey: "dataMemoria171ter1Ricorso", parteProcessuale: "COMUNE", ordine: 5 },
+    { code: "MEMORIA_171TER_2_RICORSO", label: "Memoria 171 ter n.2", inputKey: "dataMemoria171ter2Ricorso", parteProcessuale: "COMUNE", ordine: 6 },
+    { code: "MEMORIA_171TER_3_RICORSO", label: "Memoria 171 ter n.3", inputKey: "dataMemoria171ter3Ricorso", parteProcessuale: "COMUNE", ordine: 7 },
+
+    // Udienze e fasi successive
+    { code: "UDIENZA_ISTRUTTORIA_RICORSO", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoriaRicorso", parteProcessuale: "COMUNE", ordine: 8 },
+    { code: "UDIENZA_CONCLUSIONI_RICORSO", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioniRicorso", parteProcessuale: "COMUNE", ordine: 9 },
+    { code: "NOTE_CONCLUSIONI_RICORSO", label: "Note conclusionali", inputKey: "dataNoteConclusionaliRicorso", parteProcessuale: "COMUNE", ordine: 10 },
+    { code: "MEMORIA_REPLICA_RICORSO", label: "Memoria di replica", inputKey: "dataMemoriaReplicaRicorso", parteProcessuale: "COMUNE", ordine: 11 },
+
+    // Sentenza e notifica sentenza
+    { code: "SENTENZA_RICORSO", label: "Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataPubblicazioneSentenzaRicorso", parteProcessuale: "COMUNE", ordine: 12 },
+    { code: "NOTIFICA_SENTENZA_RICORSO", label: "Notifica Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataNotificaSentenzaRicorso", parteProcessuale: "COMUNE", ordine: 13 },
+  ],
 };
 
 /** Restituisce gli eventi disponibili nel dropdown, filtrati per parte + COMUNE, ordinati. */
