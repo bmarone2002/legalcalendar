@@ -35,12 +35,22 @@ import type {
   TipoUdienza,
   AdempimentoSuggerito,
 } from "@/types/rinvio";
+import type {
+  MacroAreaCode,
+  ProcedimentoCode,
+  ParteProcessuale,
+  EventoDisponibile,
+} from "@/types/macro-areas";
+import { getEventiDisponibili } from "@/types/macro-areas";
 
 interface ProsecuzionePanelProps {
   eventId: string;
   onSubEventsChanged?: () => void;
   targetUserId?: string;
   readOnly?: boolean;
+  macroArea?: MacroAreaCode | null;
+  procedimento?: ProcedimentoCode | null;
+  parteProcessuale?: ParteProcessuale | null;
 }
 
 function toDateOnlyString(d: Date): string {
@@ -306,6 +316,9 @@ export function ProsecuzionePanel({
   onSubEventsChanged,
   targetUserId,
   readOnly = false,
+  macroArea,
+  procedimento,
+  parteProcessuale,
 }: ProsecuzionePanelProps) {
   const [rinvii, setRinvii] = useState<Rinvio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -321,6 +334,8 @@ export function ProsecuzionePanel({
   const [dataUdienza, setDataUdienza] = useState<Date | null>(null);
   const [note, setNote] = useState("");
   const [adempimenti, setAdempimenti] = useState<AdempimentoForm[]>([]);
+  const [availableEventi, setAvailableEventi] = useState<EventoDisponibile[]>([]);
+  const [selectedEventoCode, setSelectedEventoCode] = useState<string>("");
 
   const loadRinvii = useCallback(async () => {
     setLoading(true);
@@ -335,12 +350,23 @@ export function ProsecuzionePanel({
     loadRinvii();
   }, [loadRinvii]);
 
+  useEffect(() => {
+    if (macroArea && procedimento && parteProcessuale) {
+      setAvailableEventi(
+        getEventiDisponibili(macroArea, procedimento, parteProcessuale),
+      );
+    } else {
+      setAvailableEventi([]);
+    }
+  }, [macroArea, procedimento, parteProcessuale]);
+
   const resetForm = () => {
     setTipoUdienza("");
     setTipoUdienzaCustom("");
     setDataUdienza(null);
     setNote("");
     setAdempimenti([]);
+    setSelectedEventoCode("");
     setShowForm(false);
     setError(null);
   };
@@ -360,12 +386,14 @@ export function ProsecuzionePanel({
   const handleSaveRinvio = async () => {
     setError(null);
 
-    if (!tipoUdienza) {
-      setError("Selezionare il tipo di udienza");
+    if (!macroArea || !procedimento || !parteProcessuale) {
+      setError(
+        "La prosecuzione è disponibile solo per pratiche con Macro Area, Procedimento e Parte processuale impostati.",
+      );
       return;
     }
-    if (tipoUdienza === "ALTRO" && !tipoUdienzaCustom.trim()) {
-      setError("Specificare il tipo di udienza");
+    if (!selectedEventoCode) {
+      setError("Selezionare l'evento/fase dalla tabella.");
       return;
     }
     if (!dataUdienza) {
@@ -386,13 +414,19 @@ export function ProsecuzionePanel({
         12, 0, 0
       );
 
+      const evento = availableEventi.find((e) => e.code === selectedEventoCode);
+      const labelEvento = evento?.label ?? selectedEventoCode;
+
       const result = await createRinvio({
         parentEventId: eventId,
         dataUdienza: normalizedDataUdienza,
-        tipoUdienza,
-        tipoUdienzaCustom: tipoUdienza === "ALTRO" ? tipoUdienzaCustom : null,
+        // Manteniamo tipoUdienza = "ALTRO" e usiamo la descrizione personalizzata
+        // per mostrare in lista la fase selezionata.
+        tipoUdienza: "ALTRO",
+        tipoUdienzaCustom: labelEvento,
         note: note || null,
         adempimenti: validAdempimenti,
+        eventoCode: selectedEventoCode,
       }, targetUserId);
 
       if (result.success) {
@@ -527,44 +561,31 @@ export function ProsecuzionePanel({
             </Button>
           </div>
 
-          {/* Tipo udienza */}
+          {/* Evento/fase dalla tabella (filtrato per macroArea/procedimento/parte dell'evento madre) */}
           <div>
-            <Label className="text-xs">Tipo udienza</Label>
+            <Label className="text-xs">Evento / fase del giudizio</Label>
             <Select
-              value={tipoUdienza || "__empty"}
+              value={selectedEventoCode || "__empty"}
               onValueChange={(v) => {
                 const val = v === "__empty" ? "" : v;
-                setTipoUdienza(val as TipoUdienza | "");
-                if (val !== "ALTRO") setTipoUdienzaCustom("");
+                setSelectedEventoCode(val);
               }}
             >
               <SelectTrigger className="bg-white text-sm">
-                <SelectValue placeholder="Seleziona tipo udienza..." />
+                <SelectValue placeholder="Seleziona evento/fase..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__empty" disabled>
-                  Seleziona tipo udienza...
+                  Seleziona evento/fase...
                 </SelectItem>
-                {TIPI_UDIENZA.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {TIPO_UDIENZA_LABELS[t]}
+                {availableEventi.map((ev) => (
+                  <SelectItem key={ev.code} value={ev.code}>
+                    {ev.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-
-          {tipoUdienza === "ALTRO" && (
-            <div>
-              <Label className="text-xs">Tipo udienza (specificare)</Label>
-              <Input
-                value={tipoUdienzaCustom}
-                onChange={(e) => setTipoUdienzaCustom(e.target.value)}
-                placeholder="Es. Udienza di rinvio per CTU supplementare..."
-                className="text-sm"
-              />
-            </div>
-          )}
 
           {/* Data udienza */}
           <div>

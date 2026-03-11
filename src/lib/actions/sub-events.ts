@@ -14,14 +14,16 @@ export { toSubEvent };
 
 // ── Shared helpers for regenerate / createFromPreview ─────────────
 
-interface ParentContext {
+export interface ParentContext {
   parent: NonNullable<Awaited<ReturnType<typeof prisma.event.findUnique>>>;
   eventForRule: Event;
   userSelections: Record<string, unknown>;
   subEvents: Array<{ id: string; locked: boolean; ruleId: string | null }>;
 }
 
-async function loadParentContext(parentEventId: string): Promise<ParentContext | null> {
+export async function loadParentContext(
+  parentEventId: string,
+): Promise<ParentContext | null> {
   const parent = await prisma.event.findUnique({
     where: { id: parentEventId },
     include: { subEvents: { select: { id: true, locked: true, ruleId: true } } },

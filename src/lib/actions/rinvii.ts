@@ -4,12 +4,29 @@ import { prisma } from "../db";
 import { getSettings } from "../settings";
 import { adjustToNextBusinessDay, applyDeadlineTime } from "@/lib/date-utils";
 import { addDays } from "date-fns";
-import type { Rinvio, Adempimento, CreateRinvioInput, UpdateRinvioInput, TipoUdienza } from "@/types/rinvio";
+import type {
+  Rinvio,
+  Adempimento,
+  CreateRinvioInput,
+  UpdateRinvioInput,
+  TipoUdienza,
+} from "@/types/rinvio";
 import { TIPO_UDIENZA_LABELS, DEFAULT_GIORNI_ALERT_UDIENZA } from "@/types/rinvio";
 import type { ActionResult } from "./events";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
+import { runRulesForEvent } from "../rules/engine";
+import { loadParentContext } from "./sub-events";
+import { getEventoByCode } from "@/types/macro-areas";
+import type { ProcedimentoCode } from "@/types/macro-areas";
 
 const RINVIO_RULE_ID = "rinvio-udienza";
+
+function toDateOnlyString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 function parseAdempimenti(json: string): Adempimento[] {
   try {
@@ -54,6 +71,40 @@ function resolveUdienzaLabel(
   return TIPO_UDIENZA_LABELS[tipoUdienza as TipoUdienza] ?? tipoUdienza;
 }
 
+function mapTipoUdienzaToEventoCode(
+  procedimento: ProcedimentoCode,
+  tipoUdienza: TipoUdienza,
+): string | null {
+  switch (procedimento) {
+    case "RICORSO_RITO_SEMPLIFICATO": {
+      if (tipoUdienza === "TRATTAZIONE" || tipoUdienza === "PRIMA_COMPARIZIONE") {
+        return "PRIMA_UDIENZA_RICORSO";
+      }
+      if (
+        tipoUdienza === "PRECISAZIONE_CONCLUSIONI" ||
+        tipoUdienza === "DISCUSSIONE_ORALE"
+      ) {
+        return "UDIENZA_CONCLUSIONI_RICORSO";
+      }
+      return null;
+    }
+    case "CITAZIONE_CIVILE": {
+      if (tipoUdienza === "TRATTAZIONE" || tipoUdienza === "PRIMA_COMPARIZIONE") {
+        return "UDIENZA_ISTRUTTORIA";
+      }
+      if (
+        tipoUdienza === "PRECISAZIONE_CONCLUSIONI" ||
+        tipoUdienza === "DISCUSSIONE_ORALE"
+      ) {
+        return "UDIENZA_CONCLUSIONI";
+      }
+      return null;
+    }
+    default:
+      return null;
+  }
+}
+
 interface RinvioUdienzaInfo {
   dataUdienza: Date;
   tipoUdienza: string;
@@ -64,7 +115,8 @@ async function generateSubEventsForRinvio(
   parentEventId: string,
   rinvioId: string,
   udienzaInfo: RinvioUdienzaInfo,
-  adempimenti: Adempimento[]
+  adempimenti: Adempimento[],
+  selectedEventoCode?: string | null,
 ): Promise<void> {
   const settings = await getSettings();
   const udienzaLabel = resolveUdienzaLabel(
@@ -147,6 +199,71 @@ async function generateSubEventsForRinvio(
         createdBy: "automatico",
         locked: false,
       });
+    }
+  }
+
+  // Usa il motore data-driven per generare eventuali ulteriori sottoeventi
+  // collegati alla stessa pratica madre, a partire dalla data del rinvio.
+  const ctx = await loadParentContext(parentEventId);
+  if (ctx && ctx.parent.ruleTemplateId === "data-driven") {
+    const procedimento = ctx.parent.procedimento as ProcedimentoCode | null;
+    const tipo = udienzaInfo.tipoUdienza as TipoUdienza;
+
+    if (procedimento) {
+      const effectiveCode =
+        selectedEventoCode && selectedEventoCode.trim().length > 0
+          ? selectedEventoCode
+          : mapTipoUdienzaToEventoCode(procedimento, tipo);
+      if (effectiveCode) {
+        const eventoDef = getEventoByCode(procedimento, effectiveCode);
+        if (eventoDef) {
+          const baseDateStr = toDateOnlyString(udienzaInfo.dataUdienza);
+          const inputsForRinvio = {
+            ...(ctx.eventForRule.inputs ?? {}),
+            [eventoDef.inputKey]: baseDateStr,
+          } as Record<string, unknown>;
+
+          const userSelections = {
+            ...ctx.userSelections,
+            ...inputsForRinvio,
+            eventoCode: effectiveCode,
+          };
+
+          const eventForRule = {
+            ...ctx.eventForRule,
+            eventoCode: effectiveCode,
+            inputs: inputsForRinvio,
+          };
+
+          const candidates = runRulesForEvent(ctx.parent.ruleTemplateId, {
+            event: eventForRule,
+            settings,
+            userSelections,
+          });
+
+          for (const c of candidates) {
+            if (!c.dueAt) continue;
+            batch.push({
+              parentEventId,
+              title: c.title,
+              kind: c.kind,
+              dueAt: c.dueAt,
+              status: c.status ?? "pending",
+              priority: c.priority ?? 0,
+              ruleId: RINVIO_RULE_ID,
+              ruleParams: JSON.stringify({
+                ...(c.ruleParams ?? {}),
+                rinvioId,
+                tipo: "fase-procedurale",
+                eventoCode: effectiveCode,
+              }),
+              explanation: c.explanation,
+              createdBy: "automatico",
+              locked: c.isPlaceholder ?? false,
+            });
+          }
+        }
+      }
     }
   }
 
@@ -242,7 +359,8 @@ export async function createRinvio(
         tipoUdienza: data.tipoUdienza,
         tipoUdienzaCustom: data.tipoUdienzaCustom,
       },
-      data.adempimenti
+      data.adempimenti,
+      data.eventoCode,
     );
 
     return { success: true, data: toRinvio(rinvio) };

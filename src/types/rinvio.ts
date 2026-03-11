@@ -98,6 +98,12 @@ export interface CreateRinvioInput {
   tipoUdienzaCustom?: string | null;
   note?: string | null;
   adempimenti: Adempimento[];
+  /**
+   * Evento/fase selezionata dalla tabella (code di EventoDisponibile),
+   * già filtrata per macroArea/procedimento/parte processuale dell'evento madre.
+   * Non è persistita come colonna dedicata ma usata per pilotare il motore regole.
+   */
+  eventoCode?: string | null;
 }
 
 export interface UpdateRinvioInput {
