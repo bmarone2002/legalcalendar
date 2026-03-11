@@ -19,7 +19,7 @@ import type {
   ParteProcessuale,
   EventRule,
 } from "@/types/macro-areas";
-import { getEventRulesFor } from "@/types/macro-areas";
+import { getEventRulesFor, getEventoByCode } from "@/types/macro-areas";
 
 function computeDate(
   base: Date,
@@ -177,8 +177,18 @@ export const dataDrivenRule: RuleDefinition = {
       return { subEvents: [] };
     }
 
-    const rules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
+    let rules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
     if (rules.length === 0) return { subEvents: [] };
+
+    // Se è stato selezionato un Evento specifico nel form (eventoCode),
+    // limita la generazione dei sotto-eventi SOLO alle regole collegate a quell'evento.
+    const eventoCode = (event as { eventoCode?: string | null }).eventoCode ?? (inputs.eventoCode as string | undefined);
+    if (eventoCode) {
+      const ev = getEventoByCode(procedimento, eventoCode);
+      if (ev) {
+        rules = rules.filter((r) => r.eventoLabel === ev.label);
+      }
+    }
 
     const rawOffsets = (inputs.reminderOffsets as number[] | undefined)
       ?? settings.defaultReminderOffsetsAtto
