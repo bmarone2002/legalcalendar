@@ -203,13 +203,22 @@ export interface EventoDisponibile {
 
 export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDisponibile[]>> = {
   CITAZIONE_CIVILE: [
-    { code: "PRIMA_UDIENZA", label: "Prima udienza", inputKey: "dataPrimaUdienza", parteProcessuale: "COMUNE", ordine: 1 },
-    { code: "NOTIFICA_CITAZIONE", label: "Notifica atto di citazione", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 2 },
-    { code: "SLITTAMENTO_UDIENZA", label: "Eventuale slittamento prima udienza", inputKey: "dataSlittamentoUdienza", parteProcessuale: "COMUNE", ordine: 3 },
-    { code: "UDIENZA_ISTRUTTORIA", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoria", parteProcessuale: "COMUNE", ordine: 4 },
-    { code: "UDIENZA_CONCLUSIONI", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioni", parteProcessuale: "COMUNE", ordine: 5 },
-    { code: "SENTENZA", label: "Sentenza", inputKey: "dataPubblicazioneSentenza", parteProcessuale: "COMUNE", ordine: 6 },
-    { code: "NOTIFICA_SENTENZA", label: "Notifica sentenza", inputKey: "dataNotificaSentenza", parteProcessuale: "COMUNE", ordine: 7 },
+    // ATTORE: gli eventi selezionabili sono quelli della colonna \"EVENTO / SCADENZE\".
+    // La data inserita viene salvata:
+    // - se la riga ha un EVENTO BASE, sulla chiave dell'EVENTO BASE (eventoBaseKey)
+    // - altrimenti su una chiave che rappresenta la data dell'evento stesso.
+    { code: "NOTIFICA_CITAZIONE", label: "Notifica atto di citazione", inputKey: "dataPrimaUdienza", parteProcessuale: "ATTORE", ordine: 1 },
+    { code: "ISCRIZIONE_RUOLO", label: "Iscrizione a ruolo / Costituzione attore", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 2 },
+
+    // CONVENUTO
+    { code: "COSTITUZIONE_CONVENUTO", label: "Costituzione convenuto", inputKey: "dataPrimaUdienza", parteProcessuale: "CONVENUTO", ordine: 3 },
+
+    // COMUNE (eventi condivisi tra le parti)
+    { code: "SLITTAMENTO_UDIENZA", label: "Eventuale slittamento prima udienza", inputKey: "dataSlittamentoUdienza", parteProcessuale: "COMUNE", ordine: 4 },
+    { code: "UDIENZA_ISTRUTTORIA", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoria", parteProcessuale: "COMUNE", ordine: 5 },
+    { code: "UDIENZA_CONCLUSIONI", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioni", parteProcessuale: "COMUNE", ordine: 6 },
+    { code: "SENTENZA", label: "Sentenza", inputKey: "dataPubblicazioneSentenza", parteProcessuale: "COMUNE", ordine: 7 },
+    { code: "NOTIFICA_SENTENZA", label: "Notifica sentenza", inputKey: "dataNotificaSentenza", parteProcessuale: "COMUNE", ordine: 8 },
   ],
 };
 
