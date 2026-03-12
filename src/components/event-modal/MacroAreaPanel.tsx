@@ -92,10 +92,11 @@ export function MacroAreaPanel({
   const isNotificaCitazioneConDueDate =
     procedimento === "CITAZIONE_CIVILE" && eventoCode === "NOTIFICA_CITAZIONE";
 
-  /** Iscrizione a ruolo e Memorie 1,2,3: basta Data prima udienza, che da sola calcola tutte le date. */
+  /** Iscrizione a ruolo, slittamento e Memorie 1,2,3: basta Data prima udienza, che da sola calcola tutte le date. */
   const soloDataPrimaUdienza =
     procedimento === "CITAZIONE_CIVILE" &&
     (eventoCode === "ISCRIZIONE_RUOLO" ||
+      eventoCode === "SLITTAMENTO_UDIENZA" ||
       eventoCode === "MEMORIA_171TER_1" ||
       eventoCode === "MEMORIA_171TER_2" ||
       eventoCode === "MEMORIA_171TER_3");

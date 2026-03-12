@@ -104,6 +104,11 @@ export interface CreateRinvioInput {
    * Non è persistita come colonna dedicata ma usata per pilotare il motore regole.
    */
   eventoCode?: string | null;
+  /**
+   * Promemoria personalizzati per l'udienza di rinvio (in giorni prima).
+   * Se vuoto o assente, non viene creato alcun promemoria automatico sull'udienza.
+   */
+  reminderOffsets?: number[];
 }
 
 export interface UpdateRinvioInput {
@@ -112,4 +117,5 @@ export interface UpdateRinvioInput {
   tipoUdienzaCustom?: string | null;
   note?: string | null;
   adempimenti?: Adempimento[];
+  reminderOffsets?: number[];
 }

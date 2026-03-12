@@ -28,6 +28,7 @@ import {
   ADEMPIMENTI_SUGGERITI,
   ADEMPIMENTO_SUGGERITO_LABELS,
   DEFAULT_GIORNI_ALERT,
+  DEFAULT_GIORNI_ALERT_UDIENZA,
 } from "@/types/rinvio";
 import type {
   Rinvio,
@@ -336,6 +337,7 @@ export function ProsecuzionePanel({
   const [adempimenti, setAdempimenti] = useState<AdempimentoForm[]>([]);
   const [availableEventi, setAvailableEventi] = useState<EventoDisponibile[]>([]);
   const [selectedEventoCode, setSelectedEventoCode] = useState<string>("");
+  const [reminderOffsets, setReminderOffsets] = useState<number[]>([]);
 
   const loadRinvii = useCallback(async () => {
     setLoading(true);
@@ -367,6 +369,7 @@ export function ProsecuzionePanel({
     setNote("");
     setAdempimenti([]);
     setSelectedEventoCode("");
+    setReminderOffsets([]);
     setShowForm(false);
     setError(null);
   };
@@ -427,6 +430,7 @@ export function ProsecuzionePanel({
         note: note || null,
         adempimenti: validAdempimenti,
         eventoCode: selectedEventoCode,
+        reminderOffsets,
       }, targetUserId);
 
       if (result.success) {
@@ -639,6 +643,73 @@ export function ProsecuzionePanel({
                 onRemove={() => handleRemoveAdempimento(idx)}
               />
             ))}
+          </div>
+
+          {/* Promemoria udienza (opzionali, personalizzabili) */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium text-zinc-700">
+              Promemoria per l&apos;udienza (opzionali)
+            </Label>
+            <p className="text-xs text-zinc-500">
+              Se non imposti nulla, non verrà creato alcun promemoria automatico per l&apos;udienza. Puoi aggiungere uno o più promemoria a X giorni prima.
+            </p>
+            {reminderOffsets.map((days, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReminderOffsets((prev) => {
+                      const next = [...prev];
+                      next[i] = Math.max(1, next[i] - 1);
+                      return next;
+                    })
+                  }
+                  className="h-7 w-7 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                  aria-label="Diminuisci giorni"
+                >
+                  −
+                </button>
+                <span className="w-10 text-center text-xs font-medium text-zinc-900 select-none">
+                  {days}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReminderOffsets((prev) => {
+                      const next = [...prev];
+                      next[i] = next[i] + 1;
+                      return next;
+                    })
+                  }
+                  className="h-7 w-7 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                  aria-label="Aumenta giorni"
+                >
+                  +
+                </button>
+                <span className="text-xs text-zinc-600">giorni prima</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReminderOffsets((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                  className="text-red-500 hover:text-red-700 text-sm leading-none px-1"
+                  aria-label="Rimuovi promemoria"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setReminderOffsets((prev) => [...prev, DEFAULT_GIORNI_ALERT_UDIENZA])
+              }
+              className="mt-1 h-7 text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+            >
+              + Aggiungi promemoria udienza
+            </Button>
           </div>
 
           {/* Form actions */}

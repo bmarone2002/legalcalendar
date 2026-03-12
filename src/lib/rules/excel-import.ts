@@ -75,6 +75,21 @@ export interface ExcelImportResult {
  *   - EventRule[] per il motore data-driven
  *   - EventoDisponibile[] per popolare il dropdown Evento per un singolo procedimento
  *
+ * Convenzioni di mappatura dal CSV:
+ * - Colonna "Evento base inserito dall'utente":
+ *   - Se valorizzata → diventa eventoBaseKey (es. "dataPrimaUdienza").
+ *   - Se vuota e la riga è "input/manuale" → l'evento viene trattato come attività manuale
+ *     alla data che l'utente inserisce nel form.
+ * - Colonne direzione/numero/unità:
+ *   - Se presenti → la riga è una scadenza calcolata (termine) rispetto alla data base.
+ *   - Se assenti → nessun calcolo, solo attività/manuale (tipoTermine = "manuale" o "da_parametrizzare").
+ * - providesInputKey:
+ *   - Se valorizzato, la scadenza calcolata aggiorna anche un nuovo campo data (es. "dataPrimaNotificaCitazione")
+ *     che potrà essere usato come EVENTO BASE in altre righe della stessa tabella.
+ * - selectableInDropdown:
+ *   - true/undefined → la riga appare nel dropdown Evento per il procedimento.
+ *   - false → riga tecnica (non selezionabile dall'utente, es. passaggi interni di sistema).
+ *
  * La funzione è pura: non registra direttamente le regole né modifica lo stato globale.
  */
 export function fromExcelJson(rows: ExcelRuleRow[]): ExcelImportResult {

@@ -232,6 +232,7 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
   ],
   RICORSO_RITO_SEMPLIFICATO: [
     // ATTORE / RICORRENTE
+    { code: "RICORSO_ISCRIZIONE_RUOLO", label: "Iscrizione a ruolo/Costituzione attore", inputKey: "dataDepositoRicorso", parteProcessuale: "ATTORE", ordine: 1 },
     { code: "NOTIFICA_RICORSO_DECRETO", label: "Notifica Ricorso e decreto", inputKey: "dataPrimaUdienzaRicorso", parteProcessuale: "ATTORE", ordine: 2 },
 
     // CONVENUTO / RESISTENTE

@@ -1080,8 +1080,6 @@ export function EventModal({
                           setForm((f) => ({
                             ...f,
                             reminderOffsets: f.reminderOffsets.filter((_, idx) => idx !== i),
-                            generateSubEvents: f.reminderOffsets.length > 1,
-                            ruleTemplateId: f.reminderOffsets.length > 1 ? (f.macroType === "ATTO_GIURIDICO" ? (f.macroArea ? "data-driven" : "atto-giuridico") : "reminder") : f.ruleTemplateId,
                           }))
                         }
                         className="text-red-500 hover:text-red-700 text-lg leading-none px-1"
@@ -1099,8 +1097,6 @@ export function EventModal({
                       setForm((f) => ({
                         ...f,
                         reminderOffsets: [...f.reminderOffsets, 7],
-                        generateSubEvents: true,
-                        ruleTemplateId: form.macroType === "ATTO_GIURIDICO" ? (form.macroArea ? "data-driven" : "atto-giuridico") : "reminder",
                       }))
                     }
                     className="mt-1 border-zinc-300 text-zinc-700 hover:bg-zinc-50"

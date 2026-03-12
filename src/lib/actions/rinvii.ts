@@ -117,6 +117,7 @@ async function generateSubEventsForRinvio(
   udienzaInfo: RinvioUdienzaInfo,
   adempimenti: Adempimento[],
   selectedEventoCode?: string | null,
+  reminderOffsetsFromInput?: number[] | null,
 ): Promise<void> {
   const settings = await getSettings();
   const udienzaLabel = resolveUdienzaLabel(
@@ -125,10 +126,10 @@ async function generateSubEventsForRinvio(
   );
 
   const udienzaDueAt = applyDeadlineTime(udienzaInfo.dataUdienza, settings);
-  const alertDays = DEFAULT_GIORNI_ALERT_UDIENZA;
-  const alertRaw = addDays(udienzaInfo.dataUdienza, -alertDays);
-  const alertAdjusted = adjustToNextBusinessDay(alertRaw, settings);
-  const alertDueAt = applyDeadlineTime(alertAdjusted, settings);
+  const reminderOffsets =
+    reminderOffsetsFromInput && reminderOffsetsFromInput.length > 0
+      ? reminderOffsetsFromInput
+      : [];
 
   const batch = [
     {
@@ -144,20 +145,28 @@ async function generateSubEventsForRinvio(
       createdBy: "automatico",
       locked: false,
     },
-    {
+  ];
+
+  for (const daysBefore of reminderOffsets) {
+    if (daysBefore <= 0) continue;
+    const alertRaw = addDays(udienzaInfo.dataUdienza, -daysBefore);
+    const alertAdjusted = adjustToNextBusinessDay(alertRaw, settings);
+    const alertDueAt = applyDeadlineTime(alertAdjusted, settings);
+
+    batch.push({
       parentEventId,
-      title: `Udienza: ${udienzaLabel} – Promemoria (${alertDays} gg prima)`,
+      title: `Udienza: ${udienzaLabel} – Promemoria (${daysBefore} gg prima)`,
       kind: "promemoria",
       dueAt: alertDueAt,
       status: "pending",
       priority: 0,
       ruleId: RINVIO_RULE_ID,
       ruleParams: JSON.stringify({ rinvioId, tipo: "udienza" }),
-      explanation: `Promemoria ${alertDays} giorni prima dell'udienza`,
+      explanation: `Promemoria ${daysBefore} giorni prima dell'udienza`,
       createdBy: "automatico",
       locked: false,
-    },
-  ];
+    });
+  }
 
   for (const a of adempimenti) {
     if (!a.scadenza || !a.titolo) continue;
@@ -221,6 +230,7 @@ async function generateSubEventsForRinvio(
           const inputsForRinvio = {
             ...(ctx.eventForRule.inputs ?? {}),
             [eventoDef.inputKey]: baseDateStr,
+            ...(reminderOffsets.length > 0 ? { reminderOffsets } : {}),
           } as Record<string, unknown>;
 
           const userSelections = {
@@ -361,6 +371,7 @@ export async function createRinvio(
       },
       data.adempimenti,
       data.eventoCode,
+      data.reminderOffsets ?? null,
     );
 
     return { success: true, data: toRinvio(rinvio) };
@@ -418,7 +429,9 @@ export async function updateRinvio(
           tipoUdienza: rinvio.tipoUdienza,
           tipoUdienzaCustom: rinvio.tipoUdienzaCustom,
         },
-        parseAdempimenti(rinvio.adempimenti)
+        parseAdempimenti(rinvio.adempimenti),
+        undefined,
+        (data as { reminderOffsets?: number[] }).reminderOffsets ?? null,
       );
     }
 
