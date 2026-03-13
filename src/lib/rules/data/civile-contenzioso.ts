@@ -47,12 +47,12 @@ const CITAZIONE_CIVILE_RULES: EventRule[] = [
     ordine: 2,
   },
 
-  // ── CONVENUTO ───────────────────────────────────────────────────
+  // ── CONVENUTO: Costituzione convenuto 70 gg prima di Data udienza di comparizione ──
   {
     macroArea: "CIVILE_CONTENZIOSO",
     procedimento: "CITAZIONE_CIVILE",
     parteProcessuale: "CONVENUTO",
-    eventoBaseKey: "dataPrimaUdienza",
+    eventoBaseKey: "dataUdienzaComparizione",
     eventoLabel: "Costituzione convenuto",
     direzioneCalcolo: "-",
     numero: 70,
@@ -62,17 +62,17 @@ const CITAZIONE_CIVILE_RULES: EventRule[] = [
     isSospensioneFeriale: true,
     isPromemoriaFestivi: true,
     norma: "Art. 166 c.p.c.",
-    noteOperative: "Scadenza a ritroso rispetto alla prima udienza",
+    noteOperative: "Scadenza a ritroso rispetto alla data udienza di comparizione",
     ordine: 3,
   },
 
-  // ── COMUNE ──────────────────────────────────────────────────────
+  // ── COMUNE: Data prima udienza → Prima udienza + Memorie 171-ter ──
   {
     macroArea: "CIVILE_CONTENZIOSO",
     procedimento: "CITAZIONE_CIVILE",
     parteProcessuale: "COMUNE",
     eventoBaseKey: "dataPrimaUdienza",
-    eventoLabel: "Eventuale slittamento prima udienza",
+    eventoLabel: "Prima udienza",
     direzioneCalcolo: null,
     numero: null,
     unita: null,

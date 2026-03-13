@@ -92,6 +92,12 @@ export function MacroAreaPanel({
   const isNotificaCitazioneConDueDate =
     procedimento === "CITAZIONE_CIVILE" && eventoCode === "NOTIFICA_CITAZIONE";
 
+  /** Convenuto – Costituzione convenuto: due date (udienza comparizione per -70 gg, data prima udienza per Prima udienza e Memorie). */
+  const isCostituzioneConvenutoConDueDate =
+    procedimento === "CITAZIONE_CIVILE" &&
+    parteProcessuale === "CONVENUTO" &&
+    eventoCode === "COSTITUZIONE_CONVENUTO";
+
   /** Iscrizione a ruolo, slittamento e Memorie 1,2,3: basta Data prima udienza, che da sola calcola tutte le date. */
   const soloDataPrimaUdienza =
     procedimento === "CITAZIONE_CIVILE" &&
@@ -110,6 +116,7 @@ export function MacroAreaPanel({
     : null;
   const dataNotificaCitazione = toDateOrNull(inputs["dataPrimaNotificaCitazione"]);
   const dataPrimaUdienza = toDateOrNull(inputs["dataPrimaUdienza"]);
+  const dataUdienzaComparizione = toDateOrNull(inputs["dataUdienzaComparizione"]);
 
   return (
     <div className="space-y-4">
@@ -218,7 +225,37 @@ export function MacroAreaPanel({
           </p>
         </div>
       )}
-      {selectedEvento && !isNotificaCitazioneConDueDate && !soloDataPrimaUdienza && (
+      {selectedEvento && isCostituzioneConvenutoConDueDate && (
+        <div className="pt-2 border-t border-zinc-200 space-y-4">
+          <div>
+            <Label className="text-sm font-semibold text-zinc-700">
+              Data udienza di comparizione
+            </Label>
+            <DatePicker
+              value={dataUdienzaComparizione}
+              onChange={handleDateChange("dataUdienzaComparizione")}
+              placeholder="Inserisci data udienza di comparizione"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Usata per creare l&apos;evento Costituzione convenuto (70 giorni prima di questa data, art. 166 c.p.c.).
+            </p>
+          </div>
+          <div>
+            <Label className="text-sm font-semibold text-zinc-700">
+              Data prima udienza
+            </Label>
+            <DatePicker
+              value={dataPrimaUdienza}
+              onChange={handleDateChange("dataPrimaUdienza")}
+              placeholder="Inserisci data prima udienza"
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              Usata per l&apos;evento Prima udienza e per il calcolo delle Memorie 171 ter n.1, n.2, n.3.
+            </p>
+          </div>
+        </div>
+      )}
+      {selectedEvento && !isNotificaCitazioneConDueDate && !soloDataPrimaUdienza && !isCostituzioneConvenutoConDueDate && (
         <div className="pt-2 border-t border-zinc-200 space-y-4">
           <div>
             <Label className="text-sm font-semibold text-zinc-700">
