@@ -216,6 +216,8 @@ interface EventSummaryPanelProps {
   onDeleteSelectedSubEvent: () => void;
   saving: boolean;
   readOnly: boolean;
+  /** Se true, il pannello è mostrato nel bottom sheet mobile (niente hidden lg). */
+  embedInSheet?: boolean;
 }
 
 function EventSummaryPanel({
@@ -232,6 +234,7 @@ function EventSummaryPanel({
   onDeleteSelectedSubEvent,
   saving,
   readOnly,
+  embedInSheet = false,
 }: EventSummaryPanelProps) {
   const eventsToShow =
     mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents;
@@ -242,8 +245,14 @@ function EventSummaryPanel({
       : form.startAt;
 
   return (
-    <div className="hidden lg:flex lg:flex-col lg:w-80 lg:border-l lg:border-zinc-200 lg:pl-4 lg:ml-4 lg:pt-1">
-      <div className="rounded-lg bg-[var(--navy)] text-white flex flex-col h-full">
+    <div
+      className={
+        embedInSheet
+          ? "flex flex-col w-full min-h-0 flex-1"
+          : "hidden lg:flex lg:flex-col lg:w-80 lg:border-l lg:border-zinc-200 lg:pl-4 lg:ml-4 lg:pt-1"
+      }
+    >
+      <div className={`rounded-lg bg-[var(--navy)] text-white flex flex-col ${embedInSheet ? "min-h-0 flex-1" : "h-full"}`}>
         <div className="px-4 pt-3 pb-2 border-b border-white/10">
           <p className="text-xs font-semibold tracking-wide uppercase text-white/70">
             Eventi &amp; Scadenze
@@ -954,13 +963,13 @@ export function EventModal({
     >
       <DialogContent
         ref={setPopoverContainer}
-        className="max-w-4xl max-h-[90vh] flex flex-col bg-white event-modal-light overflow-y-auto sm:overflow-visible"
+        className="max-w-4xl max-h-[min(90vh,90dvh)] flex flex-col bg-white event-modal-light overflow-hidden p-4 sm:p-6"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         showClose={false}
       >
         <PopoverContainerContext.Provider value={popoverContainer}>
-        <DialogHeader className="relative pr-24">
+        <DialogHeader className="relative pr-24 shrink-0">
           <DialogTitle className="text-[var(--navy)]">
             {readOnly ? "VISUALIZZAZIONE PRATICA" : mode === "create" ? "NUOVA PRATICA" : "DETTAGLIO PRATICA"}
           </DialogTitle>
@@ -1003,8 +1012,8 @@ export function EventModal({
                 Prosecuzione
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="dettagli" className="flex-1 overflow-auto mt-2">
-            <div className="space-y-4">
+            <TabsContent value="dettagli" className="flex-1 min-h-0 overflow-auto mt-2 data-[state=inactive]:hidden">
+            <div className="space-y-4 pb-2">
               {/* 1. Titolo */}
               <div>
                 <Label>PRATICA</Label>
@@ -1415,7 +1424,7 @@ export function EventModal({
               </div>
             </div>
             </TabsContent>
-            <TabsContent value="prosecuzione" className="flex-1 overflow-auto mt-2">
+            <TabsContent value="prosecuzione" className="flex-1 min-h-0 overflow-auto mt-2 data-[state=inactive]:hidden">
               {mode === "edit" && eventId ? (
                 <ProsecuzionePanel
                   eventId={eventId}
@@ -1443,18 +1452,6 @@ export function EventModal({
                 </div>
               )}
             </TabsContent>
-
-            {/* Pulsante per aprire Eventi & Scadenze su mobile */}
-            <div className="mt-3 block lg:hidden">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-[var(--navy)] text-[var(--navy)] hover:bg-[var(--calendar-brown-pale)]"
-                onClick={() => setShowEventsPanel(true)}
-              >
-                Mostra Eventi &amp; Scadenze
-              </Button>
-            </div>
           </div>
 
           {/* Colonna Eventi & Scadenze desktop */}
@@ -1475,12 +1472,27 @@ export function EventModal({
           />
         </Tabs>
 
+        {/* Pulsante sempre visibile per aprire Eventi & Scadenze su mobile (sopra il footer) */}
+        <div className="shrink-0 pt-2 block lg:hidden">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border-[var(--navy)] text-[var(--navy)] hover:bg-[var(--calendar-brown-pale)]"
+            onClick={() => setShowEventsPanel(true)}
+          >
+            Mostra Eventi &amp; Scadenze
+          </Button>
+        </div>
+
         {/* Bottom sheet Eventi & Scadenze (mobile) */}
         {showEventsPanel && (
           <div className="fixed inset-0 z-40 flex flex-col justify-end bg-black/40 lg:hidden">
-            <div className="bg-white rounded-t-2xl shadow-xl w-full max-h-[80vh] flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-zinc-200">
-                <div className="flex flex-col">
+            <div
+              className="bg-white rounded-t-2xl shadow-xl w-full flex flex-col overflow-hidden max-h-[min(75vh,75dvh)]"
+              style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+            >
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-zinc-200 shrink-0">
+                <div className="flex flex-col min-w-0">
                   <span className="text-xs font-semibold uppercase text-zinc-500">
                     Eventi &amp; Scadenze
                   </span>
@@ -1490,37 +1502,37 @@ export function EventModal({
                 </div>
                 <button
                   type="button"
-                  className="text-sm text-zinc-500 hover:text-zinc-800"
+                  className="text-sm text-zinc-500 hover:text-zinc-800 shrink-0 ml-2"
                   onClick={() => setShowEventsPanel(false)}
                 >
                   Chiudi
                 </button>
               </div>
-              <div className="flex-1 min-h-0 p-3 overflow-y-auto">
-                <ScrollArea className="h-full">
-                  <EventSummaryPanel
-                    mode={mode}
-                    form={form}
-                    subEvents={subEvents}
-                    previewSubEvents={previewSubEvents}
-                    selectedSubEventId={selectedSubEventId}
-                    setSelectedSubEventId={setSelectedSubEventId}
-                    highlightSubEventId={highlightSubEventIdProp ?? selectedSubEventId}
-                    highlightRowRef={highlightRowRef}
-                    handleRemovePreviewSubEvent={handleRemovePreviewSubEvent}
-                    onRigeneraSubEvents={handleRigenera}
-                    onDeleteSelectedSubEvent={handleDeleteSelectedSubEvent}
-                    saving={saving}
-                    readOnly={readOnly}
-                  />
-                </ScrollArea>
+              <div className="flex-1 min-h-0 flex flex-col p-3 overflow-hidden">
+                <EventSummaryPanel
+                  mode={mode}
+                  form={form}
+                  subEvents={subEvents}
+                  previewSubEvents={previewSubEvents}
+                  selectedSubEventId={selectedSubEventId}
+                  setSelectedSubEventId={setSelectedSubEventId}
+                  highlightSubEventId={highlightSubEventIdProp ?? selectedSubEventId}
+                  highlightRowRef={highlightRowRef}
+                  handleRemovePreviewSubEvent={handleRemovePreviewSubEvent}
+                  onRigeneraSubEvents={handleRigenera}
+                  onDeleteSelectedSubEvent={handleDeleteSelectedSubEvent}
+                  saving={saving}
+                  readOnly={readOnly}
+                  embedInSheet
+                />
               </div>
             </div>
           </div>
         )}
+</think>
 
-        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-        <DialogFooter className="dialog-footer-light flex-row justify-between">
+        {error && <p className="text-sm text-red-600 mt-2 shrink-0">{error}</p>}
+        <DialogFooter className="dialog-footer-light flex-row justify-between shrink-0 pt-2 border-t border-zinc-200 bg-white">
           <div className="flex gap-2">
             {!readOnly && mode === "edit" && eventId && (
               <Button

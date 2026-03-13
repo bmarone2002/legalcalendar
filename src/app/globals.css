@@ -167,6 +167,10 @@ body {
 /* Pulsanti outline nella modale (es. Aggiungi tag): sempre bianco */
 .event-modal-light button[type="button"].bg-white { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
 .event-modal-light button[type="button"].bg-white:hover { background-color: var(--calendar-brown-pale) !important; }
+/* Modal eventi: safe-area su mobile (Safari/iPhone) per footer e contenuto */
+@media (max-width: 1023px) {
+  .event-modal-light { padding-bottom: env(safe-area-inset-bottom, 0); }
+}
 /* Menu a tendina (Select/Combobox): contenuto sempre bianco anche se aperto da modale (Portal) */
 [role="listbox"] { background-color: #fff !important; color: #171717 !important; border-color: #e4e4e7 !important; }
 [role="listbox"] [role="option"] { color: #171717 !important; }
