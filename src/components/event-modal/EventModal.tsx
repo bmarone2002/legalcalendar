@@ -1529,7 +1529,6 @@ export function EventModal({
             </div>
           </div>
         )}
-</think>
 
         {error && <p className="text-sm text-red-600 mt-2 shrink-0">{error}</p>}
         <DialogFooter className="dialog-footer-light flex-row justify-between shrink-0 pt-2 border-t border-zinc-200 bg-white">
