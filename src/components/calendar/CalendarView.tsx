@@ -449,11 +449,15 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     setModalState(null);
   }, []);
 
-  const handleModalChanged = useCallback(() => {
+  const handleModalChanged = useCallback((newEventId?: string) => {
     const api = calendarRef.current?.getApi();
-    if (!api) return;
-    // Dopo il salvataggio aggiorniamo sempre gli eventi, anche in Agenda
-    api.refetchEvents();
+    if (newEventId) {
+      // Dopo creazione: resta aperta la modale in modalità modifica (es. per aggiungere prosecuzione)
+      setModalState({ mode: "edit", eventId: newEventId });
+    }
+    if (api) {
+      api.refetchEvents();
+    }
   }, []);
 
   const handleModalDeleted = useCallback((deletedId: string) => {

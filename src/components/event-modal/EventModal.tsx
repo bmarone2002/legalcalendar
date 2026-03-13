@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,8 @@ interface EventModalProps {
   draftId?: string | null;
   initialDraft?: Partial<EventFormState>;
   onClose: () => void;
-  onChanged?: () => void;
+  /** Chiamato dopo salvataggio; se fornito newEventId (dopo creazione), il parent può passare in modalità modifica. */
+  onChanged?: (newEventId?: string) => void;
   onDeleted?: (id: string) => void;
   onDraft?: (draftId: string | null, form: EventFormState) => void;
   onDraftCleared?: (draftId: string | null) => void;
@@ -725,6 +727,7 @@ export function EventModal({
   const handleSave = async () => {
     setError(null);
     setSaving(true);
+    let savedNewEventId: string | undefined;
     try {
       // Per Atto Giuridico (e categorie simili) la data evento è quella del pannello "Dati per il calcolo", non i campi inizio/fine
       let startAt = form.startAt;
@@ -764,6 +767,7 @@ export function EventModal({
           setError(result.error);
           return;
         }
+        savedNewEventId = result.data?.id;
         if (result.data && form.generateSubEvents) {
           const usePreviewList = userHasClickedCalcolaRef.current;
           const regen = usePreviewList
@@ -827,8 +831,12 @@ export function EventModal({
       }
       // Dopo il salvataggio, una eventuale bozza collegata può essere rimossa
       onDraftCleared?.(draftId ?? null);
-      onChanged?.();
-      onClose();
+      // Non chiudere il popup: l'utente può aggiungere prosecuzione ecc. Chiude solo con la X.
+      if (savedNewEventId) {
+        onChanged?.(savedNewEventId);
+      } else {
+        onChanged?.();
+      }
     } finally {
       setSaving(false);
     }
@@ -949,15 +957,31 @@ export function EventModal({
         className="max-w-4xl max-h-[90vh] flex flex-col bg-white event-modal-light overflow-y-auto sm:overflow-visible"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
+        showClose={false}
       >
         <PopoverContainerContext.Provider value={popoverContainer}>
-        <DialogHeader>
+        <DialogHeader className="relative pr-24">
           <DialogTitle className="text-[var(--navy)]">
             {readOnly ? "VISUALIZZAZIONE PRATICA" : mode === "create" ? "NUOVA PRATICA" : "DETTAGLIO PRATICA"}
           </DialogTitle>
           {mode === "create" && draftId && (
             <p className="text-xs font-semibold text-red-600 mt-1">BOZZA (non ancora salvato)</p>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 hover:text-zinc-900"
+            onClick={() => {
+              if (!readOnly && mode === "create" && onDraft) {
+                onDraft(draftId ?? null, form);
+              }
+              onClose();
+            }}
+          >
+            <X className="h-4 w-4" aria-hidden />
+            Chiudi
+          </Button>
         </DialogHeader>
         <Tabs
           value={activeTab}
