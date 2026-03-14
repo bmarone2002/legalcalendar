@@ -1,0 +1,128 @@
+// Legal Calendar - Prisma schema
+// PostgreSQL su Railway (database gestito)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events       Event[]
+  sharedByMe   CalendarShare[] @relation("SharedByMe")
+  sharedWithMe CalendarShare[] @relation("SharedWithMe")
+}
+
+model Event {
+  id                String   @id @default(cuid())
+  title             String
+  description       String?
+  startAt           DateTime
+  endAt             DateTime
+  type              String   @default("altro")
+  tags              String   @default("[]")
+  caseId            String?
+  notes             String?
+  generateSubEvents Boolean  @default(false)
+  ruleTemplateId    String?
+  ruleParams        String?
+  macroType         String? // "ATTO_GIURIDICO"
+  macroArea         String? // CIVILE_CONTENZIOSO | TRIBUTARIO | ...
+  procedimento      String? // CITAZIONE_CIVILE | RICORSO_TRIBUTARIO | ...
+  parteProcessuale  String? // ATTORE | CONVENUTO
+  eventoCode        String? // PRIMA_UDIENZA | NOTIFICA_CITAZIONE | ...
+  actionType        String? // Legacy: CITAZIONE | RICORSO_OPPOSIZIONE | ...
+  actionMode        String? // Legacy: COSTITUZIONE | DA_NOTIFICARE
+  inputs            String? // JSON: date e selezioni per regole
+  color             String? // hex colore tag (evento + sottoeventi)
+  status            String   @default("pending") // pending | done
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Multi-tenant: fase 1 per utente, fase 2 per organizzazione
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId  String? // Preparazione fase 2: tenant = organization
+
+  subEvents SubEvent[]
+  rinvii    Rinvio[]
+
+  @@index([startAt])
+  @@index([endAt])
+  @@index([userId, startAt])
+  @@index([orgId, startAt])
+}
+
+model SubEvent {
+  id            String    @id @default(cuid())
+  parentEventId String
+  parentEvent   Event     @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
+  title         String
+  kind          String    // termine | promemoria | attivita
+  dueAt         DateTime?
+  status        String    @default("pending") // pending | done | cancelled
+  priority      Int       @default(0)
+  ruleId        String?
+  ruleParams    String?   // JSON
+  explanation   String?
+  createdBy     String    @default("automatico") // manuale | automatico
+  locked        Boolean   @default(false)
+  isPlaceholder Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([parentEventId])
+  @@index([dueAt])
+}
+
+model Rinvio {
+  id                String   @id @default(cuid())
+  parentEventId     String
+  parentEvent       Event    @relation(fields: [parentEventId], references: [id], onDelete: Cascade)
+  numero            Int
+  dataUdienza       DateTime
+  tipoUdienza       String   // valore dalla tabella predefinita o "ALTRO"
+  tipoUdienzaCustom String?  // se tipoUdienza = "ALTRO", testo libero
+  note              String?
+  adempimenti       String   @default("[]") // JSON: array di adempimenti
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([parentEventId])
+  @@index([dataUdienza])
+}
+
+model Setting {
+  id    String @id
+  value String // JSON
+}
+
+enum SharePermission {
+  VIEW_ONLY
+  FULL
+}
+
+model CalendarShare {
+  id           String          @id @default(cuid())
+  ownerId      String
+  sharedWithId String
+  permission   SharePermission @default(VIEW_ONLY)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  owner      User @relation("SharedByMe", fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWith User @relation("SharedWithMe", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, sharedWithId])
+  @@index([sharedWithId])
+}

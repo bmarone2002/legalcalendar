@@ -1,0 +1,123 @@
+# Agenda Legale
+
+Agenda personale per avvocato con interfaccia stile Outlook: viste Mese/Settimana, drag & drop eventi, modale evento estensibile e rule engine per sottoeventi automatici.
+
+> Nota: ultima versione aggiornata con auto-posizionamento eventi da 1h, miglioramenti UI e fix deploy Railway (Mar 2026).
+
+## Stack
+
+- **Next.js 14+** (App Router), **React**, **TypeScript**
+- **Prisma** + **PostgreSQL**
+- **FullCalendar** (viste month/week, drag & drop)
+- **shadcn/ui** (Dialog, Tabs, Select, Input, ecc.)
+
+## Requisiti
+
+- Node.js 18+
+- npm
+
+## Installazione e avvio
+
+1. Copia `.env.example` in `.env` e imposta `DATABASE_URL` con la URL del tuo PostgreSQL (locale o Railway).
+2. Dalla cartella `legal-calendar`:
+
+```bash
+npm install
+npx prisma generate
+npx prisma migrate dev   # crea le tabelle sul DB
+npm run dev
+```
+
+Apri [http://localhost:3000](http://localhost:3000).
+
+### Configurazione Railway
+
+- **DATABASE_URL**: nella dashboard Railway del servizio App (Legal Calendar) vai in **Variables** e aggiungi `DATABASE_URL` copiando la connection string dal servizio PostgreSQL (sezione **Variables** o **Connect** del database).
+- **Clerk**:
+  - Crea una nuova applicazione in Clerk per `legal-calendar`.
+  - Copia `Publishable key` in `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` nelle **Variables** dell’app Railway.
+  - Copia `Secret key` in `CLERK_SECRET_KEY`.
+  - Imposta le URL di redirect in Clerk (Sign-in/Sign-up) a `https://<railway-app-url>/sign-in` e `https://<railway-app-url>/sign-up`.
+
+### Seed (opzionale)
+
+Per avere un evento di esempio con sottoeventi:
+
+```bash
+npx tsx prisma/seed.ts
+```
+
+## Istruzioni di test manuale
+
+1. **Vista calendario**
+   - Passa tra **Mese** e **Settimana** con i pulsanti in alto a destra.
+   - Usa **prev/next** per cambiare periodo e **Oggi** per tornare alla data corrente.
+   - Verifica che gli eventi siano visibili e colorati per tipo (udienza, notifica, scadenza, ecc.).
+
+2. **Crea evento**
+   - Clicca su uno slot (giorno/ora) nel calendario.
+   - Si apre la modale "Nuovo evento": compila Titolo, Tipo, date inizio/fine, eventuali tag e note.
+   - Clicca **Salva**: l’evento compare in calendario.
+
+3. **Crea evento con sottoeventi**
+   - Come sopra; attiva il toggle **"Genera sottoeventi automaticamente"** e scegli un template (es. "Promemoria standard").
+   - Salva: nella tab **"Regole & Sottoeventi"** vedi la lista dei sottoeventi e la colonna **"Perché questa data?"** (audit).
+
+4. **Modifica evento**
+   - Clicca su un evento nel calendario.
+   - Si apre la modale in modifica: cambia titolo, date, tipo, ecc. e **Salva**.
+   - Verifica che il calendario si aggiorni.
+
+5. **Drag & drop**
+   - Trascina un evento su un altro giorno/ora.
+   - Verifica che la nuova data venga salvata e che, se l’evento ha sottoeventi automatici, questi vengano rigenerati (solo quelli non bloccati).
+
+6. **Rigenera sottoeventi**
+   - Apri un evento che ha sottoeventi, vai nella tab **"Regole & Sottoeventi"** e clicca **"Rigenera sottoeventi"**.
+   - Verifica che la lista si aggiorni in base alla data dell’evento (i sottoeventi con **locked** non vengono sovrascritti).
+
+### Test manuali ATTO GIURIDICO
+
+7. **Citazione – Costituzione**: Template "Atto giuridico" → Citazione, Costituzione. Data notifica citazione → verifica "Costituzione attore" (notifica + 10 gg), Calcolo con "art. 165 c.p.c.".
+8. **Citazione – Da notificare**: Data udienza comparizione → "Ultimo giorno per notificare citazione" = udienza − 120 (o 150 se estero).
+9. **Ricorso opposizione**: Da notificare → +40 gg; Costituzione → +10 gg.
+10. **Appello civile**: Breve = notifica sentenza + 30; Lungo = pubblicazione + 6 mesi.
+11. **Ricorso Cassazione – Costituzione**: Ultima notifica ricorso + 20 gg (art. 369 c.p.c.).
+
+Unit test: `npm run test:calcoli`.
+
+## Script utili
+
+- `npm run dev` – avvio in sviluppo
+- `npm run build` – build di produzione
+- `npm run start` – avvio dopo build
+- `npm run db:migrate` – applica migrazioni Prisma
+- `npm run db:seed` – esegue il seed
+
+## Struttura progetto
+
+- `src/app/` – layout e pagina principale
+- `src/components/calendar/` – vista FullCalendar e toolbar
+- `src/components/event-modal/` – modale create/edit a tab
+- `src/components/ui/` – componenti shadcn (button, dialog, tabs, …)
+- `src/lib/actions/` – Server Actions (CRUD eventi e sottoeventi, preview)
+- `src/lib/rules/` – rule engine e plugin (reminder, generic-deadline, checklist, **atto-giuridico**)
+- `src/types/atto-giuridico.ts` – tipi e enum per ATTO GIURIDICO (actionType, actionMode, inputs)
+- `src/lib/settings.ts` – impostazioni (promemoria, defaultTimeForDeadlines, termini 120/150, ecc.)
+- `prisma/` – schema e migrazioni PostgreSQL
+
+## Multi-tenant e Fase 2 (Organizations)
+
+- **Fase 1 – 1 utente = 1 tenant**
+  - Ogni utente Clerk viene sincronizzato nella tabella `User` (campo `clerkUserId`) alla prima richiesta autenticata (`getOrCreateDbUser`).
+  - Gli eventi (`Event`) hanno il campo `userId` obbligatorio e tutte le query/mutazioni filtrano sempre per `userId`, quindi ogni utente vede solo il proprio calendario.
+- **Preparazione Fase 2 – Organizations**
+  - Il modello `Event` espone anche `orgId` opzionale, pensato per future organizzazioni (studio legale) come tenant principale.
+  - In Fase 2 si possono aggiungere i modelli Prisma `Organization` (mirror di Clerk Organizations, con `clerkOrganizationId`) e `Membership` (user-org-role).
+  - Lato Clerk si userà l’`organizationId` attiva (da `auth()`/`getAuth()`) per risolvere il tenant: se presente, le query useranno `orgId`; altrimenti continueranno a usare `userId` (fallback fase 1).
+
+## Estendibilità
+
+- **Modale**: tab "Promemoria" e "Avanzate" sono placeholder per future periferiche/controlli.
+- **Regole**: nuove regole si registrano in `lib/rules/registry.ts` e si aggiungono al template in `types` (RULE_TEMPLATES).
+- **Settings**: `lib/settings.ts` e tabella `Setting` consentono di aggiungere gestione weekend/festivi e sospensione feriale.

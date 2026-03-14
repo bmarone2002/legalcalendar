@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Bilancia della giustizia - favicon -->
+  <g fill="none" stroke="#D4AF37" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 28V12M16 12L6 8M16 12l10-4M6 8v8l4 4 6-6V12M26 8v8l-4 4-6-6V12" />
+    <circle cx="10" cy="20" r="2.5" fill="#D4AF37" />
+    <circle cx="22" cy="20" r="2.5" fill="#D4AF37" />
+  </g>
+</svg>
