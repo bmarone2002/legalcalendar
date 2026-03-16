@@ -768,12 +768,205 @@ const { eventRules: OPPOSIZIONE_DECRETO_INGIUNTIVO_RULES } = fromExcelJson(
   OPPOSIZIONE_DECRETO_INGIUNTIVO_ROWS,
 );
 
+// ── Appello civile – post Riforma Cartabia ───────────────────────────────────
+
+const APPELLO_CIVILE_RULES: EventRule[] = [
+  // ATTORE / APPELLANTE
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "ATTORE",
+    eventoBaseKey: null,
+    eventoLabel: "Notifica atto di appello",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Art. 342 c.p.c.",
+    noteOperative:
+      "L'appello si propone con citazione. Nel template questa voce è tenuta come evento-base manuale, da cui decorre poi la costituzione dell'appellante.",
+    ordine: 1,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "ATTORE",
+    eventoBaseKey: "dataNotificaAppelloCivile",
+    eventoLabel: "Iscrizione a ruolo/Costituzione attore",
+    direzioneCalcolo: "+",
+    numero: 10,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 347 c.p.c. in relazione all'art. 165 c.p.c.",
+    noteOperative:
+      "L'appellante si costituisce in giudizio entro 10 giorni dalla prima notificazione dell'atto di appello.",
+    ordine: 2,
+  },
+
+  // CONVENUTO / APPELLATO
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "CONVENUTO",
+    eventoBaseKey: "dataUdienzaAppelloCivile",
+    eventoLabel: "Costituzione convenuto",
+    direzioneCalcolo: "-",
+    numero: 20,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 347 c.p.c. in relazione agli artt. 166 e 343 c.p.c.",
+    noteOperative:
+      "L'appellato si costituisce almeno 20 giorni prima dell'udienza; nella comparsa di risposta può proporre appello incidentale.",
+    ordine: 3,
+  },
+
+  // COMUNE
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: "dataUdienzaAppelloCivile",
+    eventoLabel: "Prima udienza",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Artt. 342 e 350 c.p.c.",
+    noteOperative: "Data àncora del procedimento di appello.",
+    ordine: 4,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: null,
+    eventoLabel: "Udienza istruttoria",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Artt. 350 e 356 c.p.c.",
+    noteOperative:
+      "Eventuale udienza istruttoria in appello, da gestire manualmente.",
+    ordine: 5,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: "dataUdienzaConclusioniAppelloCivile",
+    eventoLabel: "Note conclusionali (60 gg prima udienza conclusioni)",
+    direzioneCalcolo: "-",
+    numero: 60,
+    unita: "giorni",
+    tipoTermine: "da_parametrizzare",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 352 c.p.c.",
+    noteOperative:
+      "Se il giudice assegna i termini scritti, il termine per le note/conclusionali è non superiore a 60 giorni prima dell'udienza. In Excel è indicato il massimo legale come base parametrica.",
+    ordine: 6,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: "dataUdienzaConclusioniAppelloCivile",
+    eventoLabel: "Note conclusionali (30 gg prima udienza conclusioni)",
+    direzioneCalcolo: "-",
+    numero: 30,
+    unita: "giorni",
+    tipoTermine: "da_parametrizzare",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 352 c.p.c.",
+    noteOperative:
+      "Eventuale secondo termine per note/conclusionali fino a 30 giorni prima dell'udienza. In Excel è indicato il massimo legale come base parametrica.",
+    ordine: 7,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: "dataUdienzaConclusioniAppelloCivile",
+    eventoLabel: "Memoria di replica (15 gg prima udienza conclusioni)",
+    direzioneCalcolo: "-",
+    numero: 15,
+    unita: "giorni",
+    tipoTermine: "da_parametrizzare",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 352 c.p.c.",
+    noteOperative:
+      "Termine per la memoria di replica fino a 15 giorni prima dell'udienza. In Excel è indicato il massimo legale come base parametrica.",
+    ordine: 8,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: null,
+    eventoLabel:
+      "Sentenza di appello (per calcolare termini ricorso per cassazione)",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Artt. 325, 327 e 360 c.p.c.",
+    noteOperative:
+      "Data base per il termine lungo del ricorso per cassazione: in generale 6 mesi dalla pubblicazione se la sentenza non è notificata.",
+    ordine: 9,
+  },
+  {
+    macroArea: "CIVILE_CONTENZIOSO",
+    procedimento: "APPELLO_CIVILE",
+    parteProcessuale: "COMUNE",
+    eventoBaseKey: null,
+    eventoLabel:
+      "Notifica sentenza di appello (per calcolare termini ricorso per cassazione)",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Artt. 325 e 326 c.p.c.",
+    noteOperative:
+      "Data base per il termine breve del ricorso per cassazione: in generale 60 giorni dalla notificazione della sentenza di appello.",
+    ordine: 10,
+  },
+];
+
 registerEventRules(CITAZIONE_CIVILE_RULES);
 registerEventRules(RICORSO_RITO_SEMPLIFICATO_RULES);
 registerEventRules(OPPOSIZIONE_DECRETO_INGIUNTIVO_RULES);
+registerEventRules(APPELLO_CIVILE_RULES);
 
 export {
   CITAZIONE_CIVILE_RULES,
   RICORSO_RITO_SEMPLIFICATO_RULES,
   OPPOSIZIONE_DECRETO_INGIUNTIVO_RULES,
+  APPELLO_CIVILE_RULES,
 };

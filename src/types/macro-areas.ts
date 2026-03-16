@@ -282,6 +282,83 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     { code: "SENTENZA_OPPOSIZIONE", label: "Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataPubblicazioneSentenzaOpposizione", parteProcessuale: "COMUNE", ordine: 12 },
     { code: "NOTIFICA_SENTENZA_OPPOSIZIONE", label: "Notifica Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataNotificaSentenzaOpposizione", parteProcessuale: "COMUNE", ordine: 13 },
   ],
+  APPELLO_CIVILE: [
+    // ATTORE / APPELLANTE
+    {
+      code: "NOTIFICA_APPELLO_CIVILE",
+      label: "Notifica atto di appello",
+      inputKey: "dataNotificaAppelloCivile",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+    {
+      code: "ISCRIZIONE_RUOLO_APPELLO_CIVILE",
+      label: "Iscrizione a ruolo/Costituzione attore",
+      inputKey: "dataNotificaAppelloCivile",
+      parteProcessuale: "ATTORE",
+      ordine: 2,
+    },
+
+    // CONVENUTO / APPELLATO
+    {
+      code: "COSTITUZIONE_APPELLATO_CIVILE",
+      label: "Costituzione appellato",
+      inputKey: "dataUdienzaAppelloCivile",
+      parteProcessuale: "CONVENUTO",
+      ordine: 3,
+    },
+
+    // COMUNE (eventi condivisi tra le parti)
+    {
+      code: "PRIMA_UDIENZA_APPELLO_CIVILE",
+      label: "Prima udienza",
+      inputKey: "dataUdienzaAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 4,
+    },
+    {
+      code: "UDIENZA_ISTRUTTORIA_APPELLO_CIVILE",
+      label: "Udienza istruttoria",
+      inputKey: "dataUdienzaIstruttoriaAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 5,
+    },
+    {
+      code: "NOTE_CONCLUSIONI_APPELLO_CIVILE_60",
+      label: "Note conclusionali (60 gg prima udienza conclusioni)",
+      inputKey: "dataUdienzaConclusioniAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 6,
+    },
+    {
+      code: "NOTE_CONCLUSIONI_APPELLO_CIVILE_30",
+      label: "Note conclusionali (30 gg prima udienza conclusioni)",
+      inputKey: "dataUdienzaConclusioniAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 7,
+    },
+    {
+      code: "MEMORIA_REPLICA_APPELLO_CIVILE_15",
+      label: "Memoria di replica (15 gg prima udienza conclusioni)",
+      inputKey: "dataUdienzaConclusioniAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
+    },
+    {
+      code: "SENTENZA_APPELLO_CIVILE",
+      label: "Sentenza di appello (per calcolare termini ricorso Cassazione)",
+      inputKey: "dataPubblicazioneSentenzaAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 9,
+    },
+    {
+      code: "NOTIFICA_SENTENZA_APPELLO_CIVILE",
+      label: "Notifica sentenza di appello (per calcolare termini ricorso Cassazione)",
+      inputKey: "dataNotificaSentenzaAppelloCivile",
+      parteProcessuale: "COMUNE",
+      ordine: 10,
+    },
+  ],
 };
 
 /** Ordine minimo per eventi in Prosecuzione (solo fasi successive alle memorie 171-ter n.1/2/3). */
