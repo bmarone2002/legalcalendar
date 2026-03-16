@@ -352,6 +352,90 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 9,
     },
   ],
+  APPELLO_TRIBUTARIO: [
+    // APPELLANTE
+    {
+      code: "NOTIFICA_APPELLO_TRIB_BREVE",
+      label: "Notifica ricorso/appello (termine breve)",
+      inputKey: "dataNotificaSentenzaPrimoTrib",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+    {
+      code: "NOTIFICA_APPELLO_TRIB_LUNGO",
+      label: "Notifica ricorso/appello (termine lungo 6 mesi)",
+      inputKey: "dataDepositoSentenzaPrimoTrib",
+      parteProcessuale: "ATTORE",
+      ordine: 2,
+    },
+    {
+      code: "DEPOSITO_APPELLO_TRIBUTARIO",
+      label: "Deposito ricorso/appello",
+      inputKey: "dataProposizioneAppelloTrib",
+      parteProcessuale: "ATTORE",
+      ordine: 3,
+    },
+
+    // ENTE RESISTENTE / APPELLATO
+    {
+      code: "COSTITUZIONE_ENTE_APPELLO_TRIB",
+      label: "Costituzione ente resistente",
+      inputKey: "dataNotificaAppelloTrib",
+      parteProcessuale: "CONVENUTO",
+      ordine: 4,
+    },
+    {
+      code: "COSTITUZIONE_APPELLATO_TRIB",
+      label: "Costituzione appellato",
+      inputKey: "dataNotificaAppelloTrib",
+      parteProcessuale: "CONVENUTO",
+      ordine: 5,
+    },
+
+    // COMUNE (eventi condivisi)
+    {
+      code: "UDIENZA_SOSPENSIVA_APPELLO_TRIB",
+      label: "Udienza sospensiva",
+      inputKey: "dataIstanzaCautelareAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 6,
+    },
+    {
+      code: "UDIENZA_TRATTAZIONE_APPELLO_TRIB",
+      label: "Udienza trattazione",
+      inputKey: "dataUdienzaTrattazioneAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 7,
+    },
+    {
+      code: "DEPOSITO_MEMORIE_20_APPELLO_TRIB",
+      label: "Deposito memorie 20 gg prima trattazione",
+      inputKey: "dataUdienzaTrattazioneAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
+    },
+    {
+      code: "DEPOSITO_MEMORIE_10_APPELLO_TRIB",
+      label: "Deposito memorie 10 gg prima trattazione",
+      inputKey: "dataUdienzaTrattazioneAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 9,
+    },
+    {
+      code: "SENTENZA_APPELLO_TRIB",
+      label: "Sentenza (per calcolare termini Ricorso Cassazione)",
+      inputKey: "dataPubblicazioneSentenzaAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 10,
+    },
+    {
+      code: "NOTIFICA_SENTENZA_APPELLO_TRIB",
+      label: "Notifica sentenza (per calcolare termini Ricorso Cassazione)",
+      inputKey: "dataNotificaSentenzaAppelloTrib",
+      parteProcessuale: "COMUNE",
+      ordine: 11,
+    },
+  ],
   APPELLO_CIVILE: [
     // ATTORE / APPELLANTE
     {

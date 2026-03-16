@@ -183,7 +183,228 @@ const { eventRules: RICORSO_TRIBUTARIO_RULES } = fromExcelJson(
   RICORSO_TRIBUTARIO_ROWS,
 );
 
-registerEventRules(RICORSO_TRIBUTARIO_RULES);
+// ── Appello tributario – assetto vigente post riforma ────────────────────────
 
-export { RICORSO_TRIBUTARIO_RULES };
+const APPELLO_TRIBUTARIO_ROWS: ExcelRuleRow[] = [
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "ATTORE", // Appellante
+    eventoLabel: "Notifica ricorso/appello (termine breve)",
+    eventoCode: "NOTIFICA_APPELLO_TRIB_BREVE",
+    eventoBaseKey: "dataNotificaSentenzaPrimoTrib",
+    direzioneCalcolo: "+",
+    numero: 60,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Artt. 51 e 53 D.Lgs. 546/1992",
+    noteOperative:
+      "L'appello va proposto entro 60 giorni dalla notificazione della sentenza di primo grado.",
+    ordine: 1,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "ATTORE", // Appellante
+    eventoLabel: "Notifica ricorso/appello (termine lungo 6 mesi)",
+    eventoCode: "NOTIFICA_APPELLO_TRIB_LUNGO",
+    eventoBaseKey: "dataDepositoSentenzaPrimoTrib",
+    direzioneCalcolo: "+",
+    numero: 6,
+    unita: "mesi",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Artt. 38 e 53 D.Lgs. 546/1992 e art. 327 c.p.c.",
+    noteOperative:
+      "L'appello va proposto entro il termine lungo di 6 mesi dal giorno di pubblicazione della sentenza di primo grado.",
+    ordine: 2,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "ATTORE", // Appellante
+    eventoLabel: "Deposito ricorso/appello",
+    eventoCode: "DEPOSITO_APPELLO_TRIBUTARIO",
+    eventoBaseKey: "dataProposizioneAppelloTrib",
+    direzioneCalcolo: "+",
+    numero: 30,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 53 D.Lgs. 546/1992 in relazione all'art. 22",
+    noteOperative:
+      "L'appellante si costituisce depositando l'appello entro 30 giorni dalla proposizione/notifica.",
+    ordine: 3,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "CONVENUTO", // Ente resistente
+    eventoLabel: "Costituzione ente",
+    eventoCode: "COSTITUZIONE_ENTE_APPELLO_TRIB",
+    eventoBaseKey: "dataNotificaAppelloTrib",
+    direzioneCalcolo: "+",
+    numero: 60,
+    unita: "giorni",
+    tipoTermine: "ordinatorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 54 D.Lgs. 546/1992 in relazione all'art. 23",
+    noteOperative:
+      "Se l'ente è parte appellata/resistente, si costituisce con controdeduzioni entro 60 giorni dalla notifica dell'appello.",
+    ordine: 4,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "CONVENUTO", // Appellato (altra parte privata)
+    eventoLabel: "Costituzione appellato",
+    eventoCode: "COSTITUZIONE_APPELLATO_TRIB",
+    eventoBaseKey: "dataNotificaAppelloTrib",
+    direzioneCalcolo: "+",
+    numero: 60,
+    unita: "giorni",
+    tipoTermine: "ordinatorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 54 D.Lgs. 546/1992 in relazione all'art. 23",
+    noteOperative:
+      "Costituzione della parte appellata entro 60 giorni dalla notifica dell'appello.",
+    ordine: 5,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel: "Udienza sospensiva",
+    eventoCode: "UDIENZA_SOSPENSIVA_APPELLO_TRIB",
+    eventoBaseKey: "dataIstanzaCautelareAppelloTrib",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Art. 52 D.Lgs. 546/1992",
+    noteOperative:
+      "Udienza cautelare da gestire come evento manuale, perché dipende dall'istanza di sospensione e dalla fissazione della Corte di giustizia tributaria di secondo grado.",
+    ordine: 6,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel: "Udienza trattazione",
+    eventoCode: "UDIENZA_TRATTAZIONE_APPELLO_TRIB",
+    eventoBaseKey: "dataUdienzaTrattazioneAppelloTrib",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: false,
+    isPromemoriaFestivi: false,
+    norma: "Artt. 31, 32, 61 D.Lgs. 546/1992",
+    noteOperative:
+      "Data ancora del procedimento di appello tributario: da questa si calcolano le memorie a ritroso.",
+    ordine: 7,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel: "Deposito memorie 20 gg",
+    eventoCode: "DEPOSITO_MEMORIE_20_APPELLO_TRIB",
+    eventoBaseKey: "dataUdienzaTrattazioneAppelloTrib",
+    direzioneCalcolo: "-",
+    numero: 20,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 32 D.Lgs. 546/1992 richiamato dall'art. 61",
+    noteOperative:
+      "Deposito documenti fino a 20 giorni liberi prima della data di trattazione.",
+    ordine: 8,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel: "Deposito memorie 10 gg",
+    eventoCode: "DEPOSITO_MEMORIE_10_APPELLO_TRIB",
+    eventoBaseKey: "dataUdienzaTrattazioneAppelloTrib",
+    direzioneCalcolo: "-",
+    numero: 10,
+    unita: "giorni",
+    tipoTermine: "perentorio",
+    isTermine: true,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 32 D.Lgs. 546/1992 richiamato dall'art. 61",
+    noteOperative:
+      "Deposito memorie illustrative fino a 10 giorni liberi prima della data di trattazione.",
+    ordine: 9,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel:
+      "Sentenza (per calcolare termini appello/Ric Cassazione)",
+    eventoCode: "SENTENZA_APPELLO_TRIB",
+    eventoBaseKey: "dataPubblicazioneSentenzaAppelloTrib",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Artt. 51, 62 D.Lgs. 546/1992",
+    noteOperative:
+      "Data base per il termine lungo del ricorso per cassazione. Va inserita manualmente.",
+    ordine: 10,
+  },
+  {
+    macroArea: "TRIBUTARIO",
+    procedimento: "APPELLO_TRIBUTARIO",
+    parteProcessuale: "COMUNE",
+    eventoLabel:
+      "Notifica Sentenza (per calcolare termini appello/Ric Cassazione)",
+    eventoCode: "NOTIFICA_SENTENZA_APPELLO_TRIB",
+    eventoBaseKey: "dataNotificaSentenzaAppelloTrib",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Artt. 51, 62 D.Lgs. 546/1992",
+    noteOperative:
+      "Data base per il termine breve del ricorso per cassazione: dalla notifica decorrono i termini per impugnare in Cassazione.",
+    ordine: 11,
+  },
+];
+
+const { eventRules: APPELLO_TRIBUTARIO_RULES } = fromExcelJson(
+  APPELLO_TRIBUTARIO_ROWS,
+);
+
+registerEventRules(RICORSO_TRIBUTARIO_RULES);
+registerEventRules(APPELLO_TRIBUTARIO_RULES);
+
+export { RICORSO_TRIBUTARIO_RULES, APPELLO_TRIBUTARIO_RULES };
 
