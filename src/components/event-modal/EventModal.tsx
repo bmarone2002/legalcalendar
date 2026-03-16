@@ -236,13 +236,29 @@ function EventSummaryPanel({
   readOnly,
   embedInSheet = false,
 }: EventSummaryPanelProps) {
-  const eventsToShow =
+  const baseEventsToShow =
     mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents;
 
   const mainDate =
     usesCalculationDateOnly(form.macroType) && getPrimaryDateFromInputs(form.inputs)
       ? getPrimaryDateFromInputs(form.inputs)
       : form.startAt;
+
+  const eventsToShow =
+    form.macroType === null
+      ? [
+          {
+            id: "main-event",
+            title: form.title?.trim() || "Pratica principale",
+            dueAt: mainDate,
+            explanation: "",
+            ruleId: "main",
+            kind: "main",
+            __isMainEvent: true,
+          } as unknown as SubEvent,
+          ...baseEventsToShow,
+        ]
+      : baseEventsToShow;
 
   return (
     <div
@@ -280,6 +296,7 @@ function EventSummaryPanel({
                 {eventsToShow.map((s, idx) => {
                   const isSavedSub = mode === "edit" && subEvents.length > 0;
                   const currentId = (s as { id?: string }).id ?? `sub-${idx}`;
+                  const isMainEvent = (s as { __isMainEvent?: boolean }).__isMainEvent === true;
                   const isSelected = isSavedSub && selectedSubEventId === currentId;
                   const isHighlightRow = currentId === highlightSubEventId;
                   const isPlaceholder =
@@ -296,7 +313,7 @@ function EventSummaryPanel({
                           : "border-white/10 hover:bg-white/10"
                       }`}
                       onClick={() => {
-                        if (isSavedSub) {
+                        if (isSavedSub && !isMainEvent) {
                           setSelectedSubEventId(isSelected ? null : currentId);
                         }
                       }}
@@ -319,7 +336,7 @@ function EventSummaryPanel({
                             </p>
                           )}
                         </div>
-                        {!isSavedSub && (
+                        {!isSavedSub && !isMainEvent && (
                           <button
                             type="button"
                             className="ml-1 text-[13px] text-red-200 hover:text-red-100"
@@ -1053,7 +1070,7 @@ export function EventModal({
                     <SelectValue placeholder="Seleziona tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="generico">Pratiche in Corso</SelectItem>
+                    <SelectItem value="generico">Pratica generica</SelectItem>
                     <SelectItem value="ATTO_GIURIDICO">NUOVO ATTO GIURIDICO</SelectItem>
                   </SelectContent>
                 </Select>
