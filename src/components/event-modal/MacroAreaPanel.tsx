@@ -69,16 +69,28 @@ function getEffectivePartiLabels(
 ) {
   if (!macroArea) return null;
   const base = PARTI_LABELS[macroArea];
-  // Override etichette per il Tributario in base al procedimento
-  if (macroArea === "TRIBUTARIO" && procedimento) {
-    if (procedimento === "RICORSO_TRIBUTARIO") {
-      return {
-        ...base,
-        ATTORE: "Ricorrente",
-        CONVENUTO: "Resistente",
-      };
+  // Override etichette per specifici procedimenti che hanno nomenclature diverse
+  if (procedimento) {
+    // Tributario: Ricorso = Ricorrente/Resistente, Appello = Appellante/Appellato
+    if (macroArea === "TRIBUTARIO") {
+      if (procedimento === "RICORSO_TRIBUTARIO") {
+        return {
+          ...base,
+          ATTORE: "Ricorrente",
+          CONVENUTO: "Resistente",
+        };
+      }
+      if (procedimento === "APPELLO_TRIBUTARIO") {
+        return {
+          ...base,
+          ATTORE: "Appellante",
+          CONVENUTO: "Appellato",
+        };
+      }
     }
-    if (procedimento === "APPELLO_TRIBUTARIO") {
+
+    // Civile – contenzioso ordinario: Appello civile = Appellante/Appellato
+    if (macroArea === "CIVILE_CONTENZIOSO" && procedimento === "APPELLO_CIVILE") {
       return {
         ...base,
         ATTORE: "Appellante",
