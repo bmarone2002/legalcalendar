@@ -472,7 +472,68 @@ export const attoGiuridicoRule: RuleDefinition = {
         out.push(...addReminders("Iscrizione a ruolo appellante", iscrizione.dueAt, settings, reminderOffsets));
       }
 
-      // Memorie libere
+      // 2) Eventuali termini scritti ex art. 352 c.p.c. (note conclusionali / replica)
+      const dataUdienzaConclusioni = inputs.dataUdienzaConclusioni as string | undefined;
+      if (dataUdienzaConclusioni) {
+        const udienzaConclusioni = new Date(dataUdienzaConclusioni + "T12:00:00");
+        if (!isNaN(udienzaConclusioni.getTime())) {
+          // a) Note conclusionali (fino a 60 gg prima)
+          const note60 = makeTermine(
+            "Note conclusionali (60 gg prima udienza conclusioni)",
+            udienzaConclusioni,
+            -60,
+            settings,
+            "Termine per le note conclusionali: fino a 60 giorni prima dell'udienza di precisazione/conclusioni in appello (art. 352 c.p.c.)"
+          );
+          out.push(note60);
+          out.push(
+            ...addReminders(
+              "Note conclusionali (60 gg)",
+              note60.dueAt,
+              settings,
+              reminderOffsets
+            )
+          );
+
+          // b) Eventuale secondo termine per note (fino a 30 gg prima)
+          const note30 = makeTermine(
+            "Note conclusionali (30 gg prima udienza conclusioni)",
+            udienzaConclusioni,
+            -30,
+            settings,
+            "Eventuale secondo termine per note conclusionali: fino a 30 giorni prima dell'udienza di precisazione/conclusioni in appello (art. 352 c.p.c.)"
+          );
+          out.push(note30);
+          out.push(
+            ...addReminders(
+              "Note conclusionali (30 gg)",
+              note30.dueAt,
+              settings,
+              reminderOffsets
+            )
+          );
+
+          // c) Memoria di replica (fino a 15 gg prima)
+          const replica15 = makeTermine(
+            "Memoria di replica (15 gg prima udienza conclusioni)",
+            udienzaConclusioni,
+            -15,
+            settings,
+            "Termine per la memoria di replica: fino a 15 giorni prima dell'udienza di precisazione/conclusioni in appello (art. 352 c.p.c.)"
+          );
+          out.push(replica15);
+          out.push(
+            ...addReminders(
+              "Memoria di replica (15 gg)",
+              replica15.dueAt,
+              settings,
+              reminderOffsets
+            )
+          );
+        }
+      }
+
+      // 3) Memorie libere
       out.push(...addMemorieLibere(inputs, settings, reminderOffsets));
     }
 

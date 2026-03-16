@@ -83,12 +83,22 @@ export interface AppelloCivileDaNotificareInputs {
   dataNotificaSentenza?: string;   // se BREVE
   dataPubblicazioneSentenza?: string; // se LUNGO
   dataNotificaAppello?: string; // per iscrizione a ruolo (10gg)
+  /**
+   * Data udienza conclusioni / provvedimento del giudice in appello civile.
+   * Serve per calcolare eventuali termini scritti ex art. 352 c.p.c.
+   */
+  dataUdienzaConclusioni?: string;
   memorieLibere?: MemoriaLibera[];
 }
 
 /** APPELLO CIVILE - COSTITUZIONE (APPELLATO: Costituzione) */
 export interface AppelloCivileCostituzioneInputs {
   dataUdienza: string; // ISO Date – data udienza
+   /**
+   * Data udienza conclusioni / provvedimento del giudice in appello civile.
+   * Serve per calcolare eventuali termini scritti ex art. 352 c.p.c.
+   */
+  dataUdienzaConclusioni?: string;
   memorieLibere?: MemoriaLibera[];
 }
 
