@@ -52,6 +52,17 @@ function toDateOrNull(v: unknown): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function getInputLabelFromKey(inputKey: string, fallback: string): string {
+  if (!inputKey.startsWith("data") || inputKey.length <= "data".length) {
+    return fallback;
+  }
+  const raw = inputKey.slice("data".length);
+  if (!raw) return fallback;
+  const words = raw.replace(/([A-Z])/g, " $1").trim().toLowerCase();
+  const label = `Data ${words}`;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function MacroAreaPanel({
   macroArea,
   procedimento,
@@ -114,6 +125,9 @@ export function MacroAreaPanel({
   const currentDate = selectedEvento
     ? toDateOrNull(inputs[selectedEvento.inputKey])
     : null;
+  const currentDateLabel = selectedEvento
+    ? getInputLabelFromKey(selectedEvento.inputKey, selectedEvento.label)
+    : "";
   const dataNotificaCitazione = toDateOrNull(inputs["dataPrimaNotificaCitazione"]);
   const dataPrimaUdienza = toDateOrNull(inputs["dataPrimaUdienza"]);
   const dataUdienzaComparizione = toDateOrNull(inputs["dataUdienzaComparizione"]);
@@ -259,12 +273,12 @@ export function MacroAreaPanel({
         <div className="pt-2 border-t border-zinc-200 space-y-4">
           <div>
             <Label className="text-sm font-semibold text-zinc-700">
-              Data – {selectedEvento.label}
+              {currentDateLabel}
             </Label>
             <DatePicker
               value={currentDate}
               onChange={handleDateChange(selectedEvento.inputKey)}
-              placeholder={`Inserisci data ${selectedEvento.label.toLowerCase()}`}
+              placeholder={`Inserisci ${currentDateLabel.toLowerCase()}`}
             />
             <p className="text-xs text-zinc-500 mt-1">
               Questa è la data base da cui verranno calcolati i termini collegati all&apos;evento selezionato.
