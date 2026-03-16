@@ -63,6 +63,32 @@ function getInputLabelFromKey(inputKey: string, fallback: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+function getEffectivePartiLabels(
+  macroArea: MacroAreaCode | null,
+  procedimento: ProcedimentoCode | null,
+) {
+  if (!macroArea) return null;
+  const base = PARTI_LABELS[macroArea];
+  // Override etichette per il Tributario in base al procedimento
+  if (macroArea === "TRIBUTARIO" && procedimento) {
+    if (procedimento === "RICORSO_TRIBUTARIO") {
+      return {
+        ...base,
+        ATTORE: "Ricorrente",
+        CONVENUTO: "Resistente",
+      };
+    }
+    if (procedimento === "APPELLO_TRIBUTARIO") {
+      return {
+        ...base,
+        ATTORE: "Appellante",
+        CONVENUTO: "Appellato",
+      };
+    }
+  }
+  return base;
+}
+
 export function MacroAreaPanel({
   macroArea,
   procedimento,
@@ -79,7 +105,7 @@ export function MacroAreaPanel({
     ? (PROCEDIMENTI_PER_MACRO_AREA[macroArea] as readonly string[])
     : [];
 
-  const partiLabels = macroArea ? PARTI_LABELS[macroArea] : null;
+  const partiLabels = getEffectivePartiLabels(macroArea, procedimento);
 
   const selectableParti: ParteProcessuale[] = partiLabels
     ? ([...PARTI_PROCESSUALI] as ParteProcessuale[])
