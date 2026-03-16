@@ -1034,9 +1034,8 @@ export function EventModal({
               value="dettagli"
               className="flex-1 min-h-0 flex flex-col overflow-hidden mt-2 data-[state=inactive]:hidden"
             >
-              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                <ScrollArea className="h-full event-modal-scroll">
-                  <div className="space-y-4 pb-2 pr-2">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto pr-2 pb-2">
+                  <div className="space-y-4">
               {/* 1. Titolo */}
               <div>
                 <Label>PRATICA</Label>
@@ -1479,7 +1478,6 @@ export function EventModal({
                 </div>
               </div>
             </div>
-                </ScrollArea>
               </div>
             </TabsContent>
             <TabsContent
