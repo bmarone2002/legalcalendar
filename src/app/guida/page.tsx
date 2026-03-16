@@ -4,14 +4,14 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 export default function GuidaPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      <header className="border-b border-[var(--gold)]/20 bg-[var(--navy)]/95">
+      <header className="border-b border-[var(--gold)]/20 bg-[var(--navy)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-11 w-auto object-contain sm:h-14 lg:h-16"
+              className="h-13 w-auto object-contain sm:h-16 lg:h-18"
             />
             <div className="hidden sm:block">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
@@ -41,10 +41,12 @@ export default function GuidaPage() {
             Tutto quello che puoi fare con <span className="text-[var(--gold)]">Agenda Legale</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-zinc-700 sm:text-base">
-            Questa guida ti accompagna nell&apos;uso del calendario, dei promemoria, del calcolo dei
-            termini, dei backup e dell&apos;
-            <span className="font-medium">estrazione automatica delle informazioni con l&apos;AI</span>,
-            così puoi gestire il tuo studio legale in modo ordinato e sicuro.
+            Questa guida ti accompagna nell&apos;uso del calendario, delle pratiche, dei promemoria,
+            del calcolo dei termini, dei backup e dell&apos;
+            <span className="font-medium">estrazione automatica delle informazioni con l&apos;AI</span>.
+            L&apos;algoritmo di Agenda Legale contiene già molte delle procedure tipiche del lavoro
+            dell&apos;avvocato, così devi solo inserire i dati essenziali e personalizzare le fasi
+            in base al tuo studio.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
             <SignedIn>
@@ -191,7 +193,7 @@ export default function GuidaPage() {
         {/* Sezione 3 – Promemoria */}
         <section id="promemoria" className="mb-10 scroll-mt-20">
           <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
-            3. Gestione dei promemoria: Da fare e Completati
+            3. Gestione dei promemoria: Da fare, in scadenza e Completati
           </h2>
           <p className="mb-3 text-sm text-zinc-700">
             Ogni evento può avere uno o più <span className="font-medium">promemoria</span>. Dal
@@ -203,7 +205,7 @@ export default function GuidaPage() {
               <p className="font-medium text-[var(--navy)]">Promemoria &quot;Da fare&quot;</p>
               <p className="mt-1 text-xs text-zinc-700">
                 Mostrano tutte le attività che richiedono ancora una tua azione. Usa questo filtro
-                per pianificare la giornata.
+                per pianificare la giornata e vedere cosa è rimasto aperto.
               </p>
             </li>
             <li className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -215,8 +217,9 @@ export default function GuidaPage() {
             </li>
           </ul>
           <p className="text-xs text-zinc-700">
-            Usa i filtri in alto a destra nel calendario per passare velocemente da una vista
-            all&apos;altra.
+            Usa i filtri e le viste dedicate in alto a destra nel calendario per passare
+            velocemente tra promemoria da fare, in scadenza e completati, in modo da avere sempre
+            chiaro su cosa concentrarti.
           </p>
         </section>
 
@@ -229,7 +232,9 @@ export default function GuidaPage() {
             Agenda Legale ti aiuta a calcolare rapidamente le scadenze partendo da una{" "}
             <span className="font-medium">data di riferimento</span> (es. deposito di un atto) e dal
             relativo <span className="font-medium">tipo di termine</span>. In questo modo riduci il
-            rischio di errore nei conteggi manuali.
+            rischio di errore nei conteggi manuali: il sistema contiene già molti schemi di
+            procedimento tipici dell&apos;attività forense e propone automaticamente le scadenze
+            più rilevanti.
           </p>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
@@ -241,12 +246,54 @@ export default function GuidaPage() {
               </ul>
             </div>
             <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
-              <p className="font-medium text-[var(--navy)]">Esempi di termini utili</p>
+              <p className="font-medium text-[var(--navy)]">Esempi di termini gestiti</p>
               <ul className="mt-2 space-y-1 text-xs">
                 <li>• Termini per memorie ex art. 171-ter c.p.c.</li>
                 <li>• Scadenze per impugnazioni o opposizioni.</li>
                 <li>• Altri termini procedurali tipici della tua attività.</li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Sezione 4bis – Modalità prosecuzione */}
+        <section id="prosecuzione" className="mb-10 scroll-mt-20">
+          <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
+            4bis. Modalità prosecuzione: far avanzare la pratica senza riscrivere tutto
+          </h2>
+          <p className="mb-4 text-sm text-zinc-700">
+            Quando una pratica prosegue in una nuova fase (ad esempio un&apos;udienza successiva,
+            un nuovo grado di giudizio o una fase esecutiva), la{" "}
+            <span className="font-medium">modalità prosecuzione</span> ti permette di far avanzare
+            il fascicolo senza ripartire da zero.
+          </p>
+          <div className="grid gap-4 md:grid-cols-3 text-sm text-zinc-700">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Cosa fa
+              </p>
+              <p className="text-xs">
+                Collega la nuova fase alla precedente, mantenendo cronologia, documenti e
+                informazioni principali della pratica.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Vantaggi
+              </p>
+              <p className="text-xs">
+                Eviti di reinserire dati già presenti, mantieni lo storico completo e puoi
+                controllare l&apos;intero percorso della pratica in un colpo d&apos;occhio.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                In pratica
+              </p>
+              <p className="text-xs">
+                Parti da un evento esistente, attivi la prosecuzione e Agenda Legale genera la nuova
+                fase con i termini collegati, pronta per essere personalizzata.
+              </p>
             </div>
           </div>
         </section>
@@ -259,7 +306,9 @@ export default function GuidaPage() {
           <p className="mb-3 text-sm text-zinc-700">
             Dal menu laterale clicca su <span className="font-medium">Backup</span>. Qui puoi
             scaricare un file JSON con tutti gli eventi presenti nel tuo calendario e, se
-            necessario, ripristinarlo in futuro.
+            necessario, ripristinarlo in futuro. I dati del tuo studio sono un patrimonio
+            professionale: avere una copia locale aggiornata ti mette al riparo da imprevisti
+            tecnici e cambi di dispositivo.
           </p>
           <div className="grid gap-4 md:grid-cols-[1.8fr,1.2fr]">
             <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">

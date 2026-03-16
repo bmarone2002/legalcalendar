@@ -23,14 +23,14 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       {/* Top nav */}
-      <header className="border-b border-[var(--gold)]/20 bg-[var(--navy)]/95">
+      <header className="border-b border-[var(--gold)]/20 bg-[var(--navy)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-12 w-auto object-contain sm:h-14 lg:h-16"
+              className="h-14 w-auto object-contain sm:h-16 lg:h-18"
             />
             <div className="hidden sm:block">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--gold)]">
@@ -79,35 +79,36 @@ function LandingPage() {
                 Software per studi legali
               </p>
               <h1 className="mb-4 text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
-                Organizza il tuo lavoro legale{" "}
-                <span className="text-[var(--gold)]">in modo intelligente</span>
+                Il tuo studio legale,{" "}
+                <span className="text-[var(--gold)]">organizzato in un&apos;unica schermata</span>.
               </h1>
               <p className="mb-6 text-sm text-zinc-700 sm:text-base">
-                Agenda Legale è il calendario pensato per avvocati e studi legali: grazie
-                all&apos;AI estrae automaticamente date, procedimenti ed eventi dai documenti, così
-                puoi gestire udienze, scadenze, promemoria e termini in un&apos;unica interfaccia
-                chiara e sempre sincronizzata.
+                Con <span className="font-medium">Agenda Legale</span> crei nuove pratiche, le segui
+                in tutte le loro fasi e non perdi mai una scadenza. L&apos;AI estrae i dati dai
+                documenti, ti suggerisce i passaggi da seguire, compila per te e calcola
+                automaticamente i termini, mentre il calendario resta condivisibile e sempre al
+                sicuro grazie ai backup scaricabili.
               </p>
               <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
                 <FeatureBullet title="Estrazione automatica con AI">
-                  Carica o inserisci i tuoi atti e lascia che l&apos;intelligenza artificiale ricavi
-                  in autonomia date, termini e impegni da inserire in agenda.
+                  Carica i tuoi atti e lascia che l&apos;intelligenza artificiale estragga in
+                  autonomia date, termini e dati di pratica da inserire in agenda.
                 </FeatureBullet>
-                <FeatureBullet title="Calendario avanzato">
-                  Viste Giorno, Settimana, Mese e Agenda per avere sempre sotto controllo impegni e
-                  cause.
+                <FeatureBullet title="Pratiche e fasi di lavoro">
+                  Inserisci pratiche e segui tutte le loro fasi nel tempo, con procedure già
+                  predisposte per gli avvocati e possibilità di personalizzare ogni passaggio.
                 </FeatureBullet>
-                <FeatureBullet title="Gestione Promemoria">
-                  Promemoria per udienze, scadenze e appuntamenti con stato &quot;Da fare&quot; e
-                  &quot;Completati&quot;.
+                <FeatureBullet title="Gestione promemoria chiara">
+                  Promemoria per udienze, scadenze e appuntamenti con viste dedicate per elementi da
+                  fare, in scadenza e completati.
                 </FeatureBullet>
-                <FeatureBullet title="Calcolo dei Termini">
-                  Calcolo automatico delle scadenze in base ai termini processuali che utilizzi ogni
-                  giorno.
+                <FeatureBullet title="Calcolo automatico dei termini">
+                  Calcolo automatico delle scadenze in base ai principali termini processuali, con
+                  regole già pronte per le procedure più frequenti.
                 </FeatureBullet>
-                <FeatureBullet title="Backup e sicurezza">
-                  Scarica periodicamente il backup completo del calendario per avere sempre una
-                  copia al sicuro.
+                <FeatureBullet title="Calendario condivisibile e backup">
+                  Condividi il calendario con chi vuoi e scarica periodicamente un backup completo
+                  per conservare una copia aggiornata anche in locale.
                 </FeatureBullet>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -116,7 +117,7 @@ function LandingPage() {
                     type="button"
                     className="rounded-md bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[var(--navy)] shadow-md shadow-black/10 hover:bg-[var(--gold-light)]"
                   >
-                    Registrati e inizia a usare Agenda Legale
+                    Prova Agenda Legale gratis per 30 giorni
                   </button>
                 </SignUpButton>
                 <SignInButton mode="redirect">
@@ -134,6 +135,11 @@ function LandingPage() {
                   Guarda una panoramica veloce
                 </Link>
               </div>
+              <p className="mt-3 text-xs text-zinc-600 sm:text-sm">
+                Provalo gratuitamente per 30 giorni. Poi, un unico piano chiaro a partire da{" "}
+                <span className="font-semibold">€ 10 al mese</span>, senza vincoli, molto meno dei
+                tradizionali software da studio.
+              </p>
             </div>
 
             {/* Calendar preview / card column */}
@@ -182,27 +188,27 @@ function LandingPage() {
                 Scopri tutte le funzioni di Agenda Legale
               </h2>
               <p className="mt-2 text-sm text-zinc-600">
-                Pensata per gli studi legali che vogliono avere calendario, promemoria e termini in
-                un unico strumento, senza fogli sparsi.
+                Pensata per gli studi legali che vogliono avere pratiche, calendario, promemoria e
+                termini in un unico strumento, senza fogli e agende sparse.
               </p>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
-                title="Calendario avanzato"
-                description="Gestisci udienze, appuntamenti e scadenze con viste flessibili e colori dedicati per ogni tipo di evento."
+                title="Pratiche e fasi procedurali"
+                description="Inserisci pratiche e segui le fasi preimpostate pensate per gli avvocati, personalizzando i passaggi in base al tuo modo di lavorare."
               />
               <FeatureCard
                 title="Gestione Promemoria"
-                description="Imposta promemoria per non perdere mai più una scadenza. Visualizza cosa è da fare e cosa è già completato."
+                description="Imposta promemoria per non perdere mai più una scadenza e visualizza in modo distinto cosa è da fare, cosa è in scadenza e cosa hai già completato."
               />
               <FeatureCard
-                title="Calcolo dei Termini"
-                description="Inserisci la data di riferimento e lascia che Agenda Legale calcoli per te la relativa scadenza processuale."
+                title="Calcolo dei termini"
+                description="Inserisci la data di riferimento e lascia che Agenda Legale calcoli per te i termini processuali più utilizzati, con regole già pronte."
               />
               <FeatureCard
                 title="Backup sempre tuo"
-                description="Scarica in pochi clic una copia completa del calendario per conservarla nei tuoi archivi interni."
+                description="Scarica in pochi clic una copia completa del tuo calendario legale per conservarla nei tuoi archivi interni e mantenere sempre il controllo sui dati."
               />
             </div>
           </div>
