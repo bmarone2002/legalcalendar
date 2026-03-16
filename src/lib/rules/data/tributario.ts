@@ -46,8 +46,8 @@ const RICORSO_TRIBUTARIO_ROWS: ExcelRuleRow[] = [
   {
     macroArea: "TRIBUTARIO",
     procedimento: "RICORSO_TRIBUTARIO",
-    parteProcessuale: "CONVENUTO", // Ente resistente
-    eventoLabel: "Costituzione ente",
+    parteProcessuale: "CONVENUTO", // Resistente
+    eventoLabel: "Costituzione resistente",
     eventoCode: "COSTITUZIONE_ENTE_TRIBUTARIO",
     eventoBaseKey: "dataRicezioneRicorsoEnteTrib",
     direzioneCalcolo: "+",
@@ -242,25 +242,6 @@ const APPELLO_TRIBUTARIO_ROWS: ExcelRuleRow[] = [
     noteOperative:
       "L'appellante si costituisce depositando l'appello entro 30 giorni dalla proposizione/notifica.",
     ordine: 3,
-  },
-  {
-    macroArea: "TRIBUTARIO",
-    procedimento: "APPELLO_TRIBUTARIO",
-    parteProcessuale: "CONVENUTO", // Ente resistente
-    eventoLabel: "Costituzione ente",
-    eventoCode: "COSTITUZIONE_ENTE_APPELLO_TRIB",
-    eventoBaseKey: "dataNotificaAppelloTrib",
-    direzioneCalcolo: "+",
-    numero: 60,
-    unita: "giorni",
-    tipoTermine: "ordinatorio",
-    isTermine: true,
-    isSospensioneFeriale: true,
-    isPromemoriaFestivi: true,
-    norma: "Art. 54 D.Lgs. 546/1992 in relazione all'art. 23",
-    noteOperative:
-      "Se l'ente è parte appellata/resistente, si costituisce con controdeduzioni entro 60 giorni dalla notifica dell'appello.",
-    ordine: 4,
   },
   {
     macroArea: "TRIBUTARIO",

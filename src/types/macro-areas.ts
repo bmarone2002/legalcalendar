@@ -169,8 +169,8 @@ export const PARTI_LABELS: Record<MacroAreaCode, Record<ParteProcessuale, string
     COMUNE: "Comune (entrambe le parti)",
   },
   TRIBUTARIO: {
-    ATTORE: "Appellante",
-    CONVENUTO: "Appellato",
+    ATTORE: "Ricorrente / Appellante",
+    CONVENUTO: "Resistente / Appellato",
     COMUNE: "Comune (entrambe le parti)",
   },
   CASSAZIONE: {
@@ -299,10 +299,10 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 2,
     },
 
-    // ENTE RESISTENTE
+    // RESISTENTE
     {
       code: "COSTITUZIONE_ENTE_TRIBUTARIO",
-      label: "Costituzione ente resistente",
+      label: "Costituzione resistente",
       inputKey: "dataRicezioneRicorsoEnteTrib",
       parteProcessuale: "CONVENUTO",
       ordine: 3,
