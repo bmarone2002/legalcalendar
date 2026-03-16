@@ -731,6 +731,20 @@ export function getRegisteredProcedimenti(): Set<ProcedimentoCode> {
 }
 
 /**
- * Mappatura legacy: converte vecchi actionType/actionMode in nuova gerarchia.
- * Usata solo per migrare/interpretare eventi creati con il vecchio pannello Atto Giuridico.
+ * Mappatura legacy: converte vecchi actionType/actionMode (pannello Atto Giuridico v1)
+ * nella nuova gerarchia MacroArea/Procedimento/Parte per eventi già salvati.
  */
+export const LEGACY_ACTION_TYPE_MAP: Record<string, { macroArea: MacroAreaCode; procedimento: ProcedimentoCode }> = {
+  CITAZIONE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "CITAZIONE_CIVILE" },
+  RICORSO_OPPOSIZIONE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "OPPOSIZIONE_DECRETO_INGIUNTIVO" },
+  RICORSO_TRIBUTARIO: { macroArea: "TRIBUTARIO", procedimento: "RICORSO_TRIBUTARIO" },
+  APPELLO_CIVILE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "APPELLO_CIVILE" },
+  APPELLO_TRIBUTARIO: { macroArea: "TRIBUTARIO", procedimento: "APPELLO_TRIBUTARIO" },
+  RICORSO_CASSAZIONE: { macroArea: "CASSAZIONE", procedimento: "RICORSO_CASSAZIONE" },
+};
+
+/** Mappatura legacy: converte vecchi actionMode in ParteProcessuale. */
+export const LEGACY_ACTION_MODE_MAP: Record<string, ParteProcessuale> = {
+  DA_NOTIFICARE: "ATTORE",
+  COSTITUZIONE: "CONVENUTO",
+};
