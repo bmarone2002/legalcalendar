@@ -1135,12 +1135,15 @@ export function EventModal({
                     <div className="rounded-md border border-dashed border-zinc-300 bg-zinc-50/80 p-4 space-y-2">
                       <Label className="text-sm font-medium text-zinc-700">Compila da documento</Label>
                       <p className="text-xs text-zinc-500">
-                        Allega il PDF o l&apos;immagine della pratica: l&apos;AI estrarrà titolo, tipo, date e campi per precompilare il form. Verifica i dati e salva.
+                        Allega il PDF: l&apos;AI estrarrà titolo, tipo, date e campi relativi alla tua pratica. Verifica i dati e salva.
+                      </p>
+                      <p className="text-[11px] text-zinc-500">
+                        Sono supportati solo file PDF leggibili dal computer (non immagini o scansioni).
                       </p>
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".pdf,application/pdf,image/jpeg,image/png,image/webp"
+                        accept=".pdf,application/pdf"
                         className="hidden"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
@@ -1193,7 +1196,7 @@ export function EventModal({
                           }
                         }}
                       />
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Button
                           type="button"
                           variant="outline"
@@ -1204,6 +1207,12 @@ export function EventModal({
                         >
                           {parsingDocument ? "Analisi in corso…" : "Allega file e compila con AI"}
                         </Button>
+                        {!parsingDocument && !error && form.inputs && Object.keys(form.inputs).length > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700 border border-green-200">
+                            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                            Fatto
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
