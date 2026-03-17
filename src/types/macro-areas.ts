@@ -92,11 +92,7 @@ export const PROCEDIMENTO_LABELS: Record<ProcedimentoCode, string> = {
   // Civile – Contenzioso ordinario
   CITAZIONE_CIVILE: "Citazione civile",
   RICORSO_RITO_SEMPLIFICATO: "Ricorso (rito semplificato)",
-  OPPOSIZIONE_DECRETO_INGIUNTIVO: "Opposizione a decreto ingiuntivo",
   APPELLO_CIVILE: "Appello civile",
-  RIASSUNZIONE_PROCESSO: "Riassunzione del processo",
-  INTERRUZIONE_RIASSUNZIONE: "Interruzione e riassunzione",
-  REGOLAMENTO_COMPETENZA: "Regolamento di competenza",
   // Procedimenti speciali
   DECRETO_INGIUNTIVO: "Decreto ingiuntivo",
   OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC: "Opposizione a decreto ingiuntivo",
@@ -251,32 +247,6 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     // Sentenza e notifica sentenza
     { code: "SENTENZA_RICORSO", label: "Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataPubblicazioneSentenzaRicorso", parteProcessuale: "COMUNE", ordine: 12 },
     { code: "NOTIFICA_SENTENZA_RICORSO", label: "Notifica Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataNotificaSentenzaRicorso", parteProcessuale: "COMUNE", ordine: 13 },
-  ],
-  OPPOSIZIONE_DECRETO_INGIUNTIVO: [
-    // ATTORE / OPPONENTE
-    { code: "TERMINE_NOTIFICA_OPPOSIZIONE", label: "Termine ultimo notifica atto di opposizione", inputKey: "dataNotificaDecretoIngiuntivo", parteProcessuale: "ATTORE", ordine: 1 },
-    { code: "ISCRIZIONE_RUOLO_OPPOSIZIONE", label: "Iscrizione a ruolo/Costituzione attore", inputKey: "dataNotificaOpposizione", parteProcessuale: "ATTORE", ordine: 2 },
-
-    // CONVENUTO / OPPOSITO
-    { code: "COSTITUZIONE_CONVENUTO_OPPOSIZIONE", label: "Costituzione convenuto", inputKey: "dataPrimaUdienzaOpposizione", parteProcessuale: "CONVENUTO", ordine: 3 },
-
-    // COMUNE (eventi condivisi tra le parti)
-    { code: "PRIMA_UDIENZA_OPPOSIZIONE", label: "Prima udienza", inputKey: "dataPrimaUdienzaOpposizione", parteProcessuale: "COMUNE", ordine: 4 },
-
-    // Memorie 171-ter: usano come base la data prima udienza opposizione
-    { code: "MEMORIA_171TER_1_OPPOSIZIONE", label: "Memoria 171 ter n.1", inputKey: "dataPrimaUdienzaOpposizione", parteProcessuale: "COMUNE", ordine: 5 },
-    { code: "MEMORIA_171TER_2_OPPOSIZIONE", label: "Memoria 171 ter n.2", inputKey: "dataPrimaUdienzaOpposizione", parteProcessuale: "COMUNE", ordine: 6 },
-    { code: "MEMORIA_171TER_3_OPPOSIZIONE", label: "Memoria 171 ter n.3", inputKey: "dataPrimaUdienzaOpposizione", parteProcessuale: "COMUNE", ordine: 7 },
-
-    // Udienze e fasi successive
-    { code: "UDIENZA_ISTRUTTORIA_OPPOSIZIONE", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoriaOpposizione", parteProcessuale: "COMUNE", ordine: 8 },
-    { code: "UDIENZA_CONCLUSIONI_OPPOSIZIONE", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioniOpposizione", parteProcessuale: "COMUNE", ordine: 9 },
-    { code: "NOTE_CONCLUSIONI_OPPOSIZIONE", label: "Note conclusionali", inputKey: "dataNoteConclusioniOpposizione", parteProcessuale: "COMUNE", ordine: 10 },
-    { code: "MEMORIA_REPLICA_OPPOSIZIONE", label: "Memoria di replica", inputKey: "dataMemoriaReplicaOpposizione", parteProcessuale: "COMUNE", ordine: 11 },
-
-    // Sentenza e notifica sentenza
-    { code: "SENTENZA_OPPOSIZIONE", label: "Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataPubblicazioneSentenzaOpposizione", parteProcessuale: "COMUNE", ordine: 12 },
-    { code: "NOTIFICA_SENTENZA_OPPOSIZIONE", label: "Notifica Sentenza (per calcolare termini appello/Ric Cassazione)", inputKey: "dataNotificaSentenzaOpposizione", parteProcessuale: "COMUNE", ordine: 13 },
   ],
   RICORSO_TRIBUTARIO: [
     // RICORRENTE
@@ -591,7 +561,6 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
 export const ORDINE_MIN_PROSECUZIONE: Partial<Record<ProcedimentoCode, number>> = {
   CITAZIONE_CIVILE: 8,
   RICORSO_RITO_SEMPLIFICATO: 8,
-  OPPOSIZIONE_DECRETO_INGIUNTIVO: 8,
 };
 
 /** Restituisce gli eventi disponibili nel dropdown, filtrati per parte + COMUNE, ordinati. */
@@ -732,7 +701,7 @@ export function getRegisteredProcedimenti(): Set<ProcedimentoCode> {
  */
 export const LEGACY_ACTION_TYPE_MAP: Record<string, { macroArea: MacroAreaCode; procedimento: ProcedimentoCode }> = {
   CITAZIONE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "CITAZIONE_CIVILE" },
-  RICORSO_OPPOSIZIONE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "OPPOSIZIONE_DECRETO_INGIUNTIVO" },
+  RICORSO_OPPOSIZIONE: { macroArea: "PROCEDIMENTI_SPECIALI", procedimento: "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC" },
   RICORSO_TRIBUTARIO: { macroArea: "TRIBUTARIO", procedimento: "RICORSO_TRIBUTARIO" },
   APPELLO_CIVILE: { macroArea: "CIVILE_CONTENZIOSO", procedimento: "APPELLO_CIVILE" },
   APPELLO_TRIBUTARIO: { macroArea: "TRIBUTARIO", procedimento: "APPELLO_TRIBUTARIO" },
