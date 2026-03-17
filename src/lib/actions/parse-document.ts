@@ -2,36 +2,30 @@
 
 import OpenAI from "openai";
 import { z } from "zod";
+import {
+  MACRO_AREAS,
+  PROCEDIMENTI_PER_MACRO_AREA,
+  PARTI_PROCESSUALI,
+  EVENTI_PER_PROCEDIMENTO,
+  type MacroAreaCode,
+  type ProcedimentoCode,
+  type ParteProcessuale,
+  type EventoDisponibile,
+} from "@/types/macro-areas";
+
 const OPENAI_MODEL = "gpt-4o-mini";
 
 const ACTION_TYPE_VALUES = ["CITAZIONE", "RICORSO_OPPOSIZIONE", "RICORSO_TRIBUTARIO", "APPELLO_CIVILE", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE"] as const;
 const ACTION_MODE_VALUES = ["COSTITUZIONE", "DA_NOTIFICARE"] as const;
-
-const MACRO_AREA_VALUES = ["CIVILE_CONTENZIOSO", "PROCEDIMENTI_SPECIALI", "ESECUZIONI", "LAVORO", "TRIBUTARIO", "CASSAZIONE", "STRAGIUDIZIALE", "AMMINISTRATIVO"] as const;
-const PROCEDIMENTO_VALUES = [
-  "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE",
-  "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA",
-  "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE",
-  "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO",
-  "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI",
-  "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI",
-  "RICORSO_LAVORO", "APPELLO_LAVORO",
-  "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO",
-  "RICORSO_CASSAZIONE", "CONTRORICORSO",
-  "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE",
-  "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO",
-  "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA",
-] as const;
-const PARTE_PROCESSUALE_VALUES = ["ATTORE", "CONVENUTO", "COMUNE"] as const;
 
 /** Risposta strutturata dall'AI per precompilare il form Atto Giuridico */
 const parsedDocumentSchema = z.object({
   title: z.string().optional().default(""),
   description: z.string().optional().default(""),
   type: z.enum(["udienza", "notifica", "deposito", "scadenza", "altro"]).optional().default("altro"),
-  macroArea: z.enum(MACRO_AREA_VALUES).optional(),
-  procedimento: z.enum(PROCEDIMENTO_VALUES).optional(),
-  parteProcessuale: z.enum(PARTE_PROCESSUALE_VALUES).optional(),
+  macroArea: z.custom<MacroAreaCode>().optional(),
+  procedimento: z.custom<ProcedimentoCode>().optional(),
+  parteProcessuale: z.custom<ParteProcessuale>().optional(),
   eventoCode: z.string().optional(),
   actionType: z.enum(ACTION_TYPE_VALUES).optional(),
   actionMode: z.enum(ACTION_MODE_VALUES).optional(),
@@ -47,32 +41,52 @@ export type ParseDocumentActionResult =
 
 const EXTRACT_PROMPT = `Sei un assistente legale che analizza documenti italiani (citazioni, ricorsi, opposizioni, appelli, decreti ingiuntivi, verbali, sentenze, comunicazioni della cancelleria).
 
-METODO: Analizza il documento DA CIMA A FONDO come farebbe un legale: prima il tipo di atto e l’autorità, poi le parti e il rito, poi la fase processuale in cui ci si trova, infine OGNI data menzionata. Ogni data deve essere assegnata alla chiave corretta in "inputs" in base al contesto (notifica della citazione vs data udienza vs deposito, ecc.).
+Devi comportarti come un assistente legale che conosce la gerarchia usata nel gestionale:
+- MACRO AREA
+- PROCEDIMENTO
+- PARTE PROCESSUALE
+- FASE / EVENTO (eventoCode) collegata a uno specifico campo data (inputKey).
+
+Le liste complete di macro aree, procedimenti, parti processuali e fasi disponibili ti verranno fornite nel messaggio dell’utente in formato JSON.
+DEVI SEMPRE SCEGLIERE SOLO TRA I CODICI ELENCATI IN QUEL JSON (macroArea, procedimento, parteProcessuale, eventoCode, inputKey) E NON DEVI INVENTARE CODICI NUOVI.
+
+METODO: Analizza il documento DA CIMA A FONDO come farebbe un legale: prima il tipo di atto e l’autorità, poi le parti e il rito, poi la parte processuale (attore/ricorrente vs convenuto/resistente) e infine la FASE processuale più coerente tra quelle disponibili. Dopo aver individuato la fase, estrai OGNI data rilevante e assegnala alla/e chiave/i corretta/e in "inputs" in base al contesto (notifica della citazione vs data udienza vs deposito, ecc.).
 
 PASSI OBBLIGATORI:
-1) MACRO AREA e PROCEDIMENTO: dal tipo di atto (citazione, ricorso, opposizione, decreto ingiuntivo, appello, ecc.) e dall’autorità (Tribunale, GIP, TAR, ecc.) determina macroArea e procedimento.
-2) MODALITÀ (parte processuale): "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se la parte passiva (convenuto, resistente, appellato, debitore), "COMUNE" solo se il documento è neutro o riguarda entrambe le parti (es. verbale di udienza, comunicazione del tribunale).
-3) EVENTO (eventoCode): individua la FASE processuale a cui si riferisce il documento (notifica citazione, prima udienza, memorie 171-ter, udienza istruttoria, conclusioni, sentenza, notifica sentenza, ecc.) e mappa su uno dei codici evento previsti per quel procedimento.
+1) MACRO AREA e PROCEDIMENTO: dal tipo di atto (citazione, ricorso, opposizione, decreto ingiuntivo, appello, ecc.) e dall’autorità (Tribunale, GIP, TAR, ecc.) determina la macroArea e il procedimento più coerenti scegliendo tra quelli forniti.
+2) PARTE PROCESSUALE: "ATTORE" se il documento riguarda la parte attiva (attore, ricorrente, appellante, creditore), "CONVENUTO" se la parte passiva (convenuto, resistente, appellato, debitore), "COMUNE" solo se il documento è neutro o riguarda entrambe le parti (es. verbale di udienza, comunicazione del tribunale).
+3) FASE / EVENTO (eventoCode): individua la FASE processuale a cui si riferisce il documento (notifica citazione, prima udienza, memorie 171-ter, udienza istruttoria, conclusioni, sentenza, notifica sentenza, ecc.) e scegli l'eventoCode più adatto tra quelli previsti per quel procedimento e quella parte processuale nel JSON (EVENTI_PER_PROCEDIMENTO). Scegli SEMPRE l'evento più probabile anche se hai un minimo margine di dubbio.
 4) DATE: cerca OGNI data nel testo (gg/mm/aaaa, "il 15 marzo 2025", "udienza del 20.04.2025", "notifica in data 10/03/2025"). Converti SEMPRE in ISO: YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss. Assegna ogni data alla chiave corretta in "inputs".
+   - Se per una determinata fase del procedimento il gestionale prevede PIÙ CAMPI DATA distinti (es. notifica + udienza di comparizione + prima udienza), devi compilare TUTTI i campi che riesci a riconoscere dal testo, non solo uno.
 
 REGOLA CRITICA – DUE DATE PER CITAZIONE CIVILE (Notifica citazione):
 Se il procedimento è CITAZIONE_CIVILE e l’evento è NOTIFICA_CITAZIONE (o il documento parla di notifica della citazione e di udienza di comparizione), nel documento ci sono DUE date da distinguere e inserire in inputs:
 - dataPrimaNotificaCitazione: la data in cui la citazione è stata (o sarà) notificata al convenuto. Cerca espressioni come "notifica in data", "notificata il", "data di notifica della citazione", "notifica effettuata il".
 - dataPrimaUdienza: la data fissata per l’udienza di comparizione / prima udienza. Cerca "udienza fissata per il", "data di comparizione", "prima udienza il", "audience fixée le", "comparizione dinanzi al giudice il", "fissata per il giorno", decreto che fissa l’udienza.
-Non confondere le due: la notifica è di solito PRIMA dell’udienza. Inserisci entrambe con le chiavi corrette.
+Non confondere le due: la notifica è di solito PRIMA dell’udienza. Inserisci entrambe con le chiavi corrette, se presenti.
+
+TITOLO E NOTE:
+- Il titolo deve rimanere sintetico e operativo, includendo se possibile R.G. o elementi identificativi della pratica (es. "Citazione Tizio vs Caio – Tribunale di Napoli R.G. 1234/2025").
+- Le note servono solo per aggiungere chiarimenti utili all’avvocato (es. incertezze sull’esatta fase/parte o informazioni che non entrano in altri campi).
 
 Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste chiavi:
 - title: stringa breve (es. "Citazione Tizio vs Caio – Tribunale di Napoli R.G. 1234/2025")
 - description: opzionale, dettagli o adempimenti
 - type: uno tra "udienza", "notifica", "deposito", "scadenza", "altro"
-- macroArea: uno tra "CIVILE_CONTENZIOSO", "PROCEDIMENTI_SPECIALI", "ESECUZIONI", "LAVORO", "TRIBUTARIO", "CASSAZIONE", "STRAGIUDIZIALE", "AMMINISTRATIVO"
-- procedimento: uno tra "CITAZIONE_CIVILE", "RICORSO_RITO_SEMPLIFICATO", "OPPOSIZIONE_DECRETO_INGIUNTIVO", "APPELLO_CIVILE", "RIASSUNZIONE_PROCESSO", "INTERRUZIONE_RIASSUNZIONE", "REGOLAMENTO_COMPETENZA", "DECRETO_INGIUNTIVO", "OPPOSIZIONE_DECRETO_INGIUNTIVO_SPEC", "PROCEDIMENTO_CAUTELARE", "ATP", "PROCEDIMENTO_SOMMARIO", "CONVALIDA_SFRATTO", "PIGNORAMENTO_MOBILIARE", "PIGNORAMENTO_IMMOBILIARE", "PIGNORAMENTO_PRESSO_TERZI", "OPPOSIZIONE_ESECUZIONE", "OPPOSIZIONE_ATTI_ESECUTIVI", "RICORSO_LAVORO", "APPELLO_LAVORO", "RICORSO_TRIBUTARIO", "APPELLO_TRIBUTARIO", "RICORSO_CASSAZIONE", "CONTRORICORSO", "DIFFIDA", "MEDIAZIONE", "NEGOZIAZIONE_ASSISTITA", "TRANSAZIONE", "RICORSO_TAR", "MOTIVI_AGGIUNTI", "RICORSO_INCIDENTALE", "APPELLO_CONSIGLIO_STATO", "REVOCAZIONE", "OPPOSIZIONE_TERZO", "OTTEMPERANZA"
+- macroArea: uno dei codici macroArea presenti nel JSON fornito
+- procedimento: uno dei codici procedimento presenti nel JSON fornito per la macroArea scelta
 - parteProcessuale: "ATTORE" | "CONVENUTO" | "COMUNE"
-- eventoCode: per CITAZIONE_CIVILE uno tra "NOTIFICA_CITAZIONE", "ISCRIZIONE_RUOLO", "COSTITUZIONE_CONVENUTO", "SLITTAMENTO_UDIENZA", "MEMORIA_171TER_1", "MEMORIA_171TER_2", "MEMORIA_171TER_3", "UDIENZA_ISTRUTTORIA", "UDIENZA_CONCLUSIONI", "NOTE_PRECISAZIONE_CONCLUSIONI", "COMPARSA_CONCLUSIONALE", "MEMORIA_REPLICA", "SENTENZA", "NOTIFICA_SENTENZA"; per altri procedimenti il codice evento coerente. Se incerto, non valorizzare.
-- actionType: (legacy) "CITAZIONE" | "RICORSO_OPPOSIZIONE" | "RICORSO_TRIBUTARIO" | "APPELLO_CIVILE" | "APPELLO_TRIBUTARIO" | "RICORSO_CASSAZIONE"
-- actionMode: (legacy) "COSTITUZIONE" | "DA_NOTIFICARE"
-- inputs: OGGETTO con TUTTE le date estratte, con chiavi esatte: dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione, dataUdienzaComparizione, dataUdienzaRiferimentoMemorie, dataNotificaDecretoIngiuntivo, dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato, dataNotificaAppello, dataNotificaPrecetto, dataNotificaPignoramento; numerici: giorniOpposizione, giorniIscrizioneRuolo, giorniCostituzione; sceltaTermineImpugnazione: "BREVE" | "LUNGO". Date sempre in ISO.
-- notes: opzionale
+- eventoCode: uno dei codici evento (fase) presenti nel JSON fornito per il procedimento e la parte processuale scelti; se davvero incerto, puoi lasciarlo vuoto, ma in generale DEVI scegliere l'opzione più probabile
+- actionType: (legacy) "CITAZIONE" | "RICORSO_OPPOSIZIONE" | "RICORSO_TRIBUTARIO" | "APPELLO_CIVILE" | "APPELLO_TRIBUTARIO" | "RICORSO_CASSAZIONE" (compila solo se riconosci chiaramente la tipologia classica; altrimenti puoi lasciarlo vuoto)
+- actionMode: (legacy) "COSTITUZIONE" | "DA_NOTIFICARE" (compila solo se coerente; altrimenti puoi lasciarlo vuoto)
+- inputs: OGGETTO con TUTTE le date estratte e gli eventuali parametri numerici, usando le chiavi esatte previste dal gestionale quando riconoscibili dal contesto, in particolare:
+  - dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione, dataUdienzaComparizione, dataUdienzaRiferimentoMemorie,
+    dataNotificaDecretoIngiuntivo, dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato,
+    dataNotificaAppello, dataNotificaPrecetto, dataNotificaPignoramento, dataUdienzaIstruttoria, dataUdienzaConclusioni,
+    e tutte le altre chiavi simili presenti nel JSON delle fasi/eventi.
+  - numerici: giorniOpposizione, giorniIscrizioneRuolo, giorniCostituzione;
+  - sceltaTermineImpugnazione: "BREVE" | "LUNGO" se dal testo si capisce che si applica il termine breve (da notifica) o quello lungo (da pubblicazione).
+- notes: opzionale, testo libero con eventuali dubbi o spiegazioni sulla classificazione (non ripetere tutto il documento).
 
 Esempio citazione con due date: testo con "notifica della citazione in data 10 marzo 2025" e "udienza di comparizione fissata per il 15 aprile 2025 alle 9:30" → inputs: { "dataPrimaNotificaCitazione": "2025-03-10", "dataPrimaUdienza": "2025-04-15T09:30:00" }. Il JSON deve essere parsabile.`;
 
@@ -174,14 +188,47 @@ export async function parseDocumentForEvent(formData: FormData): Promise<ParseDo
   }
 
   const openai = new OpenAI({ apiKey });
+  // Contesto strutturato per l'AI: macro aree, procedimenti, parti processuali, fasi/eventi e relative inputKey.
+  const eventiPerProcedimentoForAi: Record<
+    ProcedimentoCode,
+    Array<Pick<EventoDisponibile, "code" | "label" | "inputKey" | "parteProcessuale" | "ordine">>
+  > = {} as any;
+
+  (Object.keys(EVENTI_PER_PROCEDIMENTO) as Array<ProcedimentoCode>).forEach((proc) => {
+    const list = EVENTI_PER_PROCEDIMENTO[proc] ?? [];
+    eventiPerProcedimentoForAi[proc] = list.map((e) => ({
+      code: e.code,
+      label: e.label,
+      inputKey: e.inputKey,
+      parteProcessuale: e.parteProcessuale,
+      ordine: e.ordine,
+    }));
+  });
+
+  const aiContext = {
+    MACRO_AREAS,
+    PROCEDIMENTI_PER_MACRO_AREA,
+    PARTI_PROCESSUALI,
+    EVENTI_PER_PROCEDIMENTO: eventiPerProcedimentoForAi,
+  };
+
+  const baseTextContent = `CONTESTO CATEGORIE (usa SOLO questi codici):
+${JSON.stringify(aiContext, null, 2)}
+
+TESTO DEL DOCUMENTO:
+
+${textToSend.slice(0, 120000)}`;
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: EXTRACT_PROMPT },
     {
       role: "user",
       content: imagePart
-        ? ([{ type: "text", text: textToSend }, imagePart] as OpenAI.Chat.Completions.ChatCompletionContentPart[])
-        : `Testo del documento:\n\n${textToSend.slice(0, 120000)}`,
+        ? ([
+            { type: "text", text: baseTextContent },
+            imagePart,
+          ] as OpenAI.Chat.Completions.ChatCompletionContentPart[])
+        : baseTextContent,
     },
   ];
 
