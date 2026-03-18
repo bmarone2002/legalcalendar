@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { DatePicker } from "./DatePicker";
 import {
   Select,
@@ -113,6 +114,10 @@ export function MacroAreaPanel({
   onEventoChange,
   onInputsChange,
 }: MacroAreaPanelProps) {
+  const CUSTOM_PHASE_CODE = "__CUSTOM_PHASE__";
+  const CUSTOM_PHASE_LABEL_KEY = "faseCustomLabel";
+  const CUSTOM_PHASE_DATE_KEY = "dataFaseCustom";
+
   const procedimenti = macroArea
     ? (PROCEDIMENTI_PER_MACRO_AREA[macroArea] as readonly string[])
     : [];
@@ -132,6 +137,15 @@ export function MacroAreaPanel({
     procedimento && eventoCode
       ? getEventoByCode(procedimento, eventoCode)
       : undefined;
+
+  const faseCustomLabel =
+    typeof inputs[CUSTOM_PHASE_LABEL_KEY] === "string"
+      ? (inputs[CUSTOM_PHASE_LABEL_KEY] as string)
+      : "";
+  const faseCustomDate =
+    typeof inputs[CUSTOM_PHASE_DATE_KEY] === "string"
+      ? (toDateOrNull(inputs[CUSTOM_PHASE_DATE_KEY]) as Date | null)
+      : null;
 
   const handleDateChange = (key: string) => (d: Date | null) => {
     const value = d ? toDateOnlyString(d) : "";
@@ -240,7 +254,7 @@ export function MacroAreaPanel({
       )}
 
       {/* Livello 4: Fase */}
-      {eventiDisponibili.length > 0 && (
+      {macroArea && procedimento && parteProcessuale && (
         <div>
           <Label>Fase</Label>
           <Select
@@ -256,8 +270,44 @@ export function MacroAreaPanel({
                   {ev.label}
                 </SelectItem>
               ))}
+              <SelectItem value={CUSTOM_PHASE_CODE}>Altro (scrivi a mano)</SelectItem>
             </SelectContent>
           </Select>
+
+          {eventoCode === CUSTOM_PHASE_CODE && (
+            <div className="pt-2 border-t border-zinc-200 mt-4 space-y-3">
+              <div>
+                <Label className="text-sm font-semibold text-zinc-700">
+                  Fase (scrivi a mano)
+                </Label>
+                <Input
+                  value={faseCustomLabel}
+                  onChange={(e) =>
+                    onInputsChange({
+                      ...inputs,
+                      [CUSTOM_PHASE_LABEL_KEY]: e.target.value,
+                    })
+                  }
+                  placeholder="Es. Udienza di precisazione / Altro specificare..."
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold text-zinc-700">
+                  Data base fase
+                </Label>
+                <DatePicker
+                  value={faseCustomDate}
+                  onChange={handleDateChange(CUSTOM_PHASE_DATE_KEY)}
+                  placeholder="Inserisci data fase"
+                />
+              </div>
+              <p className="text-xs text-zinc-500">
+                Questa fase non è presente nella tabella: verrà salvata come attività manuale
+                alla data base indicata.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

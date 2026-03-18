@@ -25,6 +25,10 @@ import type {
 } from "@/types/macro-areas";
 import { getEventRulesFor, getEventoByCode } from "@/types/macro-areas";
 
+const CUSTOM_PHASE_CODE = "__CUSTOM_PHASE__";
+const CUSTOM_PHASE_LABEL_KEY = "faseCustomLabel";
+const CUSTOM_PHASE_DATE_KEY = "dataFaseCustom";
+
 function computeDate(
   base: Date,
   direzione: "+" | "-",
@@ -344,6 +348,77 @@ export const dataDrivenRule: RuleDefinition = {
       (inputs.eventoCode as string | undefined);
     if (!eventoCode) {
       return { subEvents: [] };
+    }
+
+    // Supporto “fase scritta a mano”: creiamo almeno un’attività manuale alla data base
+    // indicata, senza dipendere da un code presente nella tabella regole.
+    if (eventoCode === CUSTOM_PHASE_CODE) {
+      const customLabel =
+        typeof inputs[CUSTOM_PHASE_LABEL_KEY] === "string"
+          ? (inputs[CUSTOM_PHASE_LABEL_KEY] as string).trim()
+          : "";
+      const customBaseDateStr =
+        typeof inputs[CUSTOM_PHASE_DATE_KEY] === "string"
+          ? (inputs[CUSTOM_PHASE_DATE_KEY] as string).trim()
+          : "";
+
+      if (!customLabel || !customBaseDateStr) {
+        return { subEvents: [] };
+      }
+
+      const baseDate = new Date(
+        customBaseDateStr.length === 10 ? `${customBaseDateStr}T12:00:00` : customBaseDateStr
+      );
+      if (isNaN(baseDate.getTime())) return { subEvents: [] };
+
+      const inputOffsets = inputs.reminderOffsets as number[] | undefined;
+      const rawOffsets =
+        inputOffsets !== undefined
+          ? inputOffsets
+          : settings.defaultReminderOffsetsAtto ?? [7];
+      const reminderOffsets = rawOffsets.map((d) => (d > 0 ? -d : d));
+
+      const out: SubEventCandidate[] = [];
+      const dueAt = applyDeadlineTime(baseDate, settings);
+
+      out.push({
+        title: customLabel,
+        kind: "attivita",
+        dueAt,
+        status: "pending",
+        priority: 0,
+        ruleId: "data-driven",
+        ruleParams: { customPhase: true },
+        explanation: customLabel,
+        createdBy: "manuale",
+        isPlaceholder: false,
+      });
+
+      for (const daysBefore of reminderOffsets) {
+        if (daysBefore === 0) continue;
+        const offset = daysBefore > 0 ? -daysBefore : daysBefore;
+        const reminderRaw = addDays(baseDate, offset);
+        const reminderAdjusted = adjustToNextBusinessDay(reminderRaw, settings);
+        const reminderAt = applyDeadlineTime(reminderAdjusted, settings);
+
+        out.push({
+          title: `Promemoria (${Math.abs(offset)} gg prima) – ${customLabel}`,
+          kind: "promemoria",
+          dueAt: reminderAt,
+          status: "pending",
+          priority: 0,
+          ruleId: "data-driven",
+          ruleParams: { daysBefore: offset },
+          explanation: `Promemoria ${Math.abs(offset)} giorni prima della fase`,
+          createdBy: "automatico",
+          isPlaceholder: false,
+        });
+      }
+
+      const withDates = out.filter((s) => s.dueAt != null);
+      const placeholders = out.filter((s) => s.dueAt == null);
+      const scheduled = assignTimeSlots(withDates, settings);
+      return { subEvents: [...scheduled, ...placeholders] };
     }
 
     const subEvents = evaluateMultiRowFromEventoCode(
