@@ -361,7 +361,7 @@ assert(noteLibere.length === 2, "MEMORIE LIBERE: 2 memorie libere generate");
 const alertLibere = outMemLib.subEvents.filter((s) =>
   s.kind === "promemoria" && (s.title.includes("Nota integrativa") || s.title.includes("Replica"))
 );
-assert(alertLibere.length === 2, "MEMORIE LIBERE: 2 alert a -5 gg");
+assert(alertLibere.length === 6, "MEMORIE LIBERE: 6 alert (20 gg, 5 gg, 2 gg) per 2 memorie");
 
 // ────────────────────────────────────────────────────────────────────
 // SLOT SCHEDULING: sotto-eventi nello stesso giorno hanno orari diversi
