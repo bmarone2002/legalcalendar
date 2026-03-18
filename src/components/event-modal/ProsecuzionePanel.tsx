@@ -321,6 +321,8 @@ export function ProsecuzionePanel({
   procedimento,
   parteProcessuale,
 }: ProsecuzionePanelProps) {
+  const CUSTOM_PHASE_SENTINEL = "__custom__";
+
   const [rinvii, setRinvii] = useState<Rinvio[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -338,6 +340,12 @@ export function ProsecuzionePanel({
   const [availableEventi, setAvailableEventi] = useState<EventoDisponibile[]>([]);
   const [selectedEventoCode, setSelectedEventoCode] = useState<string>("");
   const [reminderOffsets, setReminderOffsets] = useState<number[]>([]);
+
+  const hasAvailableEventi = availableEventi.length > 0;
+  const isSelectedCustomPhase =
+    selectedEventoCode === CUSTOM_PHASE_SENTINEL ||
+    (selectedEventoCode.trim().length > 0 &&
+      !availableEventi.some((e) => e.code === selectedEventoCode));
 
   const loadRinvii = useCallback(async () => {
     setLoading(true);
@@ -389,14 +397,8 @@ export function ProsecuzionePanel({
   const handleSaveRinvio = async () => {
     setError(null);
 
-    if (!macroArea || !procedimento || !parteProcessuale) {
-      setError(
-        "La prosecuzione è disponibile solo per pratiche con Macro Area, Procedimento e Parte processuale impostati.",
-      );
-      return;
-    }
-    if (!selectedEventoCode) {
-      setError("Selezionare l'evento/fase dalla tabella.");
+    if (!selectedEventoCode || selectedEventoCode === CUSTOM_PHASE_SENTINEL) {
+      setError("Inserisci la fase del giudizio (anche scrivendola a mano).");
       return;
     }
     if (!dataUdienza) {
@@ -429,7 +431,7 @@ export function ProsecuzionePanel({
         tipoUdienzaCustom: labelEvento,
         note: note || null,
         adempimenti: validAdempimenti,
-        eventoCode: selectedEventoCode,
+        eventoCode: selectedEventoCode === CUSTOM_PHASE_SENTINEL ? null : selectedEventoCode,
         reminderOffsets,
       }, targetUserId);
 
@@ -568,27 +570,53 @@ export function ProsecuzionePanel({
           {/* Fase dalla tabella (filtrato per macroArea/procedimento/parte dell'evento madre) */}
           <div>
             <Label className="text-xs">Fase del giudizio</Label>
-            <Select
-              value={selectedEventoCode || "__empty"}
-              onValueChange={(v) => {
-                const val = v === "__empty" ? "" : v;
-                setSelectedEventoCode(val);
-              }}
-            >
-              <SelectTrigger className="bg-white text-sm">
-                <SelectValue placeholder="Seleziona evento/fase..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__empty" disabled>
-                  Seleziona evento/fase...
-                </SelectItem>
-                {availableEventi.map((ev) => (
-                  <SelectItem key={ev.code} value={ev.code}>
-                    {ev.label}
+
+            {hasAvailableEventi ? (
+              <Select
+                value={
+                  isSelectedCustomPhase ? CUSTOM_PHASE_SENTINEL : (selectedEventoCode || "__empty")
+                }
+                onValueChange={(v) => {
+                  if (v === "__empty") {
+                    setSelectedEventoCode("");
+                    return;
+                  }
+                  setSelectedEventoCode(v);
+                }}
+              >
+                <SelectTrigger className="bg-white text-sm">
+                  <SelectValue placeholder="Seleziona evento/fase..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__empty" disabled>
+                    Seleziona evento/fase...
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {availableEventi.map((ev) => (
+                    <SelectItem key={ev.code} value={ev.code}>
+                      {ev.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={CUSTOM_PHASE_SENTINEL}>
+                    Altro (scrivi a mano)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-xs text-zinc-500 mt-1">
+                Nessuna fase in elenco: puoi scriverla manualmente.
+              </p>
+            )}
+
+            {(!hasAvailableEventi || isSelectedCustomPhase) && (
+              <div className="pt-2">
+                <Input
+                  value={selectedEventoCode === CUSTOM_PHASE_SENTINEL ? "" : selectedEventoCode}
+                  onChange={(e) => setSelectedEventoCode(e.target.value)}
+                  placeholder="Scrivi la fase del giudizio…"
+                  className="h-9 text-sm bg-white"
+                />
+              </div>
+            )}
           </div>
 
           {/* Data udienza */}
