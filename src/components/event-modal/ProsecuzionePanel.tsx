@@ -62,6 +62,14 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function normalizeInlineError(err: unknown): string {
+  if (typeof err === "string") return err;
+  if (err && typeof err === "object" && "message" in err && typeof (err as { message: unknown }).message === "string") {
+    return (err as { message: string }).message;
+  }
+  return "Errore durante l'analisi del documento.";
+}
+
 function formatTipoUdienza(r: Rinvio): string {
   if (r.tipoUdienza === "ALTRO" && r.tipoUdienzaCustom) {
     return r.tipoUdienzaCustom;
@@ -502,8 +510,8 @@ export function ProsecuzionePanel({
       } else if (!result.success) {
         setError(result.error ?? "Impossibile analizzare il documento.");
       }
-    } catch {
-      setError("Errore durante l'analisi del documento.");
+    } catch (err) {
+      setError(normalizeInlineError(err));
     } finally {
       setParsingRinvio(false);
       e.target.value = "";

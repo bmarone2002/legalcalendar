@@ -17,7 +17,7 @@ const OPENAI_MODEL = "gpt-4o-mini";
 const SINGLE_PASS_TEXT_LIMIT = 120000;
 const CHUNK_SIZE = 45000;
 const CHUNK_OVERLAP = 3000;
-const MAX_CHUNKS = 6;
+const MAX_CHUNKS = 4;
 const IGNORE_TABLE_LIKE_LINES = true;
 
 /** Risposta strutturata dall'AI per precompilare il form Atto Giuridico */
@@ -151,6 +151,18 @@ function parseJsonFromResponse(content: string): unknown {
   const end = trimmed.lastIndexOf("}") + 1;
   if (start === -1 || end <= start) throw new Error("Nessun JSON trovato nella risposta");
   return JSON.parse(trimmed.slice(start, end)) as unknown;
+}
+
+function getUnknownErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message?.trim()) return error.message;
+  if (typeof error === "string" && error.trim()) return error;
+  try {
+    const asJson = JSON.stringify(error);
+    if (asJson && asJson !== "{}") return asJson;
+  } catch {
+    // ignore JSON stringify failure
+  }
+  return fallback;
 }
 
 function isTableLikeLine(line: string): boolean {
@@ -448,7 +460,7 @@ ${chunk}`;
 
     return { success: true, data: mergeEventResults(partialResults) };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Errore durante l'analisi del documento.";
+    const message = getUnknownErrorMessage(e, "Errore durante l'analisi del documento.");
     return { success: false, error: message };
   }
 }
@@ -575,7 +587,7 @@ export async function parseDocumentForRinvio(formData: FormData): Promise<ParseD
 
     return { success: true, data: mergeRinvioResults(partialResults) };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Errore durante l'analisi del documento.";
+    const message = getUnknownErrorMessage(e, "Errore durante l'analisi del documento.");
     return { success: false, error: message };
   }
 }

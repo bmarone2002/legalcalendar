@@ -1186,8 +1186,8 @@ export function EventModal({
                             } else if (!result.success) {
                               setError(result.error ?? "Impossibile analizzare il documento.");
                             }
-                          } catch {
-                            setError("Errore durante l'analisi del documento.");
+                          } catch (err) {
+                            setError(normalizeDisplayError(err) || "Errore durante l'analisi del documento.");
                           } finally {
                             setParsingDocument(false);
                             e.target.value = "";
