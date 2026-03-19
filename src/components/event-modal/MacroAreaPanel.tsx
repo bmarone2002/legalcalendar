@@ -108,6 +108,15 @@ function getEffectivePartiLabels(
       };
     }
 
+    // Esecuzioni: Pignoramento presso terzi = Creditore/Opponente (mappato su ATTORE/CONVENUTO)
+    if (macroArea === "ESECUZIONI" && procedimento === "PIGNORAMENTO_PRESSO_TERZI") {
+      return {
+        ...base,
+        ATTORE: "Creditore",
+        CONVENUTO: "Opponente",
+      };
+    }
+
     // Civile – contenzioso ordinario: Appello civile = Appellante/Appellato
     if (macroArea === "CIVILE_CONTENZIOSO" && procedimento === "APPELLO_CIVILE") {
       return {

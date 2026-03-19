@@ -699,6 +699,153 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 11,
     },
   ],
+  PIGNORAMENTO_PRESSO_TERZI: [
+    // ATTORE / creditore
+    {
+      code: "NOTIFICA_PRECETTO_PRESO_TERZI",
+      label: "Notifica precetto",
+      inputKey: "dataNotificaPrecettoPressoTerzi",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+    {
+      code: "NOTIFICA_PIGNORAMENTO_PRESO_TERZI",
+      label: "Notifica pignoramento",
+      inputKey: "dataNotificaPrecettoPressoTerzi",
+      parteProcessuale: "ATTORE",
+      ordine: 3,
+    },
+    {
+      code: "ISCRIZIONE_RUOLO_ESECUZIONE_PRESO_TERZI",
+      label: "Iscrizione a ruolo esecuzione",
+      inputKey: "dataUltimaNotificaPignoramentoPressoTerzi",
+      parteProcessuale: "ATTORE",
+      ordine: 4,
+    },
+    {
+      code: "NOTIFICA_AVVENUTA_ISCRIZIONE_RUOLO_TERZO_PRESO_TERZI",
+      label: "Notifica avvenuta iscrizione a ruolo al terzo",
+      inputKey: "dataUdienzaIndicataAttoPignoramentoPressoTerzi",
+      parteProcessuale: "ATTORE",
+      ordine: 6,
+    },
+    {
+      code: "NOTIFICA_ORDINANZA_ASSEGNAZIONE_PRESO_TERZI",
+      label: "Notifica Ordinanza assegnazione",
+      inputKey: "dataOrdinanzaAssegnazionePressoTerzi",
+      parteProcessuale: "ATTORE",
+      ordine: 8,
+    },
+
+    // CONVENUTO / opponente
+    {
+      code: "NOTIFICA_CITAZIONE_OPPOSIZIONE_615_1_PRESO_TERZI",
+      label: "Notifica citazione in opposizione esecuzione 615, comma 1",
+      inputKey: "dataNotificaPrecettoPressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 9,
+    },
+    {
+      code: "DEPOSITO_RICORSO_OPPOSIZIONE_615_2_PRESO_TERZI",
+      label: "Deposito Ricorso in opposizione esecuzione 615, comma 2",
+      inputKey: "dataPrimoAttoEsecuzionePressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 10,
+    },
+    {
+      code: "NOTIFICA_RICORSO_DECRETO_615_2_PRESO_TERZI",
+      label: "Notifica Ricorso e Decreto fissazione udienza di comparizione",
+      inputKey: "dataDecretoFissazioneUdienza615PressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 13,
+    },
+    {
+      code: "NOTIFICA_CITAZIONE_OPPOSIZIONE_ATTI_617_1_PRESO_TERZI",
+      label: "Notifica citazione in opposizione atti 617, comma 1",
+      inputKey: "dataNotificaPrecettoPressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 14,
+    },
+    {
+      code: "DEPOSITO_RICORSO_OPPOSIZIONE_ATTI_617_2_PRESO_TERZI",
+      label: "Deposito Ricorso in opposizione atti 617, comma 2",
+      inputKey: "dataConoscenzaAttoEsecutivoPressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 15,
+    },
+    {
+      code: "NOTIFICA_RICORSO_DECRETO_617_2_PRESO_TERZI",
+      label: "Notifica Ricorso in opposizione atti esecutivi e Decreto fissazione udienza di comparizione",
+      inputKey: "dataDecretoFissazioneUdienza617PressoTerzi",
+      parteProcessuale: "CONVENUTO",
+      ordine: 18,
+    },
+
+    // COMUNE (condivisi)
+    {
+      code: "TERMINE_EFFICACIA_PRECETTO_PRESO_TERZI",
+      label: "Termine efficacia precetto",
+      inputKey: "dataNotificaPrecettoPressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 2,
+    },
+    {
+      code: "UDIENZA_COMPARIZIONE_PRESO_TERZI",
+      label: "Udienza comparizione",
+      inputKey: "dataUdienzaComparizionePressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 5,
+    },
+    {
+      code: "ORDINANZA_ASSEGNAZIONE_PRESO_TERZI",
+      label: "Ordinanza assegnazione",
+      inputKey: "dataOrdinanzaAssegnazionePressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 7,
+    },
+    {
+      code: "UDIENZA_COMPARIZIONE_615_2_PRESO_TERZI",
+      label: "Udienza comparizione",
+      inputKey: "dataUdienzaComparizione615PressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 11,
+    },
+    {
+      code: "DECRETO_FISSAZIONE_UDIENZA_615_2_PRESO_TERZI",
+      label: "Decreto fissazione udienza comparizione (615, c. 2)",
+      inputKey: "dataDepositoRicorso615PressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 12,
+    },
+    {
+      code: "UDIENZA_COMPARIZIONE_617_2_PRESO_TERZI",
+      label: "Udienza comparizione",
+      inputKey: "dataUdienzaComparizione617PressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 16,
+    },
+    {
+      code: "DECRETO_FISSAZIONE_UDIENZA_617_2_PRESO_TERZI",
+      label: "Decreto fissazione udienza comparizione (617, c. 2)",
+      inputKey: "dataDepositoRicorso617PressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 17,
+    },
+    {
+      code: "NOTIFICA_SENTENZA_APPello_PRESO_TERZI",
+      label: "Notifica Sentenza (per calcolare termini Appello)",
+      inputKey: "dataNotificaSentenzaPressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 19,
+    },
+    {
+      code: "DEPOSITO_SENTENZA_APPello_PRESO_TERZI",
+      label: "Deposito Sentenza (per calcolare termini Appello)",
+      inputKey: "dataDepositoSentenzaPressoTerzi",
+      parteProcessuale: "COMUNE",
+      ordine: 20,
+    },
+  ],
   RICORSO_CASSAZIONE: [
     // RICORRENTE
     {
