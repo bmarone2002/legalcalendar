@@ -472,6 +472,54 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 10,
     },
   ],
+  DECRETO_INGIUNTIVO: [
+    // RICORRENTE
+    {
+      code: "DEPOSITO_RICORSO_DI",
+      label: "Deposito ricorso",
+      inputKey: "dataDepositoRicorsoDI",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+    {
+      code: "NOTIFICA_DECRETO_DI",
+      label: "Notifica decreto",
+      inputKey: "dataEmissioneDecreto",
+      parteProcessuale: "ATTORE",
+      ordine: 2,
+    },
+    // INTIMATO
+    {
+      code: "TERMINE_OPPOSIZIONE_DI",
+      label: "Termine opposizione",
+      inputKey: "dataNotificaDecreto",
+      parteProcessuale: "CONVENUTO",
+      ordine: 3,
+    },
+    {
+      code: "NOTIFICA_OPPOSIZIONE_DI",
+      label: "Notifica opposizione al ricorrente",
+      inputKey: "dataNotificaDecreto",
+      parteProcessuale: "CONVENUTO",
+      ordine: 4,
+    },
+    // RICORRENTE
+    {
+      code: "ESECUTIVITA_DECRETO_DI",
+      label: "Esecutività decreto per mancata opposizione",
+      inputKey: "dataScadenzaTermineOpposizione",
+      parteProcessuale: "ATTORE",
+      ordine: 5,
+    },
+    // COMUNE
+    {
+      code: "PONTE_OPPOSIZIONE_DI",
+      label: "Il giudizio di opposizione continua come Procedimento citazione civile",
+      inputKey: "dataNotificaOpposizione",
+      parteProcessuale: "COMUNE",
+      ordine: 6,
+    },
+  ],
   RICORSO_CASSAZIONE: [
     // RICORRENTE
     {

@@ -90,6 +90,15 @@ function getEffectivePartiLabels(
       }
     }
 
+    // Procedimenti speciali: Decreto ingiuntivo = Ricorrente/Intimato
+    if (macroArea === "PROCEDIMENTI_SPECIALI" && procedimento === "DECRETO_INGIUNTIVO") {
+      return {
+        ...base,
+        ATTORE: "Ricorrente",
+        CONVENUTO: "Intimato",
+      };
+    }
+
     // Civile – contenzioso ordinario: Appello civile = Appellante/Appellato
     if (macroArea === "CIVILE_CONTENZIOSO" && procedimento === "APPELLO_CIVILE") {
       return {
