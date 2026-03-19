@@ -199,7 +199,7 @@ export function MacroAreaPanel({
           <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
             <SelectValue placeholder="Seleziona macro area" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-none">
             {MACRO_AREAS.map((ma) => (
               <SelectItem key={ma} value={ma}>
                 {MACRO_AREA_LABELS[ma]}
@@ -220,7 +220,7 @@ export function MacroAreaPanel({
             <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
               <SelectValue placeholder="Seleziona procedimento" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-none">
               {procedimenti.map((p) => (
                 <SelectItem key={p} value={p}>
                   {PROCEDIMENTO_LABELS[p as ProcedimentoCode] ?? p}
@@ -242,7 +242,7 @@ export function MacroAreaPanel({
             <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
               <SelectValue placeholder="Seleziona parte" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-none">
               {selectableParti.map((p) => (
                 <SelectItem key={p} value={p}>
                   {partiLabels?.[p] ?? p}
@@ -287,7 +287,7 @@ export function MacroAreaPanel({
               <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
                 <SelectValue placeholder="*Fase non individuata (seleziona)*" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-none">
                 {eventiDisponibili.map((ev) => (
                   <SelectItem key={ev.code} value={ev.code}>
                     {ev.label}
