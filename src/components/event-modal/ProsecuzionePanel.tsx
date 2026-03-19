@@ -393,13 +393,15 @@ export function ProsecuzionePanel({
   const handleSaveRinvio = async () => {
     setError(null);
 
-    const effectiveEventoCode =
-      selectedEventoCode === MANUALE_CODE ? faseManuale.trim() : selectedEventoCode.trim();
+    const isManualFase = availableEventi.length === 0 || selectedEventoCode === MANUALE_CODE;
+    const effectiveEventoCode = isManualFase
+      ? faseManuale.trim()
+      : selectedEventoCode.trim();
 
     if (!effectiveEventoCode) {
       setError(
-        selectedEventoCode === MANUALE_CODE
-          ? "Inserire la fase manuale"
+        isManualFase
+          ? "Inserire il nome della fase"
           : "Selezionare l'evento/fase dalla tabella o inserire una fase manuale."
       );
       return;
@@ -570,48 +572,59 @@ export function ProsecuzionePanel({
             </Button>
           </div>
 
-          {/* Fase dalla tabella (filtrato per macroArea/procedimento/parte dell'evento madre) */}
+          {/* Fase del giudizio: input diretto se non ci sono fasi predefinite, altrimenti dropdown con possibilita' di scrivere a mano */}
           <div>
             <Label className="text-xs">Fase del giudizio</Label>
-            <Select
-              value={selectedEventoCode || "__empty"}
-              onValueChange={(v) => {
-                const val = v === "__empty" ? "" : v;
-                setSelectedEventoCode(val);
-                if (val !== MANUALE_CODE) {
-                  setFaseManuale("");
-                }
-              }}
-            >
-              <SelectTrigger className="bg-white text-sm">
-                <SelectValue placeholder="Seleziona evento/fase..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__empty" disabled>
-                  Seleziona evento/fase...
-                </SelectItem>
-                {availableEventi.map((ev) => (
-                  <SelectItem key={ev.code} value={ev.code}>
-                    {ev.label}
+            {availableEventi.length === 0 || selectedEventoCode === MANUALE_CODE ? (
+              <>
+                <Input
+                  value={faseManuale}
+                  onChange={(e) => setFaseManuale(e.target.value)}
+                  placeholder="Es. Udienza successiva / Termine di deposito..."
+                  className="h-8 text-sm bg-white"
+                  autoFocus={selectedEventoCode === MANUALE_CODE}
+                />
+                {availableEventi.length > 0 && (
+                  <button
+                    type="button"
+                    className="text-xs text-[var(--navy)] hover:underline mt-1"
+                    onClick={() => {
+                      setSelectedEventoCode("");
+                      setFaseManuale("");
+                    }}
+                  >
+                    &larr; Torna alla lista
+                  </button>
+                )}
+              </>
+            ) : (
+              <Select
+                value={selectedEventoCode || "__empty"}
+                onValueChange={(v) => {
+                  const val = v === "__empty" ? "" : v;
+                  setSelectedEventoCode(val);
+                  if (val !== MANUALE_CODE) {
+                    setFaseManuale("");
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-white text-sm">
+                  <SelectValue placeholder="Seleziona evento/fase..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__empty" disabled>
+                    Seleziona evento/fase...
                   </SelectItem>
-                ))}
-                <SelectItem value={MANUALE_CODE}>Altro (scrivi fase manualmente)</SelectItem>
-              </SelectContent>
-            </Select>
+                  {availableEventi.map((ev) => (
+                    <SelectItem key={ev.code} value={ev.code}>
+                      {ev.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={MANUALE_CODE}>Altro (scrivi fase manualmente)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
-
-          {/* Input fase manuale (utile quando non ci sono fasi predefinite o la pratica non mappa correttamente) */}
-          {selectedEventoCode === MANUALE_CODE && (
-            <div>
-              <Label className="text-xs">Fase manuale</Label>
-              <Input
-                value={faseManuale}
-                onChange={(e) => setFaseManuale(e.target.value)}
-                placeholder="Es. Udienza successiva / Termine di deposito..."
-                className="h-8 text-sm"
-              />
-            </div>
-          )}
 
           {/* Data udienza */}
           <div>

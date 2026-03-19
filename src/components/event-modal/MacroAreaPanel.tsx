@@ -172,6 +172,8 @@ export function MacroAreaPanel({
 
   const isEventoCodeKnown =
     !!eventoCode && eventiDisponibili.some((ev) => ev.code === eventoCode);
+  const isManualMode = !!eventoCode && !isEventoCodeKnown;
+  const dataManuale = toDateOrNull(inputs["dataManuale"]);
   const dataNotificaCitazione = toDateOrNull(inputs["dataPrimaNotificaCitazione"]);
   const dataPrimaUdienza = toDateOrNull(inputs["dataPrimaUdienza"]);
   const dataUdienzaComparizione = toDateOrNull(inputs["dataUdienzaComparizione"]);
@@ -249,45 +251,55 @@ export function MacroAreaPanel({
       {(macroArea && procedimento && parteProcessuale) && (
         <div>
           <Label>Fase</Label>
-          <Select
-            value={eventoCode ?? ""}
-            onValueChange={(v) => onEventoChange(v)}
-          >
-            <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-              <SelectValue placeholder="*Fase non individuata (seleziona)*" />
-            </SelectTrigger>
-            <SelectContent>
-              {eventiDisponibili.map((ev) => (
-                <SelectItem key={ev.code} value={ev.code}>
-                  {ev.label}
-                </SelectItem>
-              ))}
-              {/* Opzione libera: serve per casi in cui per quella macro/procedimento/parte non esistono fasi predefinite */}
-              <SelectItem value={MANUALE_CODE}>Altro (scrivi fase manualmente)</SelectItem>
-              {/* Se l'utente ha salvato una fase manuale (valore non presente in lista), mostriamola anche nel dropdown */}
-              {!!eventoCode && !isEventoCodeKnown && eventoCode !== MANUALE_CODE && (
-                <SelectItem value={eventoCode}>
-                  Fase manuale: {eventoCode}
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-
-          {/* Campo libero: mostrato se l'utente ha selezionato la modalità manuale oppure se ha già inserito un valore non trovato in lista */}
-          {(eventoCode === MANUALE_CODE ||
-            (!!eventoCode && !isEventoCodeKnown)) && (
-            <div className="pt-2">
-              <Label className="text-sm font-medium text-zinc-700">
-                Fase manuale
-              </Label>
+          {isManualMode ? (
+            <>
               <Input
                 value={eventoCode === MANUALE_CODE ? "" : eventoCode ?? ""}
                 onChange={(e) => onEventoChange(e.target.value || MANUALE_CODE)}
                 placeholder="Es. Udienza successiva / Termine di deposito..."
-                className="mt-1"
+                className="bg-white border-zinc-200 text-zinc-900"
+                autoFocus
               />
-            </div>
+              {eventiDisponibili.length > 0 && (
+                <button
+                  type="button"
+                  className="text-xs text-[var(--navy)] hover:underline mt-1"
+                  onClick={() => onEventoChange("")}
+                >
+                  &larr; Torna alla lista
+                </button>
+              )}
+            </>
+          ) : (
+            <Select
+              value={eventoCode ?? ""}
+              onValueChange={(v) => onEventoChange(v)}
+            >
+              <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
+                <SelectValue placeholder="*Fase non individuata (seleziona)*" />
+              </SelectTrigger>
+              <SelectContent>
+                {eventiDisponibili.map((ev) => (
+                  <SelectItem key={ev.code} value={ev.code}>
+                    {ev.label}
+                  </SelectItem>
+                ))}
+                <SelectItem value={MANUALE_CODE}>Altro (scrivi fase manualmente)</SelectItem>
+              </SelectContent>
+            </Select>
           )}
+        </div>
+      )}
+
+      {/* Data per fase manuale */}
+      {isManualMode && macroArea && procedimento && parteProcessuale && (
+        <div className="pt-2 border-t border-zinc-200">
+          <Label className="text-sm font-semibold text-zinc-700">Data</Label>
+          <DatePicker
+            value={dataManuale}
+            onChange={handleDateChange("dataManuale")}
+            placeholder="Inserisci data"
+          />
         </div>
       )}
 

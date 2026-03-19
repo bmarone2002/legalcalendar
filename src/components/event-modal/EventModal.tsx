@@ -182,6 +182,7 @@ function getPrimaryDateFromInputs(inputs: Record<string, unknown>): Date | null 
     "dataNotificaAppello",
     "dataNotificaSentenzaTributaria",
     "dataPubblicazioneSentenzaTributaria",
+    "dataManuale",
   ];
   for (const key of dateKeys) {
     const v = inputs[key];
@@ -659,7 +660,7 @@ export function EventModal({
                 ? soloDataPrimaUdienza
                   ? "Inserisci la Data prima udienza, poi clicca Calcola."
                   : "Inserisci la data dell'evento e la Data prima udienza, poi clicca Calcola."
-                : "Seleziona macro area, procedimento, parte, evento e inserisci la data base (es. data udienza) prima di calcolare. Calcola genera tutte le fasi future dalla fase scelta."
+                : "Seleziona macro area, procedimento, parte e fase, poi inserisci la data prima di procedere."
         );
         return;
       }
@@ -728,11 +729,18 @@ export function EventModal({
           (form.ruleTemplateId === "atto-giuridico" || form.ruleTemplateId === "data-driven") &&
           form.macroType === "ATTO_GIURIDICO"
         ) {
-          setError(
-            form.procedimento === "CITAZIONE_CIVILE" && form.eventoCode === "NOTIFICA_CITAZIONE"
-              ? "Inserisci entrambe le date (Notifica citazione e Data prima udienza) e clicca Calcola."
-              : "Inserire la data base per la fase selezionata (es. data prima udienza) per calcolare le fasi successive dalla tabella."
-          );
+          const isManualEvento =
+            form.eventoCode === "__MANUALE__" ||
+            (!!form.eventoCode && !/^[A-Z][A-Z0-9_]*$/.test(form.eventoCode));
+          if (isManualEvento) {
+            setError(null);
+          } else {
+            setError(
+              form.procedimento === "CITAZIONE_CIVILE" && form.eventoCode === "NOTIFICA_CITAZIONE"
+                ? "Inserisci entrambe le date (Notifica citazione e Data prima udienza) e clicca Calcola."
+                : "Inserire la data base per la fase selezionata (es. data prima udienza) per calcolare le fasi successive dalla tabella."
+            );
+          }
         } else {
           setError(
             !result.success
