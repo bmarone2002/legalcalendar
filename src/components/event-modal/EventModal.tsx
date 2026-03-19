@@ -604,10 +604,6 @@ export function EventModal({
       if (form.macroType === "ATTO_GIURIDICO" && form.ruleTemplateId === "data-driven") {
       const isNotificaCitazione =
         form.procedimento === "CITAZIONE_CIVILE" && form.eventoCode === "NOTIFICA_CITAZIONE";
-      const isCostituzioneConvenutoConDueDate =
-        form.procedimento === "CITAZIONE_CIVILE" &&
-        form.parteProcessuale === "CONVENUTO" &&
-        form.eventoCode === "COSTITUZIONE_CONVENUTO";
       const eventiConDataPrimaUdienza = new Set([
         "NOTIFICA_CITAZIONE",
         "ISCRIZIONE_RUOLO",
@@ -624,11 +620,9 @@ export function EventModal({
       const hasDataPrimaUdienza =
         typeof form.inputs?.dataPrimaUdienza === "string" &&
         String(form.inputs.dataPrimaUdienza).trim().length > 0;
-      const hasDataUdienzaComparizione =
-        typeof form.inputs?.dataUdienzaComparizione === "string" &&
-        String(form.inputs.dataUdienzaComparizione).trim().length > 0;
       const soloDataPrimaUdienza = new Set([
         "ISCRIZIONE_RUOLO",
+        "COSTITUZIONE_CONVENUTO",
         "SLITTAMENTO_UDIENZA",
         "MEMORIA_171TER_1",
         "MEMORIA_171TER_2",
@@ -638,9 +632,7 @@ export function EventModal({
         ? typeof form.inputs?.dataPrimaNotificaCitazione === "string" &&
           String(form.inputs.dataPrimaNotificaCitazione).trim().length > 0 &&
           hasDataPrimaUdienza
-        : isCostituzioneConvenutoConDueDate
-          ? hasDataUdienzaComparizione && hasDataPrimaUdienza
-          : richiedeDataPrimaUdienza
+        : richiedeDataPrimaUdienza
             ? soloDataPrimaUdienza
               ? hasDataPrimaUdienza
               : hasDataPrimaUdienza &&
@@ -654,9 +646,7 @@ export function EventModal({
         setError(
           isNotificaCitazione
             ? "Inserisci entrambe le date: Notifica atto di citazione e Data prima udienza, poi clicca Calcola."
-            : isCostituzioneConvenutoConDueDate
-              ? "Inserisci entrambe le date: Data udienza di comparizione e Data prima udienza, poi clicca Calcola."
-              : richiedeDataPrimaUdienza
+            : richiedeDataPrimaUdienza
                 ? soloDataPrimaUdienza
                   ? "Inserisci la Data prima udienza, poi clicca Calcola."
                   : "Inserisci la data dell'evento e la Data prima udienza, poi clicca Calcola."

@@ -202,8 +202,8 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     { code: "NOTIFICA_CITAZIONE", label: "Notifica atto di citazione", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 1 },
     { code: "ISCRIZIONE_RUOLO", label: "Iscrizione a ruolo / Costituzione attore", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 2 },
 
-    // CONVENUTO: data udienza di comparizione → Costituzione convenuto (-70 gg); data prima udienza → Prima udienza + Memorie
-    { code: "COSTITUZIONE_CONVENUTO", label: "Costituzione convenuto", inputKey: "dataUdienzaComparizione", parteProcessuale: "CONVENUTO", ordine: 3 },
+    // CONVENUTO: data prima udienza → Costituzione convenuto (-70 gg)
+    { code: "COSTITUZIONE_CONVENUTO", label: "Costituzione convenuto", inputKey: "dataPrimaUdienza", parteProcessuale: "CONVENUTO", ordine: 3 },
 
     // COMUNE (eventi condivisi tra le parti)
     { code: "SLITTAMENTO_UDIENZA", label: "Prima udienza", inputKey: "dataPrimaUdienza", parteProcessuale: "COMUNE", ordine: 4 },
