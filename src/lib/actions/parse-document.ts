@@ -216,6 +216,86 @@ function normalizeAndFilterText(raw: string): string {
   return out.join("\n");
 }
 
+function toIsoDateOnly(value: string): string | null {
+  const v = value.trim();
+  if (!v) return null;
+
+  const iso = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  const ita = v.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/);
+  if (ita) {
+    const d = ita[1].padStart(2, "0");
+    const m = ita[2].padStart(2, "0");
+    return `${ita[3]}-${m}-${d}`;
+  }
+
+  const parsed = new Date(v);
+  if (isNaN(parsed.getTime())) return null;
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+}
+
+function collectExplicitDatesFromText(text: string): Set<string> {
+  const found = new Set<string>();
+
+  // 2026-06-30 o 2026/06/30
+  for (const m of text.matchAll(/\b(\d{4})[/-](\d{2})[/-](\d{2})\b/g)) {
+    found.add(`${m[1]}-${m[2]}-${m[3]}`);
+  }
+
+  // 30/06/2026, 30.06.2026, 30-06-2026
+  for (const m of text.matchAll(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{4})\b/g)) {
+    const d = m[1].padStart(2, "0");
+    const mo = m[2].padStart(2, "0");
+    found.add(`${m[3]}-${mo}-${d}`);
+  }
+
+  // 30 giugno 2026 / 30 Giugno 2026
+  const monthMap: Record<string, string> = {
+    gennaio: "01",
+    febbraio: "02",
+    marzo: "03",
+    aprile: "04",
+    maggio: "05",
+    giugno: "06",
+    luglio: "07",
+    agosto: "08",
+    settembre: "09",
+    ottobre: "10",
+    novembre: "11",
+    dicembre: "12",
+  };
+  for (const m of text.matchAll(/\b(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/gi)) {
+    const d = m[1].padStart(2, "0");
+    const mo = monthMap[m[2].toLowerCase()];
+    if (mo) found.add(`${m[3]}-${mo}-${d}`);
+  }
+
+  return found;
+}
+
+function sanitizeExtractedInputsWithSourceText(
+  inputs: Record<string, unknown> | undefined,
+  sourceText: string,
+): Record<string, unknown> {
+  if (!inputs || typeof inputs !== "object") return {};
+  const explicitDates = collectExplicitDatesFromText(sourceText);
+  if (explicitDates.size === 0) return { ...inputs };
+
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(inputs)) {
+    if (!key.startsWith("data") || typeof value !== "string") {
+      out[key] = value;
+      continue;
+    }
+    const isoDate = toIsoDateOnly(value);
+    if (!isoDate || explicitDates.has(isoDate)) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 function chunkText(text: string, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP, maxChunks = MAX_CHUNKS): string[] {
   if (!text.trim()) return [];
   if (text.length <= chunkSize) return [text];
@@ -403,6 +483,10 @@ ${textToSend.slice(0, SINGLE_PASS_TEXT_LIMIT)}`;
       }
 
       const parsed = parseJsonFromResponse(raw) as Record<string, unknown>;
+      const sanitizedInputs = sanitizeExtractedInputsWithSourceText(
+        (parsed.inputs ?? {}) as Record<string, unknown>,
+        textToSend.slice(0, SINGLE_PASS_TEXT_LIMIT),
+      );
       const validated = parsedDocumentSchema.safeParse({
         title: parsed.title ?? "",
         description: parsed.description ?? "",
@@ -413,7 +497,7 @@ ${textToSend.slice(0, SINGLE_PASS_TEXT_LIMIT)}`;
         eventoCode: parsed.eventoCode ?? undefined,
         actionType: parsed.actionType ?? undefined,
         actionMode: parsed.actionMode ?? undefined,
-        inputs: parsed.inputs ?? {},
+        inputs: sanitizedInputs,
         notes: parsed.notes ?? "",
       });
 
@@ -455,6 +539,10 @@ ${chunk}`;
       if (!raw) continue;
 
       const parsed = parseJsonFromResponse(raw) as Record<string, unknown>;
+      const sanitizedInputs = sanitizeExtractedInputsWithSourceText(
+        (parsed.inputs ?? {}) as Record<string, unknown>,
+        chunk,
+      );
       const validated = parsedDocumentSchema.safeParse({
         title: parsed.title ?? "",
         description: parsed.description ?? "",
@@ -465,7 +553,7 @@ ${chunk}`;
         eventoCode: parsed.eventoCode ?? undefined,
         actionType: parsed.actionType ?? undefined,
         actionMode: parsed.actionMode ?? undefined,
-        inputs: parsed.inputs ?? {},
+        inputs: sanitizedInputs,
         notes: parsed.notes ?? "",
       });
 
