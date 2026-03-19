@@ -60,6 +60,9 @@ ATTENZIONE SU TABELLE E TESTI LUNGHI:
 - Ignora informazioni puramente contabili o ripetitive che non servono a classificare macroArea/procedimento/fase o a valorizzare i campi data processuali.
 - Se il documento è parziale (chunk di un file più lungo), non inventare dati mancanti: compila solo ciò che è presente nel testo ricevuto.
 - Mantieni coerenza tra fase scelta e date estratte: inserisci solo chiavi input che trovi davvero nel testo.
+- DIVIETO ASSOLUTO: NON inventare MAI date, orari, codici R.G., parti, eventoCode o inputKey non presenti nel testo.
+- Se una data non è espressamente leggibile nel documento, NON compilare quella chiave in "inputs".
+- Non usare date di esempio, placeholder, default o "probabili". Nessuna inferenza di data da prassi ("tipicamente", "presumibilmente", ecc.).
 
 PASSI OBBLIGATORI:
 1) MACRO AREA e PROCEDIMENTO: dal tipo di atto (citazione, ricorso, opposizione, decreto ingiuntivo, appello, ecc.) e dall’autorità (Tribunale, GIP, TAR, ecc.) determina la macroArea e il procedimento più coerenti scegliendo tra quelli forniti.
@@ -67,6 +70,7 @@ PASSI OBBLIGATORI:
 3) FASE / EVENTO (eventoCode): individua la FASE processuale a cui si riferisce il documento (notifica citazione, prima udienza, memorie 171-ter, udienza istruttoria, conclusioni, sentenza, notifica sentenza, ecc.) e scegli l'eventoCode più adatto tra quelli previsti per quel procedimento e quella parte processuale nel JSON (EVENTI_PER_PROCEDIMENTO). Scegli SEMPRE l'evento più probabile anche se hai un minimo margine di dubbio.
 4) DATE: cerca OGNI data nel testo (gg/mm/aaaa, "il 15 marzo 2025", "udienza del 20.04.2025", "notifica in data 10/03/2025"). Converti SEMPRE in ISO: YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss. Assegna ogni data alla chiave corretta in "inputs".
    - Se per una determinata fase del procedimento il gestionale prevede PIÙ CAMPI DATA distinti (es. notifica + udienza di comparizione + prima udienza), devi compilare TUTTI i campi che riesci a riconoscere dal testo, non solo uno.
+   - Se non trovi una data in forma esplicita nel testo, lascia la chiave assente in "inputs" (non usare null fittizi né date inventate).
 
 REGOLA CRITICA – DUE DATE PER CITAZIONE CIVILE (Notifica citazione):
 Se il procedimento è CITAZIONE_CIVILE e l’evento è NOTIFICA_CITAZIONE (o il documento parla di notifica della citazione e di udienza di comparizione), nel documento ci sono DUE date da distinguere e inserire in inputs:
@@ -390,7 +394,7 @@ ${textToSend.slice(0, SINGLE_PASS_TEXT_LIMIT)}`;
           },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.2,
+        temperature: 0,
       });
 
       const raw = completion.choices[0]?.message?.content?.trim();
@@ -444,7 +448,7 @@ ${chunk}`;
           { role: "user", content: chunkPrompt },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.2,
+        temperature: 0,
       });
 
       const raw = completion.choices[0]?.message?.content?.trim();

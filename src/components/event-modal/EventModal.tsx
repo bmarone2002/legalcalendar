@@ -1180,7 +1180,9 @@ export function EventModal({
                                 ...(aiParte ? { parteProcessuale: aiParte } : legacyParte ? { parteProcessuale: legacyParte } : {}),
                                 ...(aiEventoCode && { eventoCode: aiEventoCode }),
                                 ...((aiMacroArea || legacyMapping) && { ruleTemplateId: "data-driven" }),
-                                ...(Object.keys(mergedInputs).length > 0 && { inputs: mergedInputs }),
+                                // Mantiene i campi data visibili nel pannello ma evita valori residui da precedenti analisi.
+                                // Se l'AI non trova date, inputs resta semplicemente vuoto e l'utente può compilare manualmente.
+                                inputs: mergedInputs,
                               }));
                               setError(null);
                             } else if (!result.success) {
