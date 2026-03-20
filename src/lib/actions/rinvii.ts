@@ -10,7 +10,9 @@ import type {
   CreateRinvioInput,
   UpdateRinvioInput,
   TipoUdienza,
+  LinkedEventSpec,
 } from "@/types/rinvio";
+import { computeLinkedEventDueAt } from "@/lib/linked-events";
 import { TIPO_UDIENZA_LABELS, DEFAULT_GIORNI_ALERT_UDIENZA } from "@/types/rinvio";
 import type { ActionResult } from "./events";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
@@ -48,7 +50,7 @@ function toRinvio(r: {
   adempimenti: string;
   createdAt: Date;
   updatedAt: Date;
-}, reminderOffsets?: number[]): Rinvio {
+}, reminderOffsets?: number[], linkedEvents?: LinkedEventSpec[]): Rinvio {
   return {
     id: r.id,
     parentEventId: r.parentEventId,
@@ -59,6 +61,7 @@ function toRinvio(r: {
     note: r.note,
     adempimenti: parseAdempimenti(r.adempimenti),
     reminderOffsets,
+    linkedEvents,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   };
@@ -119,6 +122,7 @@ async function generateSubEventsForRinvio(
   adempimenti: Adempimento[],
   selectedEventoCode?: string | null,
   reminderOffsetsFromInput?: number[] | null,
+  linkedEventsFromInput?: LinkedEventSpec[] | null,
 ): Promise<void> {
   const settings = await getSettings();
   const udienzaLabel = resolveUdienzaLabel(
@@ -165,6 +169,33 @@ async function generateSubEventsForRinvio(
       ruleParams: JSON.stringify({ rinvioId, tipo: "udienza" }),
       explanation: `Promemoria ${daysBefore} giorni prima dell'udienza`,
       createdBy: "automatico",
+      locked: false,
+    });
+  }
+
+  for (const le of linkedEventsFromInput ?? []) {
+    const title = le.title.trim();
+    if (!title) continue;
+    const dueAt = computeLinkedEventDueAt(
+      udienzaInfo.dataUdienza,
+      le.offsetDays,
+      settings,
+    );
+    batch.push({
+      parentEventId,
+      title,
+      kind: "attivita",
+      dueAt,
+      status: "pending",
+      priority: 0,
+      ruleId: RINVIO_RULE_ID,
+      ruleParams: JSON.stringify({
+        rinvioId,
+        tipo: "evento-collegato",
+        offsetDays: le.offsetDays,
+      }),
+      explanation: `Evento collegato al rinvio (${le.offsetDays >= 0 ? "+" : ""}${le.offsetDays} gg dalla data udienza)`,
+      createdBy: "manuale",
       locked: false,
     });
   }
@@ -352,6 +383,30 @@ export async function getRinviiByEventId(
       select: { title: true, kind: true, ruleParams: true },
     });
 
+    const linkedEventsByRinvioId = new Map<string, LinkedEventSpec[]>();
+    for (const s of subEvents) {
+      if (s.kind !== "attivita") continue;
+      if (!s.ruleParams) continue;
+      let params: Record<string, unknown> | null = null;
+      try {
+        params = JSON.parse(s.ruleParams) as Record<string, unknown>;
+      } catch {
+        params = null;
+      }
+      if (!params || params.tipo !== "evento-collegato") continue;
+      const rinvioId = params.rinvioId;
+      if (typeof rinvioId !== "string") continue;
+      const offsetDays = Number(params.offsetDays);
+      if (!Number.isFinite(offsetDays)) continue;
+      const spec: LinkedEventSpec = {
+        title: s.title ?? "",
+        offsetDays,
+      };
+      const cur = linkedEventsByRinvioId.get(rinvioId) ?? [];
+      cur.push(spec);
+      linkedEventsByRinvioId.set(rinvioId, cur);
+    }
+
     const reminderOffsetsByRinvioId = new Map<string, number[]>();
     for (const s of subEvents) {
       if (s.kind !== "promemoria") continue;
@@ -386,7 +441,13 @@ export async function getRinviiByEventId(
 
     return {
       success: true,
-      data: rinvii.map((r) => toRinvio(r, reminderOffsetsByRinvioId.get(r.id))),
+      data: rinvii.map((r) =>
+        toRinvio(
+          r,
+          reminderOffsetsByRinvioId.get(r.id),
+          linkedEventsByRinvioId.get(r.id),
+        ),
+      ),
     };
   } catch (e) {
     return {
@@ -435,6 +496,7 @@ export async function createRinvio(
       data.adempimenti,
       data.eventoCode,
       data.reminderOffsets ?? null,
+      data.linkedEvents ?? null,
     );
 
     return { success: true, data: toRinvio(rinvio) };
@@ -480,7 +542,9 @@ export async function updateRinvio(
       data.adempimenti != null ||
       data.dataUdienza != null ||
       data.tipoUdienza != null ||
-      data.tipoUdienzaCustom !== undefined;
+      data.tipoUdienzaCustom !== undefined ||
+      data.reminderOffsets !== undefined ||
+      data.linkedEvents !== undefined;
 
     if (needsRegeneration) {
       await deleteSubEventsForRinvio(existing.parentEventId, id);
@@ -494,7 +558,8 @@ export async function updateRinvio(
         },
         parseAdempimenti(rinvio.adempimenti),
         undefined,
-        (data as { reminderOffsets?: number[] }).reminderOffsets ?? null,
+        data.reminderOffsets ?? null,
+        data.linkedEvents ?? null,
       );
     }
 

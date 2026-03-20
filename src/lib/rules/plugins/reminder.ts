@@ -1,5 +1,6 @@
 import type { RuleDefinition } from "../types";
 import { addDays, setHours, setMinutes } from "date-fns";
+import { buildLinkedEventCandidates, parseLinkedEvents } from "@/lib/linked-events";
 
 function parseTime(timeStr: string): { hours: number; minutes: number } {
   const [h, m] = timeStr.split(":").map(Number);
@@ -41,6 +42,29 @@ export const reminderRule: RuleDefinition = {
         createdBy: "automatico" as const,
       };
     });
-    return { subEvents };
+
+    const mergedInputs = {
+      ...(input.userSelections ?? {}),
+      ...(input.event.inputs ?? {}),
+    } as Record<string, unknown>;
+    const linkedSpecs = parseLinkedEvents(mergedInputs.linkedEvents);
+    const refAtMidday = new Date(
+      eventStart.getFullYear(),
+      eventStart.getMonth(),
+      eventStart.getDate(),
+      12,
+      0,
+      0,
+      0,
+    );
+    const linked = buildLinkedEventCandidates(
+      linkedSpecs,
+      refAtMidday,
+      input.settings,
+      "reminder",
+      {},
+    );
+
+    return { subEvents: [...subEvents, ...linked] };
   },
 };

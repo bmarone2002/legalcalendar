@@ -36,6 +36,7 @@ import type {
   Adempimento,
   TipoUdienza,
   AdempimentoSuggerito,
+  LinkedEventSpec,
 } from "@/types/rinvio";
 import type {
   MacroAreaCode,
@@ -375,6 +376,7 @@ export function ProsecuzionePanel({
   const [selectedEventoCode, setSelectedEventoCode] = useState<string>("");
   const [faseManuale, setFaseManuale] = useState<string>("");
   const [reminderOffsets, setReminderOffsets] = useState<number[]>([]);
+  const [linkedEvents, setLinkedEvents] = useState<LinkedEventSpec[]>([]);
 
   const loadRinvii = useCallback(async () => {
     setLoading(true);
@@ -408,6 +410,7 @@ export function ProsecuzionePanel({
     setSelectedEventoCode("");
     setFaseManuale("");
     setReminderOffsets([]);
+    setLinkedEvents([]);
     setEditingRinvioId(null);
     setShowForm(false);
     setError(null);
@@ -474,6 +477,7 @@ export function ProsecuzionePanel({
             note: note || null,
             adempimenti: validAdempimenti,
             reminderOffsets,
+            linkedEvents,
           },
           targetUserId
         );
@@ -501,6 +505,7 @@ export function ProsecuzionePanel({
           adempimenti: validAdempimenti,
           eventoCode: effectiveEventoCode,
           reminderOffsets,
+          linkedEvents,
         },
         targetUserId
       );
@@ -589,6 +594,7 @@ export function ProsecuzionePanel({
     setNote(r.note ?? "");
 
     setReminderOffsets(r.reminderOffsets ?? []);
+    setLinkedEvents(r.linkedEvents ?? []);
 
     // Ricostruzione “fase/evento” dalla label salvata (tipoUdienzaCustom).
     const labelEvento = r.tipoUdienzaCustom ?? "";
@@ -880,17 +886,105 @@ export function ProsecuzionePanel({
                 </button>
               </div>
             ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setReminderOffsets((prev) => [...prev, DEFAULT_GIORNI_ALERT_UDIENZA])
-              }
-              className="mt-1 h-7 text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-50"
-            >
-              + Aggiungi promemoria udienza
-            </Button>
+            <div className="flex flex-wrap gap-2 mt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setReminderOffsets((prev) => [...prev, DEFAULT_GIORNI_ALERT_UDIENZA])
+                }
+                className="h-7 text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+              >
+                + Aggiungi promemoria udienza
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setLinkedEvents((prev) => [...prev, { title: "", offsetDays: 7 }])
+                }
+                className="h-7 text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+              >
+                + Aggiungi evento collegato
+              </Button>
+            </div>
+            {linkedEvents.length > 0 && (
+              <div className="space-y-2 pt-1 border-t border-zinc-100">
+                <Label className="text-xs font-medium text-zinc-700">
+                  Eventi collegati (data = data udienza di questo rinvio)
+                </Label>
+                <p className="text-[11px] text-zinc-500">
+                  Titolo a scelta; giorni ± dalla data udienza (stesse regole sui festivi dei promemoria).
+                </p>
+                {linkedEvents.map((row, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2">
+                    <Input
+                      className="h-8 min-w-[140px] flex-1 text-sm"
+                      placeholder="Titolo"
+                      value={row.title}
+                      onChange={(e) =>
+                        setLinkedEvents((prev) => {
+                          const next = [...prev];
+                          next[i] = { ...next[i], title: e.target.value };
+                          return next;
+                        })
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLinkedEvents((prev) => {
+                          const next = [...prev];
+                          next[i] = {
+                            ...next[i],
+                            offsetDays: Math.max(-365, next[i].offsetDays - 1),
+                          };
+                          return next;
+                        })
+                      }
+                      className="h-7 w-7 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                      aria-label="Diminuisci giorni"
+                    >
+                      −
+                    </button>
+                    <span className="w-11 text-center text-xs font-medium text-zinc-900 select-none tabular-nums">
+                      {row.offsetDays >= 0 ? "+" : ""}
+                      {row.offsetDays}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLinkedEvents((prev) => {
+                          const next = [...prev];
+                          next[i] = {
+                            ...next[i],
+                            offsetDays: Math.min(365, next[i].offsetDays + 1),
+                          };
+                          return next;
+                        })
+                      }
+                      className="h-7 w-7 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                      aria-label="Aumenta giorni"
+                    >
+                      +
+                    </button>
+                    <span className="text-xs text-zinc-600">giorni (±)</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLinkedEvents((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                      className="text-red-500 hover:text-red-700 text-sm leading-none px-1"
+                      aria-label="Rimuovi"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Form actions */}

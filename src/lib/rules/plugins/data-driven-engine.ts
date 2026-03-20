@@ -24,6 +24,7 @@ import type {
   EventRule,
 } from "@/types/macro-areas";
 import { getEventRulesFor, getEventoByCode } from "@/types/macro-areas";
+import { buildLinkedEventCandidates, parseLinkedEvents } from "@/lib/linked-events";
 
 function computeDate(
   base: Date,
@@ -143,7 +144,10 @@ function processRule(
         status: "pending",
         priority: 0,
         ruleId: "data-driven",
-        ruleParams: { daysBefore: offset },
+        ruleParams: {
+          daysBefore: offset,
+          eventoBaseKey: rule.eventoBaseKey ?? selectedEventoInputKey,
+        },
         explanation: `Promemoria ${Math.abs(offset)} giorni prima della scadenza`,
         createdBy: "automatico",
         isPlaceholder: false,
@@ -191,7 +195,10 @@ function processRule(
       status: "pending",
       priority: 0,
       ruleId: "data-driven",
-      ruleParams: { daysBefore: offset },
+      ruleParams: {
+        daysBefore: offset,
+        eventoBaseKey: rule.eventoBaseKey ?? selectedEventoInputKey,
+      },
       explanation: `Promemoria ${Math.abs(offset)} giorni prima dell'evento`,
       createdBy: "automatico",
       isPlaceholder: false,
@@ -199,6 +206,38 @@ function processRule(
   }
 
   return { subEvents: out };
+}
+
+/** Tra più date negli input, sceglie la chiave con più sottoeventi che la referenziano (eventoBaseKey). */
+function pickReferenceInputKey(
+  candidates: SubEventCandidate[],
+  inputs: Record<string, unknown>,
+  selectedEventoInputKey: string,
+): string {
+  const counts = new Map<string, number>();
+  for (const c of candidates) {
+    const rp = (c.ruleParams ?? {}) as Record<string, unknown>;
+    const k = (rp.eventoBaseKey as string | undefined) ?? selectedEventoInputKey;
+    if (k && typeof inputs[k] === "string" && String(inputs[k]).trim()) {
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+  }
+  let bestKey = selectedEventoInputKey;
+  let bestCount = -1;
+  for (const [k, n] of counts) {
+    if (n > bestCount) {
+      bestCount = n;
+      bestKey = k;
+    }
+  }
+  if (
+    bestCount <= 0 &&
+    typeof inputs[selectedEventoInputKey] === "string" &&
+    String(inputs[selectedEventoInputKey]).trim()
+  ) {
+    return selectedEventoInputKey;
+  }
+  return bestKey;
 }
 
 /**
@@ -295,7 +334,10 @@ function evaluateMultiRowFromEventoCode(
               status: "pending",
               priority: 0,
               ruleId: "data-driven",
-              ruleParams: { daysBefore: offset },
+              ruleParams: {
+                daysBefore: offset,
+                eventoBaseKey: selectedEventoInputKey,
+              },
               explanation: `Promemoria ${Math.abs(offset)} giorni prima dell'evento`,
               createdBy: "automatico",
               isPlaceholder: false,
@@ -317,6 +359,28 @@ function evaluateMultiRowFromEventoCode(
       selectedEventoInputKey,
     );
     out.push(...result.subEvents);
+  }
+
+  const linkedSpecs = parseLinkedEvents(inputsCorrenti.linkedEvents);
+  if (linkedSpecs.length > 0) {
+    const refKey = pickReferenceInputKey(out, inputsCorrenti, selectedEventoInputKey);
+    const baseStr = inputsCorrenti[refKey] as string | undefined;
+    if (baseStr && typeof baseStr === "string" && baseStr.trim()) {
+      const baseDate = new Date(
+        baseStr.length === 10 ? baseStr + "T12:00:00" : baseStr,
+      );
+      if (!isNaN(baseDate.getTime())) {
+        out.push(
+          ...buildLinkedEventCandidates(
+            linkedSpecs,
+            baseDate,
+            settings,
+            "data-driven",
+            { eventoBaseKey: refKey },
+          ),
+        );
+      }
+    }
   }
 
   const withDates = out.filter((s) => s.dueAt != null);

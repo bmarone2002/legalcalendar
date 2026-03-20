@@ -37,6 +37,7 @@ import { LEGACY_ACTION_TYPE_MAP, LEGACY_ACTION_MODE_MAP } from "@/types/macro-ar
 import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
+import type { LinkedEventSpec } from "@/lib/linked-events";
 
 type ModalMode = "create" | "edit";
 
@@ -94,6 +95,8 @@ type EventFormState = {
   inputs: Record<string, unknown>;
   color: string | null;
   reminderOffsets: number[];
+  /** Titolo + giorni solari (±) dalla data di riferimento della fase (stessa logica festivi dei promemoria). */
+  linkedEvents: LinkedEventSpec[];
   status: "pending" | "done";
 };
 
@@ -128,6 +131,7 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
     color: null,
     // Nessun promemoria di default: l'utente li aggiunge esplicitamente.
     reminderOffsets: [],
+    linkedEvents: [],
     status: "pending",
   };
 };
@@ -491,6 +495,19 @@ export function EventModal({
       const savedOffsets = Array.isArray(savedRuleParams.reminderOffsets)
         ? (savedRuleParams.reminderOffsets as number[])
         : [];
+      const rawLinked = savedRuleParams.linkedEvents;
+      const savedLinked: LinkedEventSpec[] = Array.isArray(rawLinked)
+        ? rawLinked
+            .filter(
+              (x): x is LinkedEventSpec =>
+                x != null &&
+                typeof x === "object" &&
+                typeof (x as LinkedEventSpec).title === "string" &&
+                typeof (x as LinkedEventSpec).offsetDays === "number" &&
+                Number.isFinite((x as LinkedEventSpec).offsetDays),
+            )
+            .map((x) => ({ title: x.title, offsetDays: x.offsetDays }))
+        : [];
       setForm({
         title: e.title,
         parti: "",
@@ -515,6 +532,7 @@ export function EventModal({
         inputs: (e.inputs as Record<string, unknown>) ?? {},
         color: e.color ?? null,
         reminderOffsets: savedOffsets,
+        linkedEvents: savedLinked,
         status: (e.status === "done" ? "done" : "pending") as "pending" | "done",
       });
       const savedInputs = (e.inputs as Record<string, unknown> | null) ?? {};
@@ -578,17 +596,17 @@ export function EventModal({
                 procedimento: form.procedimento,
                 parteProcessuale: form.parteProcessuale,
                 eventoCode: form.eventoCode,
-                inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
+                inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
               }
             : form.ruleTemplateId === "atto-giuridico"
             ? {
                 macroType: "ATTO_GIURIDICO",
                 actionType: form.actionType,
                 actionMode: form.actionMode,
-                inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets },
+                inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
               }
             : {
-                inputs: { reminderOffsets: form.reminderOffsets },
+                inputs: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
               }),
         };
         const result = await getSubEventsPreview(payload);
@@ -630,6 +648,7 @@ export function EventModal({
     form.actionMode,
     form.inputs,
     form.reminderOffsets,
+    form.linkedEvents,
   ]);
 
   const handleCalcola = useCallback(async () => {
@@ -715,17 +734,17 @@ export function EventModal({
               procedimento: form.procedimento,
               parteProcessuale: form.parteProcessuale,
               eventoCode: form.eventoCode,
-              inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets },
+              inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
             }
           : form.ruleTemplateId === "atto-giuridico"
           ? {
               macroType: "ATTO_GIURIDICO",
               actionType: form.actionType,
               actionMode: form.actionMode,
-              inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets },
+              inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
             }
           : {
-              inputs: { reminderOffsets: form.reminderOffsets },
+              inputs: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
             }),
       };
       const result = await getSubEventsPreview(payload);
@@ -837,7 +856,7 @@ export function EventModal({
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: serializeInputsForServer(mergedInputs),
-          ruleParams: { reminderOffsets: form.reminderOffsets },
+          ruleParams: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
           color: form.color,
           status: form.status,
         }, targetUserId);
@@ -887,7 +906,7 @@ export function EventModal({
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
           inputs: serializeInputsForServer(mergedInputs),
-          ruleParams: { reminderOffsets: form.reminderOffsets },
+          ruleParams: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
           color: form.color,
           status: form.status,
         }, targetUserId);
@@ -970,7 +989,7 @@ export function EventModal({
             luogo: form.luogo.trim(),
           },
         }),
-        ruleParams: { reminderOffsets: form.reminderOffsets },
+        ruleParams: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
         color: form.color,
         status: form.status,
       }, targetUserId);
@@ -1490,20 +1509,118 @@ export function EventModal({
                       </button>
                     </div>
                   ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setForm((f) => ({
-                        ...f,
-                        reminderOffsets: [...f.reminderOffsets, 7],
-                      }))
-                    }
-                    className="mt-1 border-zinc-300 text-zinc-700 hover:bg-zinc-50"
-                  >
-                    + Aggiungi promemoria
-                  </Button>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          reminderOffsets: [...f.reminderOffsets, 7],
+                        }))
+                      }
+                      className="border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+                    >
+                      + Aggiungi promemoria
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          linkedEvents: [...f.linkedEvents, { title: "", offsetDays: 7 }],
+                        }))
+                      }
+                      className="border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+                    >
+                      + Aggiungi evento collegato
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Eventi collegati: data = data di riferimento fase (gest. autom.: tra più date, quella con più sottoeventi); gest. manuale: data evento. */}
+              <div>
+                <Label>Eventi collegati</Label>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Sottoeventi con titolo a scelta; la data si calcola con giorni solari aggiunti o tolti rispetto alla data di riferimento (come i promemoria: se cade su festivo o weekend si sposta secondo le regole già usate in app).
+                </p>
+                <div className="space-y-2 mt-1.5">
+                  {form.linkedEvents.map((row, i) => (
+                    <div key={i} className="flex flex-wrap items-center gap-2">
+                      <Input
+                        className="min-w-[160px] flex-1 max-w-md"
+                        placeholder={"Titolo dell'evento collegato"}
+                        value={row.title}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = [...f.linkedEvents];
+                            next[i] = { ...next[i], title: e.target.value };
+                            return { ...f, linkedEvents: next };
+                          })
+                        }
+                        disabled={readOnly}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => {
+                            const next = [...f.linkedEvents];
+                            next[i] = {
+                              ...next[i],
+                              offsetDays: Math.max(-365, next[i].offsetDays - 1),
+                            };
+                            return { ...f, linkedEvents: next };
+                          })
+                        }
+                        className="h-8 w-8 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                        aria-label="Diminuisci giorni"
+                        disabled={readOnly}
+                      >
+                        −
+                      </button>
+                      <span className="w-12 text-center text-sm font-medium text-zinc-900 select-none tabular-nums">
+                        {row.offsetDays >= 0 ? "+" : ""}
+                        {row.offsetDays}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => {
+                            const next = [...f.linkedEvents];
+                            next[i] = {
+                              ...next[i],
+                              offsetDays: Math.min(365, next[i].offsetDays + 1),
+                            };
+                            return { ...f, linkedEvents: next };
+                          })
+                        }
+                        className="h-8 w-8 rounded border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-lg font-bold leading-none flex items-center justify-center"
+                        aria-label="Aumenta giorni"
+                        disabled={readOnly}
+                      >
+                        +
+                      </button>
+                      <span className="text-sm text-zinc-600">giorni (± dalla data di riferimento)</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            linkedEvents: f.linkedEvents.filter((_, idx) => idx !== i),
+                          }))
+                        }
+                        className="text-red-500 hover:text-red-700 text-lg leading-none px-1"
+                        aria-label="Rimuovi evento collegato"
+                        disabled={readOnly}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 

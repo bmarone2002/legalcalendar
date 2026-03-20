@@ -95,7 +95,7 @@ async function replaceSubEvents(
         ruleId: c.ruleId,
         ruleParams: c.ruleParams ? JSON.stringify(c.ruleParams) : null,
         explanation: c.explanation,
-        createdBy: "automatico",
+        createdBy: c.createdBy ?? "automatico",
         locked: false,
         isPlaceholder: c.isPlaceholder ?? false,
       })),

@@ -3,6 +3,10 @@
  * per la prosecuzione del giudizio dopo l'atto iniziale.
  */
 
+import type { LinkedEventSpec } from "@/lib/linked-events";
+
+export type { LinkedEventSpec };
+
 // ── Tipi di udienza ─────────────────────────────────────────────────
 
 export const TIPI_UDIENZA = [
@@ -92,6 +96,8 @@ export interface Rinvio {
    * Non viene persistito in una colonna dedicata.
    */
   reminderOffsets?: number[];
+  /** Ricostruiti dai sottoeventi (tipo evento-collegato). */
+  linkedEvents?: LinkedEventSpec[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +120,7 @@ export interface CreateRinvioInput {
    * Se vuoto o assente, non viene creato alcun promemoria automatico sull'udienza.
    */
   reminderOffsets?: number[];
+  linkedEvents?: LinkedEventSpec[];
 }
 
 export interface UpdateRinvioInput {
@@ -123,4 +130,5 @@ export interface UpdateRinvioInput {
   note?: string | null;
   adempimenti?: Adempimento[];
   reminderOffsets?: number[];
+  linkedEvents?: LinkedEventSpec[];
 }
