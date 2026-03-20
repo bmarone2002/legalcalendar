@@ -14,11 +14,37 @@ import type { Event as AppEvent, SubEvent } from "@/types";
 import { EventModal } from "@/components/event-modal/EventModal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  EVENT_TAG_COLORS,
+  paletteKeyForFilter,
+  allCalendarFilterColorKeys,
+  COLOR_FILTER_NONE,
+  COLOR_FILTER_OTHER,
+} from "@/constants/event-tag-colors";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Sottoeventi: rosso (pending), verde (done), neutro per promemoria futuri (prima del giorno).
 const SUB_EVENT_COLOR_PENDING = "#C62828";
 const SUB_EVENT_COLOR_DONE = "#2E7D32";
 const SUB_EVENT_COLOR_FUTURE = "#e4e4e7"; // nessun colore fino al giorno del promemoria
+
+function blendWithWhite(hex: string, whiteAmount: number): string {
+  const h = hex.replace("#", "").trim();
+  if (h.length !== 6) return hex;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const t = Math.min(1, Math.max(0, whiteAmount));
+  const rr = Math.round(r + (255 - r) * t);
+  const gg = Math.round(g + (255 - g) * t);
+  const bb = Math.round(b + (255 - b) * t);
+  return `#${rr.toString(16).padStart(2, "0")}${gg.toString(16).padStart(2, "0")}${bb.toString(16).padStart(2, "0")}`;
+}
+
+/** "udienza" nel titolo (qualsiasi maiuscola, anche dentro altre parole). */
+function titleContainsUdienza(title: string | null | undefined): boolean {
+  return (title ?? "").toLowerCase().includes("udienza");
+}
 
 type SearchSuggestion = {
   eventId: string;
@@ -60,6 +86,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   const isWhiteLike =
     normalized === "#fff" || normalized === "#ffffff" || normalized === "white";
   const tagColor = rawColor && !isWhiteLike ? rawColor : null;
+  const filterColorKey = paletteKeyForFilter(e.color);
   const mainBackground = tagColor ?? "#ffffff";
   const mainBorder = tagColor ?? "#E5E5E5";
   const rawTitle = (e.title ?? "").trimStart();
@@ -75,7 +102,14 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       allDay: false,
       backgroundColor: mainBackground,
       borderColor: mainBorder,
-      extendedProps: { type: e.type, tags: e.tags, isSubEvent: false, status: e.status ?? "pending" },
+      extendedProps: {
+        type: e.type,
+        tags: e.tags,
+        isSubEvent: false,
+        status: e.status ?? "pending",
+        filterColorKey,
+        parentTagColor: tagColor,
+      },
     },
   ];
   const todayStart = new Date();
@@ -87,11 +121,29 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
     const dueDate = new Date(se.dueAt);
     dueDate.setHours(0, 0, 0, 0);
     const isFutureReminder = isPromemoria && dueDate > todayStart;
-    const subBg = isFutureReminder
-      ? SUB_EVENT_COLOR_FUTURE
-      : isDone
-        ? SUB_EVENT_COLOR_DONE
-        : SUB_EVENT_COLOR_PENDING;
+
+    let subBg: string;
+    let subBorder: string;
+    if (tagColor) {
+      if (isFutureReminder) {
+        subBg = blendWithWhite(tagColor, 0.74);
+        subBorder = blendWithWhite(tagColor, 0.35);
+      } else if (isDone) {
+        subBg = tagColor;
+        subBorder = SUB_EVENT_COLOR_DONE;
+      } else {
+        subBg = tagColor;
+        subBorder = SUB_EVENT_COLOR_PENDING;
+      }
+    } else {
+      subBg = isFutureReminder
+        ? SUB_EVENT_COLOR_FUTURE
+        : isDone
+          ? SUB_EVENT_COLOR_DONE
+          : SUB_EVENT_COLOR_PENDING;
+      subBorder = subBg;
+    }
+
     out.push({
       id: se.id,
       title: se.title,
@@ -99,12 +151,14 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       end: se.dueAt,
       allDay: false,
       backgroundColor: subBg,
-      borderColor: subBg,
+      borderColor: subBorder,
       editable: false,
       extendedProps: {
         isSubEvent: true,
         parentEventId: e.id,
         parentTitle: mainTitle,
+        parentTagColor: tagColor,
+        filterColorKey,
         kind: se.kind,
         status: se.status,
       },
@@ -151,6 +205,7 @@ interface CalendarViewProps {
 export function CalendarView({ targetUserId, permission }: CalendarViewProps = {}) {
   const canEdit = !targetUserId || permission === "FULL";
   const calendarRef = useRef<InstanceType<typeof FullCalendar> | null>(null);
+  const skipFilterEffectRef = useRef(true);
   const [initialView, setInitialView] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<string>("dayGridMonth");
   const [viewTitle, setViewTitle] = useState<string>("");
@@ -167,6 +222,24 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const [hideSubEvents, setHideSubEvents] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("calendar:hideSubEvents") === "true";
+  });
+  const [visibleTagColors, setVisibleTagColors] = useState<Set<string>>(() => {
+    const all = allCalendarFilterColorKeys();
+    if (typeof window === "undefined") return new Set(all);
+    try {
+      const raw = window.localStorage.getItem("calendar:visibleTagColors");
+      if (raw) {
+        const arr = JSON.parse(raw) as string[];
+        if (Array.isArray(arr) && arr.length > 0) return new Set(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+    return new Set(all);
+  });
+  const [soloUdienze, setSoloUdienze] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("calendar:soloUdienze") === "true";
   });
   const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
   const [showPending, setShowPending] = useState<boolean>(true);
@@ -199,6 +272,39 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     []
   );
 
+  useEffect(() => {
+    if (skipFilterEffectRef.current) {
+      skipFilterEffectRef.current = false;
+      return;
+    }
+    calendarRef.current?.getApi()?.refetchEvents();
+  }, [visibleTagColors, soloUdienze]);
+
+  const toggleTagColorFilter = useCallback((key: string) => {
+    setVisibleTagColors((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([...next]));
+      }
+      return next;
+    });
+  }, []);
+
+  const handleToggleSoloUdienze = useCallback(() => {
+    setSoloUdienze((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("calendar:soloUdienze", String(next));
+      }
+      return next;
+    });
+  }, []);
+
+  const filterColorKeyCount = allCalendarFilterColorKeys().length;
+  const visibleTagColorCount = visibleTagColors.size;
+
   const eventsSource = useCallback(
     (
       info: { start: Date; end: Date; view?: { type: string } },
@@ -228,6 +334,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   ? new Date(f.endAt)
                   : new Date(start.getTime() + 60 * 60 * 1000);
               const rawTitle = (f.title as string | undefined)?.trim() || "Evento senza titolo";
+              const draftColor = f.color as string | null | undefined;
+              const tag = paletteKeyForFilter(draftColor);
               return {
                 id: draft.id,
                 title: `BOZZA – ${rawTitle}`,
@@ -240,10 +348,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   isSubEvent: false,
                   isDraft: true,
                   status: f.status ?? "pending",
+                  filterColorKey: tag,
+                  parentTagColor: null,
                 },
               } as Record<string, unknown>;
             });
             events = events.concat(draftFcEvents);
+            // Filtro colore tag (palette + senza tag + altri)
+            events = events.filter((ev) => {
+              const key = (ev.extendedProps as { filterColorKey?: string }).filterColorKey;
+              if (!key) return true;
+              return visibleTagColors.has(key);
+            });
+            // Solo udienze: titolo (evento o sottoevento) contiene "udienza"
+            if (soloUdienze) {
+              events = events.filter((ev) => titleContainsUdienza(ev.title as string));
+            }
             // Filtro stato: rossi (da fare) / verdi (completati)
             events = events.filter((ev) => {
               const ext = ev.extendedProps as { status?: string } | undefined;
@@ -276,7 +396,17 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           )
         );
     },
-    [isSearchActive, searchFilterEventId, hideSubEvents, draftEvents, showPending, showDone, targetUserId]
+    [
+      isSearchActive,
+      searchFilterEventId,
+      hideSubEvents,
+      draftEvents,
+      showPending,
+      showDone,
+      targetUserId,
+      visibleTagColors,
+      soloUdienze,
+    ]
   );
 
   const applySuggestionSelection = useCallback(
@@ -575,11 +705,20 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" }, targetUserId);
               if (result.success && result.data) {
                 const newStatus = result.data.status;
-                const newBg =
-                  newStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+                const parentTag = arg.event.extendedProps.parentTagColor as string | null | undefined;
+                const newBg = parentTag
+                  ? parentTag
+                  : newStatus === "done"
+                    ? SUB_EVENT_COLOR_DONE
+                    : SUB_EVENT_COLOR_PENDING;
+                const newBorder = parentTag
+                  ? newStatus === "done"
+                    ? SUB_EVENT_COLOR_DONE
+                    : SUB_EVENT_COLOR_PENDING
+                  : newBg;
                 arg.event.setExtendedProp("status", newStatus);
                 arg.event.setProp("backgroundColor", newBg);
-                arg.event.setProp("borderColor", newBg);
+                arg.event.setProp("borderColor", newBorder);
                 if (newStatus === "done" && !showDone) {
                   arg.event.remove();
                 }
@@ -824,8 +963,93 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               )}
             </div>
           </div>
-          {/* Filtri Promemoria + Stato */}
+          {/* Filtri colore tag, udienze, Promemoria + Stato */}
           <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 px-2 text-xs sm:text-sm text-zinc-700 border-zinc-300 bg-white"
+                >
+                  Colore tag
+                  <span className="text-zinc-500 text-[10px] sm:text-xs tabular-nums">
+                    ({visibleTagColorCount}/{filterColorKeyCount})
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3">
+                <p className="text-xs font-medium text-zinc-700 mb-1">Mostra per colore tag</p>
+                <p className="text-[11px] text-zinc-500 mb-2">
+                  I promemoria e gli adempimenti usano il colore dell&apos;evento madre. Deseleziona i colori da nascondere.
+                </p>
+                <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                  {EVENT_TAG_COLORS.map((hex) => {
+                    const k = hex.toLowerCase();
+                    return (
+                      <label
+                        key={hex}
+                        className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50"
+                      >
+                        <Checkbox
+                          checked={visibleTagColors.has(k)}
+                          onCheckedChange={() => toggleTagColorFilter(k)}
+                          className="h-3.5 w-3.5"
+                        />
+                        <span
+                          className="h-4 w-4 rounded border border-zinc-200/80 shrink-0"
+                          style={{ backgroundColor: hex }}
+                        />
+                        <span className="text-xs text-zinc-700 font-mono">{hex}</span>
+                      </label>
+                    );
+                  })}
+                  <label className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50">
+                    <Checkbox
+                      checked={visibleTagColors.has(COLOR_FILTER_NONE)}
+                      onCheckedChange={() => toggleTagColorFilter(COLOR_FILTER_NONE)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <span className="h-4 w-4 rounded border border-dashed border-zinc-300 bg-white shrink-0" />
+                    <span className="text-xs text-zinc-700">Senza tag</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50">
+                    <Checkbox
+                      checked={visibleTagColors.has(COLOR_FILTER_OTHER)}
+                      onCheckedChange={() => toggleTagColorFilter(COLOR_FILTER_OTHER)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <span className="h-4 w-4 rounded border border-zinc-400 bg-zinc-100 shrink-0" />
+                    <span className="text-xs text-zinc-700">Altri colori (fuori palette)</span>
+                  </label>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <button
+              type="button"
+              onClick={handleToggleSoloUdienze}
+              className="flex items-center gap-2 select-none"
+              title={
+                soloUdienze
+                  ? "Disattiva per mostrare tutti gli eventi"
+                  : "Mostra solo eventi il cui titolo contiene «udienza»"
+              }
+            >
+              <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">SOLO UDIENZE</span>
+              <span
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors ${
+                  soloUdienze
+                    ? "bg-[var(--navy)] border-[var(--navy)]"
+                    : "bg-zinc-300 border-zinc-400"
+                }`}
+              >
+                <span
+                  className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
+                  style={{ transform: soloUdienze ? "translateX(18px)" : "translateX(2px)" }}
+                />
+              </span>
+            </button>
             {/* Toggle promemoria */}
             <button
               type="button"

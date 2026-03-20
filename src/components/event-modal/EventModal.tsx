@@ -38,6 +38,7 @@ import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
 import type { LinkedEventSpec } from "@/lib/linked-events";
+import { EVENT_TAG_COLORS } from "@/constants/event-tag-colors";
 
 type ModalMode = "create" | "edit";
 
@@ -63,13 +64,6 @@ interface EventModalProps {
   /** Se impostato, apre il tab Regole & Sottoeventi e evidenzia/scrolla a questo sottoevento (es. click su promemoria in calendario). */
   highlightSubEventId?: string | null;
 }
-
-/** Palette colori per tag evento (evento + sottoeventi). Testo bianco leggibile. */
-const EVENT_TAG_COLORS = [
-  "#5D4037", "#8D6E63",
-  "#2E7D32", "#1565C0", "#6A1B9A", "#C62828", "#E65100",
-  "#00695C", "#283593", "#0097A7", "#F9A825", "#AD1457",
-];
 
 type EventFormState = {
   title: string;
