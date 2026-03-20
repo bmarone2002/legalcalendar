@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
@@ -20,6 +20,7 @@ import {
   getRinviiByEventId,
   createRinvio,
   deleteRinvio,
+  updateRinvio,
 } from "@/lib/actions/rinvii";
 import { parseDocumentForRinvio } from "@/lib/actions/parse-document";
 import {
@@ -52,7 +53,14 @@ interface ProsecuzionePanelProps {
   macroArea?: MacroAreaCode | null;
   procedimento?: ProcedimentoCode | null;
   parteProcessuale?: ParteProcessuale | null;
+  /**
+   * Permette a `EventModal` di chiedere al pannello di salvare eventuali rinvii
+   * in bozza quando l'utente preme il bottone “Salva” dell'evento principale.
+   */
+  onRegisterSavePendingRinvio?: (fn: () => Promise<PendingRinvioSaveResult>) => void;
 }
+
+type PendingRinvioSaveResult = "not_required" | "saved" | "failed";
 
 function toDateOnlyString(d: Date): string {
   return format(d, "yyyy-MM-dd");
@@ -230,10 +238,12 @@ function AdempimentoRow({
 function RinvioCard({
   rinvio,
   onDelete,
+  onEdit,
   deleting,
 }: {
   rinvio: Rinvio;
   onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
   deleting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -297,19 +307,33 @@ function RinvioCard({
             </div>
           )}
 
-          {onDelete && (
-            <div className="flex justify-end pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 text-xs"
-                onClick={() => onDelete(rinvio.id)}
-                disabled={deleting}
-              >
-                <Trash2 className="h-3 w-3 mr-1" />
-                Elimina rinvio
-              </Button>
+          {(onDelete || onEdit) && (
+            <div className="flex flex-wrap justify-end pt-1 gap-2">
+              {onEdit && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 h-7 text-xs"
+                  onClick={() => onEdit(rinvio.id)}
+                  disabled={deleting}
+                >
+                  Modifica rinvio
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 text-xs"
+                  onClick={() => onDelete(rinvio.id)}
+                  disabled={deleting}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Elimina rinvio
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -328,6 +352,7 @@ export function ProsecuzionePanel({
   macroArea,
   procedimento,
   parteProcessuale,
+  onRegisterSavePendingRinvio,
 }: ProsecuzionePanelProps) {
   const MANUALE_CODE = "__MANUALE__";
 
@@ -336,6 +361,7 @@ export function ProsecuzionePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingRinvioId, setEditingRinvioId] = useState<string | null>(null);
   const [parsingRinvio, setParsingRinvio] = useState(false);
   const rinvioFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -382,6 +408,7 @@ export function ProsecuzionePanel({
     setSelectedEventoCode("");
     setFaseManuale("");
     setReminderOffsets([]);
+    setEditingRinvioId(null);
     setShowForm(false);
     setError(null);
   };
@@ -398,7 +425,7 @@ export function ProsecuzionePanel({
     setAdempimenti((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSaveRinvio = async () => {
+  const handleSaveRinvio = async (): Promise<boolean> => {
     setError(null);
 
     const isManualFase = availableEventi.length === 0 || selectedEventoCode === MANUALE_CODE;
@@ -412,11 +439,11 @@ export function ProsecuzionePanel({
           ? "Inserire il nome della fase"
           : "Selezionare l'evento/fase dalla tabella o inserire una fase manuale."
       );
-      return;
+      return false;
     }
     if (!dataUdienza) {
       setError("Selezionare la data dell'udienza");
-      return;
+      return false;
     }
 
     const validAdempimenti = adempimenti
@@ -435,26 +462,58 @@ export function ProsecuzionePanel({
       const evento = availableEventi.find((e) => e.code === effectiveEventoCode);
       const labelEvento = evento?.label ?? effectiveEventoCode;
 
-      const result = await createRinvio({
-        parentEventId: eventId,
-        dataUdienza: normalizedDataUdienza,
-        // Manteniamo tipoUdienza = "ALTRO" e usiamo la descrizione personalizzata
-        // per mostrare in lista la fase selezionata.
-        tipoUdienza: "ALTRO",
-        tipoUdienzaCustom: labelEvento,
-        note: note || null,
-        adempimenti: validAdempimenti,
-        eventoCode: effectiveEventoCode,
-        reminderOffsets,
-      }, targetUserId);
+      if (editingRinvioId) {
+        const result = await updateRinvio(
+          editingRinvioId,
+          {
+            dataUdienza: normalizedDataUdienza,
+            // In UI gestiamo solo la “fase/evento” selezionata, quindi persistiamo
+            // la label come tipoUdienzaCustom.
+            tipoUdienza: "ALTRO",
+            tipoUdienzaCustom: labelEvento,
+            note: note || null,
+            adempimenti: validAdempimenti,
+            reminderOffsets,
+          },
+          targetUserId
+        );
+
+        if (result.success) {
+          resetForm();
+          await loadRinvii();
+          onSubEventsChanged?.();
+          return true;
+        }
+
+        setError(result.error);
+        return false;
+      }
+
+      const result = await createRinvio(
+        {
+          parentEventId: eventId,
+          dataUdienza: normalizedDataUdienza,
+          // Manteniamo tipoUdienza = "ALTRO" e usiamo la descrizione personalizzata
+          // per mostrare in lista la fase selezionata.
+          tipoUdienza: "ALTRO",
+          tipoUdienzaCustom: labelEvento,
+          note: note || null,
+          adempimenti: validAdempimenti,
+          eventoCode: effectiveEventoCode,
+          reminderOffsets,
+        },
+        targetUserId
+      );
 
       if (result.success) {
         resetForm();
         await loadRinvii();
         onSubEventsChanged?.();
-      } else {
-        setError(result.error);
+        return true;
       }
+
+      setError(result.error);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -518,6 +577,84 @@ export function ProsecuzionePanel({
     }
   };
 
+  const handleEditRinvio = (id: string) => {
+    const r = rinvii.find((x) => x.id === id);
+    if (!r) return;
+
+    setError(null);
+    setEditingRinvioId(id);
+    setShowForm(true);
+
+    setDataUdienza(new Date(r.dataUdienza));
+    setNote(r.note ?? "");
+
+    setReminderOffsets(r.reminderOffsets ?? []);
+
+    // Ricostruzione “fase/evento” dalla label salvata (tipoUdienzaCustom).
+    const labelEvento = r.tipoUdienzaCustom ?? "";
+    const matchingEvento =
+      availableEventi.length > 0
+        ? availableEventi.find((ev) => ev.label === labelEvento)
+        : undefined;
+
+    if (matchingEvento) {
+      setSelectedEventoCode(matchingEvento.code);
+      setFaseManuale("");
+    } else {
+      setSelectedEventoCode(MANUALE_CODE);
+      setFaseManuale(labelEvento);
+    }
+
+    // Non usiamo direttamente `tipoUdienza` in save, ma lo manteniamo per coerenza UI.
+    setTipoUdienza((r.tipoUdienza as TipoUdienza) ?? "ALTRO");
+    setTipoUdienzaCustom(labelEvento);
+
+    setAdempimenti(
+      (r.adempimenti ?? []).map((a) => {
+        const matchingAdempimento = (Object.keys(ADEMPIMENTO_SUGGERITO_LABELS) as AdempimentoSuggerito[]).find(
+          (k) => ADEMPIMENTO_SUGGERITO_LABELS[k] === a.titolo
+        );
+
+        return {
+          ...emptyAdempimento(),
+          id: generateId(),
+          tipoSuggerito: matchingAdempimento ? matchingAdempimento : "ALTRO",
+          titolo: matchingAdempimento ? a.titolo : a.titolo,
+          scadenza: a.scadenza.slice(0, 10),
+          giorniAlert: a.giorniAlert ?? DEFAULT_GIORNI_ALERT,
+          note: a.note ?? "",
+        };
+      })
+    );
+  };
+
+  const trySavePendingRinvio = useCallback(async (): Promise<PendingRinvioSaveResult> => {
+    if (readOnly) return "not_required";
+    if (!showForm) return "not_required";
+
+    const isManualFase = availableEventi.length === 0 || selectedEventoCode === MANUALE_CODE;
+    const effectiveEventoCode = isManualFase
+      ? faseManuale.trim()
+      : selectedEventoCode.trim();
+
+    if (!effectiveEventoCode || !dataUdienza) return "not_required";
+
+    const ok = await handleSaveRinvio();
+    return ok ? "saved" : "failed";
+  }, [
+    readOnly,
+    showForm,
+    availableEventi.length,
+    selectedEventoCode,
+    faseManuale,
+    dataUdienza,
+    handleSaveRinvio,
+  ]);
+
+  useLayoutEffect(() => {
+    onRegisterSavePendingRinvio?.(() => trySavePendingRinvio());
+  }, [onRegisterSavePendingRinvio, trySavePendingRinvio]);
+
   if (loading) {
     return <p className="text-sm text-zinc-500 py-4">Caricamento rinvii...</p>;
   }
@@ -547,6 +684,7 @@ export function ProsecuzionePanel({
                 key={r.id}
                 rinvio={r}
                 onDelete={readOnly ? undefined : handleDeleteRinvio}
+                onEdit={readOnly ? undefined : handleEditRinvio}
                 deleting={saving}
               />
             ))}
@@ -566,7 +704,7 @@ export function ProsecuzionePanel({
         <div className="space-y-3 rounded-md border border-dashed border-[var(--navy)] bg-zinc-50/50 p-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <h4 className="text-sm font-medium text-zinc-700">
-              Nuovo rinvio di udienza
+              {editingRinvioId ? "Modifica rinvio di udienza" : "Nuovo rinvio di udienza"}
             </h4>
             <Button
               type="button"
@@ -770,7 +908,9 @@ export function ProsecuzionePanel({
               type="button"
               size="sm"
               className="btn-save-primary"
-              onClick={handleSaveRinvio}
+              onClick={() => {
+                void handleSaveRinvio();
+              }}
               disabled={saving}
             >
               {saving ? "Salvataggio..." : "Salva rinvio"}
@@ -799,7 +939,10 @@ export function ProsecuzionePanel({
               type="button"
               variant="outline"
               className="flex-1 border-dashed border-[var(--navy)] text-[var(--navy)] hover:bg-[var(--calendar-brown-pale)]"
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setEditingRinvioId(null);
+                setShowForm(true);
+              }}
             >
               + Aggiungi rinvio di udienza
             </Button>

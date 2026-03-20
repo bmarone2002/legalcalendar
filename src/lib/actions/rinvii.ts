@@ -48,7 +48,7 @@ function toRinvio(r: {
   adempimenti: string;
   createdAt: Date;
   updatedAt: Date;
-}): Rinvio {
+}, reminderOffsets?: number[]): Rinvio {
   return {
     id: r.id,
     parentEventId: r.parentEventId,
@@ -58,6 +58,7 @@ function toRinvio(r: {
     tipoUdienzaCustom: r.tipoUdienzaCustom,
     note: r.note,
     adempimenti: parseAdempimenti(r.adempimenti),
+    reminderOffsets,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   };
@@ -343,7 +344,50 @@ export async function getRinviiByEventId(
       where: { parentEventId: eventId },
       orderBy: { numero: "asc" },
     });
-    return { success: true, data: rinvii.map(toRinvio) };
+
+    // Ricostruzione promemoria “udienza” dai sottoeventi collegati.
+    // (Non sono persistiti in una colonna dedicata sulla tabella rinvio.)
+    const subEvents = await prisma.subEvent.findMany({
+      where: { parentEventId: eventId, ruleId: RINVIO_RULE_ID },
+      select: { title: true, kind: true, ruleParams: true },
+    });
+
+    const reminderOffsetsByRinvioId = new Map<string, number[]>();
+    for (const s of subEvents) {
+      if (s.kind !== "promemoria") continue;
+      if (!s.ruleParams) continue;
+
+      let params: Record<string, unknown> | null = null;
+      try {
+        params = JSON.parse(s.ruleParams) as Record<string, unknown>;
+      } catch {
+        params = null;
+      }
+      if (!params) continue;
+
+      const rinvioId = params.rinvioId;
+      const tipo = params.tipo;
+      if (typeof rinvioId !== "string" || tipo !== "udienza") continue;
+
+      const m = s.title?.match(/\((\d+)\s+gg prima\)/);
+      if (!m) continue;
+      const days = Number(m[1]);
+      if (!Number.isFinite(days)) continue;
+
+      const current = reminderOffsetsByRinvioId.get(rinvioId) ?? [];
+      if (!current.includes(days)) current.push(days);
+      reminderOffsetsByRinvioId.set(rinvioId, current);
+    }
+
+    // Ordina per stabilità UI.
+    for (const [k, v] of reminderOffsetsByRinvioId) {
+      reminderOffsetsByRinvioId.set(k, [...v].sort((a, b) => a - b));
+    }
+
+    return {
+      success: true,
+      data: rinvii.map((r) => toRinvio(r, reminderOffsetsByRinvioId.get(r.id))),
+    };
   } catch (e) {
     return {
       success: false,

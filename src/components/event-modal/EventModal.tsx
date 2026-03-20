@@ -42,6 +42,8 @@ type ModalMode = "create" | "edit";
 
 type ActiveTab = "dettagli" | "prosecuzione";
 
+type PendingRinvioSaveResult = "not_required" | "saved" | "failed";
+
 interface EventModalProps {
   mode: ModalMode;
   eventId?: string;
@@ -457,6 +459,7 @@ export function EventModal({
   const [showEventsPanel, setShowEventsPanel] = useState(false);
   /** Se true, l'utente ha cliccato "Calcola" almeno una volta: al Salva usiamo la lista preview (anche se vuota). Altrimenti usiamo regenerateSubEvents per creare tutti i sottoeventi. */
   const userHasClickedCalcolaRef = useRef(false);
+  const pendingRinvioSaveHandlerRef = useRef<null | (() => Promise<PendingRinvioSaveResult>)>(null);
 
   const loadEvent = useCallback(async (id: string) => {
     setLoading(true);
@@ -761,6 +764,16 @@ export function EventModal({
         if (primary) {
           startAt = primary;
           endAt = new Date(primary.getTime() + 60 * 60 * 1000);
+        }
+      }
+
+      // Se l'utente sta creando/modificando un rinvio nella tab Prosecuzione,
+      // il bottone "Salva" dell'evento principale deve anche salvare quel rinvio.
+      if (mode === "edit" && eventId && !readOnly) {
+        const pendingResult = await pendingRinvioSaveHandlerRef.current?.();
+        if (pendingResult === "failed") {
+          // L'errore, se presente, viene mostrato dal pannello Prosecuzione.
+          return;
         }
       }
 
@@ -1504,6 +1517,9 @@ export function EventModal({
                   macroArea={form.macroArea}
                   procedimento={form.procedimento}
                   parteProcessuale={form.parteProcessuale}
+                  onRegisterSavePendingRinvio={(fn) => {
+                    pendingRinvioSaveHandlerRef.current = fn;
+                  }}
                   onSubEventsChanged={async () => {
                     if (eventId) {
                       const result = await getEventById(eventId, targetUserId);

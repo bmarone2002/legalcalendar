@@ -87,6 +87,11 @@ export interface Rinvio {
   tipoUdienzaCustom?: string | null;
   note?: string | null;
   adempimenti: Adempimento[];
+  /**
+   * Promemoria udienza (giorni prima) ricostruiti dai sottoeventi già presenti.
+   * Non viene persistito in una colonna dedicata.
+   */
+  reminderOffsets?: number[];
   createdAt: Date;
   updatedAt: Date;
 }
