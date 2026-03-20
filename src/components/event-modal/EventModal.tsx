@@ -72,6 +72,10 @@ const EVENT_TAG_COLORS = [
 
 type EventFormState = {
   title: string;
+  parti: string;
+  rg: string;
+  autorita: string;
+  luogo: string;
   description: string;
   startAt: Date;
   endAt: Date;
@@ -101,6 +105,10 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
   defaultEnd.setHours(9, 0, 0, 0);
   return {
     title: "",
+    parti: "",
+    rg: "",
+    autorita: "",
+    luogo: "",
     description: "",
     startAt: start ?? defaultStart,
     endAt: end ?? defaultEnd,
@@ -128,6 +136,18 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
 const MACRO_TYPES_WITH_CALCULATION_DATE_ONLY: (string | null)[] = ["ATTO_GIURIDICO"];
 function usesCalculationDateOnly(macroType: "ATTO_GIURIDICO" | null): boolean {
   return macroType != null && MACRO_TYPES_WITH_CALCULATION_DATE_ONLY.includes(macroType);
+}
+
+function composePracticeTitle(parts: {
+  parti: string;
+  rg: string;
+  autorita: string;
+  luogo: string;
+}): string {
+  return [parts.parti, parts.rg, parts.autorita, parts.luogo]
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0)
+    .join(" - ");
 }
 
 /** Serializza inputs per Server Actions: Date → ISO string così il server riceve valori validi. */
@@ -473,6 +493,10 @@ export function EventModal({
         : [];
       setForm({
         title: e.title,
+        parti: "",
+        rg: "",
+        autorita: "",
+        luogo: "",
         description: e.description ?? "",
         startAt: new Date(e.startAt),
         endAt: new Date(e.endAt),
@@ -493,6 +517,13 @@ export function EventModal({
         reminderOffsets: savedOffsets,
         status: (e.status === "done" ? "done" : "pending") as "pending" | "done",
       });
+      const savedInputs = (e.inputs as Record<string, unknown> | null) ?? {};
+      const ident = (savedInputs.practiceIdentity as Record<string, unknown> | undefined) ?? {};
+      const parti = typeof ident.parti === "string" ? ident.parti : "";
+      const rg = typeof ident.rg === "string" ? ident.rg : "";
+      const autorita = typeof ident.autorita === "string" ? ident.autorita : "";
+      const luogo = typeof ident.luogo === "string" ? ident.luogo : "";
+      setForm((prev) => ({ ...prev, parti, rg, autorita, luogo }));
       setSubEvents(e.subEvents ?? []);
       const subs = e.subEvents ?? [];
       if (highlightSubEventIdProp && subs.some((se) => se.id === highlightSubEventIdProp)) {
@@ -778,8 +809,18 @@ export function EventModal({
       }
 
       if (mode === "create") {
+        const composedTitle = composePracticeTitle(form);
+        const mergedInputs: Record<string, unknown> = {
+          ...((form.inputs as Record<string, unknown> | null) ?? {}),
+          practiceIdentity: {
+            parti: form.parti.trim(),
+            rg: form.rg.trim(),
+            autorita: form.autorita.trim(),
+            luogo: form.luogo.trim(),
+          },
+        };
         const result = await createEvent({
-          title: form.title,
+          title: composedTitle || form.title,
           description: form.description || null,
           startAt,
           endAt,
@@ -795,7 +836,7 @@ export function EventModal({
           eventoCode: form.eventoCode,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
-          inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
+          inputs: serializeInputsForServer(mergedInputs),
           ruleParams: { reminderOffsets: form.reminderOffsets },
           color: form.color,
           status: form.status,
@@ -818,8 +859,18 @@ export function EventModal({
           }
         }
       } else if (eventId) {
+        const composedTitle = composePracticeTitle(form);
+        const mergedInputs: Record<string, unknown> = {
+          ...((form.inputs as Record<string, unknown> | null) ?? {}),
+          practiceIdentity: {
+            parti: form.parti.trim(),
+            rg: form.rg.trim(),
+            autorita: form.autorita.trim(),
+            luogo: form.luogo.trim(),
+          },
+        };
         const result = await updateEvent(eventId, {
-          title: form.title,
+          title: composedTitle || form.title,
           description: form.description || null,
           startAt,
           endAt,
@@ -835,7 +886,7 @@ export function EventModal({
           eventoCode: form.eventoCode,
           actionType: form.macroType ? form.actionType : undefined,
           actionMode: form.macroType ? form.actionMode : undefined,
-          inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
+          inputs: serializeInputsForServer(mergedInputs),
           ruleParams: { reminderOffsets: form.reminderOffsets },
           color: form.color,
           status: form.status,
@@ -894,7 +945,7 @@ export function EventModal({
         }
       }
       const up = await updateEvent(eventId, {
-        title: form.title,
+        title: composePracticeTitle(form) || form.title,
         description: form.description || null,
         startAt,
         endAt,
@@ -910,7 +961,15 @@ export function EventModal({
         eventoCode: form.eventoCode,
         actionType: form.macroType ? form.actionType : undefined,
         actionMode: form.macroType ? form.actionMode : undefined,
-        inputs: form.macroType ? serializeInputsForServer(form.inputs) : undefined,
+        inputs: serializeInputsForServer({
+          ...((form.inputs as Record<string, unknown> | null) ?? {}),
+          practiceIdentity: {
+            parti: form.parti.trim(),
+            rg: form.rg.trim(),
+            autorita: form.autorita.trim(),
+            luogo: form.luogo.trim(),
+          },
+        }),
         ruleParams: { reminderOffsets: form.reminderOffsets },
         color: form.color,
         status: form.status,
@@ -1047,15 +1106,74 @@ export function EventModal({
             >
               <div className="flex-1 min-h-0 flex flex-col overflow-y-auto pr-2 pb-2">
                   <div className="space-y-4">
-              {/* 1. Titolo */}
-              <div>
-                <Label>PRATICA</Label>
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="DETTAGLI PRATICA"
-                  disabled={readOnly}
-                />
+              {/* 1. Campi identificativi pratica (compongono il titolo ricercabile) */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <Label className="font-bold">PARTI</Label>
+                    <Input
+                      value={form.parti}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = { ...f, parti: e.target.value };
+                          return { ...next, title: composePracticeTitle(next) };
+                        })
+                      }
+                      placeholder="Es. Rossi c/ Bianchi"
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-bold">RG</Label>
+                    <Input
+                      value={form.rg}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = { ...f, rg: e.target.value };
+                          return { ...next, title: composePracticeTitle(next) };
+                        })
+                      }
+                      placeholder="Es. 1234/2026"
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-bold">AUTORITA'</Label>
+                    <Input
+                      value={form.autorita}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = { ...f, autorita: e.target.value };
+                          return { ...next, title: composePracticeTitle(next) };
+                        })
+                      }
+                      placeholder="Es. Tribunale di Napoli"
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-bold">LUOGO</Label>
+                    <Input
+                      value={form.luogo}
+                      onChange={(e) =>
+                        setForm((f) => {
+                          const next = { ...f, luogo: e.target.value };
+                          return { ...next, title: composePracticeTitle(next) };
+                        })
+                      }
+                      placeholder="Es. Napoli"
+                      disabled={readOnly}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="font-bold">PRATICA</Label>
+                  <Input
+                    value={composePracticeTitle(form)}
+                    placeholder="Titolo composto automaticamente"
+                    disabled
+                  />
+                </div>
               </div>
 
               {/* 2. Primo menu: Atto Giuridico oppure Evento generico */}
