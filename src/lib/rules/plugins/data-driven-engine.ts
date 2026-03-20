@@ -13,7 +13,7 @@
 import type { RuleDefinition, SubEventCandidate, AppSettings } from "../types";
 import { addDays, addMonths, addYears } from "date-fns";
 import {
-  adjustToNextBusinessDay,
+  adjustFinalDeadline,
   applyDeadlineTime,
   assignTimeSlots,
 } from "@/lib/date-utils";
@@ -91,8 +91,11 @@ function processRule(
   ) {
     let dueDate = computeDate(baseDate, rule.direzioneCalcolo, rule.numero, rule.unita);
 
-    if (rule.isPromemoriaFestivi) {
-      dueDate = adjustToNextBusinessDay(dueDate, settings);
+    // Applica art. 155 solo per termini "a giorni" (nel resto dei casi lasciamo
+    // invariata la data calcolata).
+    const direction: "forward" | "backward" = rule.direzioneCalcolo === "+" ? "forward" : "backward";
+    if (rule.unita === "giorni") {
+      dueDate = adjustFinalDeadline(dueDate, direction, settings);
     }
 
     const dueAt = applyDeadlineTime(dueDate, settings);
@@ -130,7 +133,8 @@ function processRule(
     for (const daysBefore of reminderOffsets) {
       const offset = daysBefore > 0 ? -daysBefore : daysBefore;
       const reminderRaw = addDays(dueDate, offset);
-      const reminderAdjusted = adjustToNextBusinessDay(reminderRaw, settings);
+      const reminderDirection: "forward" | "backward" = offset >= 0 ? "forward" : "backward";
+      const reminderAdjusted = adjustFinalDeadline(reminderRaw, reminderDirection, settings);
       const reminderAt = applyDeadlineTime(reminderAdjusted, settings);
       out.push({
         title: `${rule.eventoLabel} – Promemoria (${Math.abs(offset)} gg prima)`,
@@ -177,7 +181,8 @@ function processRule(
   for (const daysBefore of reminderOffsets) {
     const offset = daysBefore > 0 ? -daysBefore : daysBefore;
     const reminderRaw = addDays(baseDate, offset);
-    const reminderAdjusted = adjustToNextBusinessDay(reminderRaw, settings);
+    const reminderDirection: "forward" | "backward" = offset >= 0 ? "forward" : "backward";
+    const reminderAdjusted = adjustFinalDeadline(reminderRaw, reminderDirection, settings);
     const reminderAt = applyDeadlineTime(reminderAdjusted, settings);
     out.push({
       title: `${rule.eventoLabel} – Promemoria (${Math.abs(offset)} gg prima)`,
@@ -280,7 +285,8 @@ function evaluateMultiRowFromEventoCode(
           for (const daysBefore of reminderOffsets) {
             const offset = daysBefore > 0 ? -daysBefore : daysBefore;
             const reminderRaw = addDays(baseDate, offset);
-            const reminderAdjusted = adjustToNextBusinessDay(reminderRaw, settings);
+            const reminderDirection: "forward" | "backward" = offset >= 0 ? "forward" : "backward";
+            const reminderAdjusted = adjustFinalDeadline(reminderRaw, reminderDirection, settings);
             const reminderAt = applyDeadlineTime(reminderAdjusted, settings);
             out.push({
               title: `${rule.eventoLabel} – Promemoria (${Math.abs(offset)} gg prima)`,

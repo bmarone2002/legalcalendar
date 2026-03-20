@@ -52,9 +52,17 @@ function easterSunday(year: number): Date {
 
 export function isWeekend(date: Date): boolean {
   const dow = getDay(date);
-  // Per le scadenze processuali calcolate "a giorni", consideriamo non lavorativi
-  // solo la domenica (dow=0). Il sabato non viene trattato automaticamente come festivo.
-  return dow === 0;
+  return dow === 0 || dow === 6;
+}
+
+export type TermDirection = "forward" | "backward";
+
+export function isSunday(date: Date): boolean {
+  return getDay(date) === 0;
+}
+
+export function isSaturday(date: Date): boolean {
+  return getDay(date) === 6;
 }
 
 export function isItalianHoliday(date: Date, extraHolidays?: string[]): boolean {
@@ -74,6 +82,14 @@ export function isItalianHoliday(date: Date, extraHolidays?: string[]): boolean 
   return false;
 }
 
+/**
+ * Festività nazionali (fisse + Pasqua/Lunedì dell'Angelo) + eventuali extra da settings.
+ * Nota: "festivo" qui è solo quello giuridico (nazionale), non include sabato/domenica.
+ */
+export function isHoliday(date: Date, settings: AppSettings): boolean {
+  return isItalianHoliday(date, settings.italianHolidays);
+}
+
 export function isInFerialeSuspension(
   date: Date,
   startMmDd = "08-01",
@@ -87,24 +103,61 @@ export function isInFerialeSuspension(
 }
 
 export function isNonBusinessDay(date: Date, settings: AppSettings): boolean {
-  if (isWeekend(date)) return true;
-  if (isItalianHoliday(date, settings.italianHolidays)) return true;
-  return false;
+  return isHoliday(date, settings) || isWeekend(date);
 }
 
 /**
- * Se la data cade di domenica o festivo, slitta al primo giorno
- * lavorativo successivo (art. 155 c.p.c.).
+ * Regola art. 155 c.p.c. (solo controllo sulla scadenza FINALE):
+ * - direction="forward": se la scadenza finale cade su sabato/domenica o festività,
+ *   si proroga al primo giorno successivo non festivo.
+ * - direction="backward": se la scadenza finale cade su sabato/domenica o festività,
+ *   si anticipa al primo giorno precedente non festivo.
  */
-export function adjustToNextBusinessDay(
+export function isNonWorkingFinalDay(
   date: Date,
+  direction: TermDirection,
+  settings: AppSettings
+): boolean {
+  // direction serve per mantenere la semantica leggibile e permettere estensioni future,
+  // ma la condizione di "giorno finale non valido" coincide per entrambe le direzioni
+  // (sabato/domenica/festivo non possono essere finali).
+  const _ = direction;
+  const sunday = isSunday(date);
+  const saturday = isSaturday(date);
+  const holiday = isHoliday(date, settings);
+  return sunday || saturday || holiday;
+}
+
+export function adjustFinalDeadline(
+  date: Date,
+  direction: TermDirection,
   settings: AppSettings
 ): Date {
   let d = new Date(date);
-  while (isNonBusinessDay(d, settings)) {
-    d = addDays(d, 1);
+  const step = direction === "forward" ? 1 : -1;
+  while (isNonWorkingFinalDay(d, direction, settings)) {
+    d = addDays(d, step);
   }
   return d;
+}
+
+/**
+ * Calcolo scadenza "a giorni" / "a ritroso" includendo i sabati/festivi nel conteggio
+ * e applicando la regola art. 155 solo alla scadenza finale.
+ */
+export function calculateDeadline(
+  startDate: Date,
+  numberOfDays: number,
+  direction: TermDirection,
+  settings: AppSettings
+): Date {
+  const raw = addDays(startDate, numberOfDays);
+  return adjustFinalDeadline(raw, direction, settings);
+}
+
+// Wrapper storico: mantiene il comportamento forward (proroga).
+export function adjustToNextBusinessDay(date: Date, settings: AppSettings): Date {
+  return adjustFinalDeadline(date, "forward", settings);
 }
 
 const SLOT_START_HOUR = 8;

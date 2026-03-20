@@ -15,17 +15,19 @@ import type { RuleDefinition, SubEventCandidate } from "../types";
 import type { AppSettings } from "../types";
 import { addDays } from "date-fns";
 import {
-  adjustToNextBusinessDay,
+  adjustFinalDeadline,
+  calculateDeadline,
   applyDeadlineTime,
   assignTimeSlots,
 } from "@/lib/date-utils";
 import type { MemoriaLibera } from "@/types/atto-giuridico";
+import type { TermDirection } from "@/lib/date-utils";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function termineDate(base: Date, days: number, settings: AppSettings): Date {
-  const raw = addDays(base, days);
-  return adjustToNextBusinessDay(raw, settings);
+  const direction: TermDirection = days >= 0 ? "forward" : "backward";
+  return calculateDeadline(base, days, direction, settings);
 }
 
 function makeTermine(
@@ -57,7 +59,9 @@ function makeTermineFromDate(
   explanation: string,
   priority = 1
 ): SubEventCandidate {
-  const adjusted = adjustToNextBusinessDay(deadlineDate, settings);
+  // Data inserita dall'utente come "scadenza": per coerenza con art. 155, consideriamo
+  // la proroga in avanti (forward).
+  const adjusted = adjustFinalDeadline(deadlineDate, "forward", settings);
   const dueAt = applyDeadlineTime(adjusted, settings);
   return {
     title,
@@ -81,7 +85,8 @@ function addReminders(
   if (!scadenzaDate) return [];
   return offsets.map((daysBefore) => {
     const raw = addDays(scadenzaDate, daysBefore);
-    const adjusted = adjustToNextBusinessDay(raw, settings);
+    const direction: TermDirection = daysBefore >= 0 ? "forward" : "backward";
+    const adjusted = adjustFinalDeadline(raw, direction, settings);
     const at = applyDeadlineTime(adjusted, settings);
     return {
       title: `${titlePrefix} – Promemoria (${Math.abs(daysBefore)} gg prima)`,

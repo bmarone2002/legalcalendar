@@ -2,7 +2,7 @@
 
 import { prisma } from "../db";
 import { getSettings } from "../settings";
-import { adjustToNextBusinessDay, applyDeadlineTime } from "@/lib/date-utils";
+import { adjustFinalDeadline, applyDeadlineTime } from "@/lib/date-utils";
 import { addDays } from "date-fns";
 import type {
   Rinvio,
@@ -150,7 +150,7 @@ async function generateSubEventsForRinvio(
   for (const daysBefore of reminderOffsets) {
     if (daysBefore <= 0) continue;
     const alertRaw = addDays(udienzaInfo.dataUdienza, -daysBefore);
-    const alertAdjusted = adjustToNextBusinessDay(alertRaw, settings);
+    const alertAdjusted = adjustFinalDeadline(alertRaw, "backward", settings);
     const alertDueAt = applyDeadlineTime(alertAdjusted, settings);
 
     batch.push({
@@ -173,7 +173,7 @@ async function generateSubEventsForRinvio(
     const rawDate = new Date(a.scadenza + "T12:00:00");
     if (isNaN(rawDate.getTime())) continue;
 
-    const adjusted = adjustToNextBusinessDay(rawDate, settings);
+    const adjusted = adjustFinalDeadline(rawDate, "forward", settings);
     const dueAt = applyDeadlineTime(adjusted, settings);
 
     batch.push({
@@ -192,7 +192,7 @@ async function generateSubEventsForRinvio(
 
     if (a.giorniAlert > 0) {
       const adempAlertRaw = addDays(rawDate, -a.giorniAlert);
-      const adempAlertAdjusted = adjustToNextBusinessDay(adempAlertRaw, settings);
+      const adempAlertAdjusted = adjustFinalDeadline(adempAlertRaw, "backward", settings);
       const adempAlertDueAt = applyDeadlineTime(adempAlertAdjusted, settings);
 
       batch.push({

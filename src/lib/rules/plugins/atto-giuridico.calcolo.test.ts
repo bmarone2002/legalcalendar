@@ -7,6 +7,7 @@ import { attoGiuridicoRule } from "./atto-giuridico";
 import type { Event } from "@/types";
 import type { AppSettings } from "../types";
 import { addDays } from "date-fns";
+import { calculateDeadline } from "@/lib/date-utils";
 
 function asDate(d: Date | null): Date {
   if (!d) throw new Error("Expected Date but got null");
@@ -121,17 +122,41 @@ assert(
   "CITAZIONE DA_NOT: esiste la 3^ memoria 171-ter (caso 30/06/2026)"
 );
 
-const attesoMemoria3Udienza30Giu = new Date("2026-06-20T12:00:00");
+const attesoMemoria3Udienza30Giu = new Date("2026-06-19T12:00:00");
 assert(
   memorie171terN3Udienza30Giu
     ? sameDay(asDate(memorie171terN3Udienza30Giu.dueAt), attesoMemoria3Udienza30Giu)
     : false,
-  "CITAZIONE DA_NOT: 3^ memoria = udienza - 10 gg (nessuno slittamento sabato)"
+  "CITAZIONE DA_NOT: 3^ memoria = udienza - 10 gg (anticipazione sabato)"
 );
 
 // ────────────────────────────────────────────────────────────────────
 // CITAZIONE COSTITUZIONE (CONVENUTO)
 // ────────────────────────────────────────────────────────────────────
+
+// ------------------------------------------------------------
+// Art. 155 c.p.c. – unit tests su calculateDeadline(direction-aware)
+// ------------------------------------------------------------
+
+// Forward: finale di sabato -> proroga al primo giorno non festivo successivo (lunedì)
+const forwardSat = calculateDeadline(new Date("2026-06-19T12:00:00"), 1, "forward", baseSettings);
+assert(sameDay(forwardSat, new Date("2026-06-22T12:00:00")), "forward: finale sabato -> lunedì");
+
+// Forward: finale di domenica -> proroga al primo giorno non festivo successivo (lunedì)
+const forwardSun = calculateDeadline(new Date("2026-06-20T12:00:00"), 1, "forward", baseSettings);
+assert(sameDay(forwardSun, new Date("2026-06-22T12:00:00")), "forward: finale domenica -> lunedì");
+
+// Backward: finale di sabato -> anticipazione al primo giorno precedente non festivo (venerdì)
+const backwardSat = calculateDeadline(new Date("2026-06-22T12:00:00"), -2, "backward", baseSettings);
+assert(sameDay(backwardSat, new Date("2026-06-19T12:00:00")), "backward: finale sabato -> venerdì");
+
+// Backward: finale di domenica -> anticipazione al primo giorno precedente non festivo (venerdì, saltando sabato)
+const backwardSun = calculateDeadline(new Date("2026-06-22T12:00:00"), -1, "backward", baseSettings);
+assert(sameDay(backwardSun, new Date("2026-06-19T12:00:00")), "backward: finale domenica -> venerdì");
+
+// Backward: finale in festività nazionale infrasettimanale (Epifania 06/01/2026) -> giorno precedente non festivo
+const backwardHoliday = calculateDeadline(new Date("2026-01-07T12:00:00"), -1, "backward", baseSettings);
+assert(sameDay(backwardHoliday, new Date("2026-01-05T12:00:00")), "backward: finale festività -> giorno precedente non festivo");
 
 const outCitCost = run("CITAZIONE", "COSTITUZIONE", {
   dataNotificaCitazione: "2026-05-01",
