@@ -20,8 +20,10 @@ import {
   allCalendarFilterColorKeys,
   COLOR_FILTER_NONE,
   COLOR_FILTER_OTHER,
+  titleMatchesUdienzaFilter,
 } from "@/constants/event-tag-colors";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 // Sottoeventi: rosso (pending), verde (done), neutro per promemoria futuri (prima del giorno).
 const SUB_EVENT_COLOR_PENDING = "#C62828";
@@ -41,9 +43,28 @@ function blendWithWhite(hex: string, whiteAmount: number): string {
   return `#${rr.toString(16).padStart(2, "0")}${gg.toString(16).padStart(2, "0")}${bb.toString(16).padStart(2, "0")}`;
 }
 
-/** "udienza" nel titolo (qualsiasi maiuscola, anche dentro altre parole). */
-function titleContainsUdienza(title: string | null | undefined): boolean {
-  return (title ?? "").toLowerCase().includes("udienza");
+const STORAGE_TAG_COLOR_LABELS = "calendar:tagColorLabels";
+
+function loadTagColorLabels(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_TAG_COLOR_LABELS);
+    if (!raw) return {};
+    const o = JSON.parse(raw) as Record<string, unknown>;
+    if (!o || typeof o !== "object") return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(o)) {
+      if (typeof v === "string" && v.trim() !== "") out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function persistTagColorLabels(next: Record<string, string>) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_TAG_COLOR_LABELS, JSON.stringify(next));
 }
 
 type SearchSuggestion = {
@@ -241,6 +262,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("calendar:soloUdienze") === "true";
   });
+  const [tagColorLabels, setTagColorLabels] = useState<Record<string, string>>(() => loadTagColorLabels());
   const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
   const [showPending, setShowPending] = useState<boolean>(true);
   const [showDone, setShowDone] = useState<boolean>(false);
@@ -287,6 +309,37 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       else next.add(key);
       if (typeof window !== "undefined") {
         window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([...next]));
+      }
+      return next;
+    });
+  }, []);
+
+  const updateTagColorLabel = useCallback((key: string, value: string) => {
+    setTagColorLabels((prev) => {
+      const next = { ...prev };
+      const trimmed = value.trim();
+      if (trimmed === "") delete next[key];
+      else next[key] = trimmed;
+      persistTagColorLabels(next);
+      return next;
+    });
+  }, []);
+
+  const selectAllTagColors = useCallback(() => {
+    setVisibleTagColors(() => {
+      const next = new Set(allCalendarFilterColorKeys());
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([...next]));
+      }
+      return next;
+    });
+  }, []);
+
+  const deselectAllTagColors = useCallback(() => {
+    setVisibleTagColors(() => {
+      const next = new Set<string>();
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([]));
       }
       return next;
     });
@@ -360,9 +413,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               if (!key) return true;
               return visibleTagColors.has(key);
             });
-            // Solo udienze: titolo (evento o sottoevento) contiene "udienza"
+            // Solo udienze: titolo con una delle frasi previste (vedi UDIENZA_TITLE_PHRASES)
             if (soloUdienze) {
-              events = events.filter((ev) => titleContainsUdienza(ev.title as string));
+              events = events.filter((ev) =>
+                titleMatchesUdienzaFilter(ev.title as string)
+              );
             }
             // Filtro stato: rossi (da fare) / verdi (completati)
             events = events.filter((ev) => {
@@ -979,50 +1034,99 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   </span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-72 p-3">
+              <PopoverContent align="end" className="w-[min(100vw-2rem,26rem)] p-3 sm:w-96">
                 <p className="text-xs font-medium text-zinc-700 mb-1">Mostra per colore tag</p>
                 <p className="text-[11px] text-zinc-500 mb-2">
-                  I promemoria e gli adempimenti usano il colore dell&apos;evento madre. Deseleziona i colori da nascondere.
+                  I promemoria e gli adempimenti usano il colore dell&apos;evento madre. Puoi dare un nome a ogni colore
+                  (solo per te, salvato nel browser). Deseleziona i colori da nascondere.
                 </p>
+                <div className="flex gap-2 mb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 flex-1 text-[11px] sm:text-xs"
+                    onClick={selectAllTagColors}
+                  >
+                    Seleziona tutti
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 flex-1 text-[11px] sm:text-xs"
+                    onClick={deselectAllTagColors}
+                  >
+                    Deseleziona tutti
+                  </Button>
+                </div>
                 <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
                   {EVENT_TAG_COLORS.map((hex) => {
                     const k = hex.toLowerCase();
                     return (
-                      <label
+                      <div
                         key={hex}
-                        className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50"
+                        className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-zinc-50"
                       >
                         <Checkbox
                           checked={visibleTagColors.has(k)}
                           onCheckedChange={() => toggleTagColorFilter(k)}
-                          className="h-3.5 w-3.5"
+                          className="h-3.5 w-3.5 shrink-0"
                         />
                         <span
                           className="h-4 w-4 rounded border border-zinc-200/80 shrink-0"
                           style={{ backgroundColor: hex }}
+                          title={hex}
                         />
-                        <span className="text-xs text-zinc-700 font-mono">{hex}</span>
-                      </label>
+                        <Input
+                          value={tagColorLabels[k] ?? ""}
+                          onChange={(e) => updateTagColorLabel(k, e.target.value)}
+                          placeholder={hex}
+                          className="h-7 text-xs py-0.5 px-2 flex-1 min-w-0"
+                          aria-label={`Nome personalizzato colore ${hex}`}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
                     );
                   })}
-                  <label className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50">
+                  <div className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-zinc-50">
                     <Checkbox
                       checked={visibleTagColors.has(COLOR_FILTER_NONE)}
                       onCheckedChange={() => toggleTagColorFilter(COLOR_FILTER_NONE)}
-                      className="h-3.5 w-3.5"
+                      className="h-3.5 w-3.5 shrink-0"
                     />
-                    <span className="h-4 w-4 rounded border border-dashed border-zinc-300 bg-white shrink-0" />
-                    <span className="text-xs text-zinc-700">Senza tag</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer rounded px-1 py-0.5 hover:bg-zinc-50">
+                    <span
+                      className="h-4 w-4 rounded border border-dashed border-zinc-300 bg-white shrink-0"
+                      title="Senza tag"
+                    />
+                    <Input
+                      value={tagColorLabels[COLOR_FILTER_NONE] ?? ""}
+                      onChange={(e) => updateTagColorLabel(COLOR_FILTER_NONE, e.target.value)}
+                      placeholder="Senza tag"
+                      className="h-7 text-xs py-0.5 px-2 flex-1 min-w-0"
+                      aria-label="Nome personalizzato: senza tag"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-zinc-50">
                     <Checkbox
                       checked={visibleTagColors.has(COLOR_FILTER_OTHER)}
                       onCheckedChange={() => toggleTagColorFilter(COLOR_FILTER_OTHER)}
-                      className="h-3.5 w-3.5"
+                      className="h-3.5 w-3.5 shrink-0"
                     />
-                    <span className="h-4 w-4 rounded border border-zinc-400 bg-zinc-100 shrink-0" />
-                    <span className="text-xs text-zinc-700">Altri colori (fuori palette)</span>
-                  </label>
+                    <span
+                      className="h-4 w-4 rounded border border-zinc-400 bg-zinc-100 shrink-0"
+                      title="Altri colori"
+                    />
+                    <Input
+                      value={tagColorLabels[COLOR_FILTER_OTHER] ?? ""}
+                      onChange={(e) => updateTagColorLabel(COLOR_FILTER_OTHER, e.target.value)}
+                      placeholder="Altri colori (fuori palette)"
+                      className="h-7 text-xs py-0.5 px-2 flex-1 min-w-0"
+                      aria-label="Nome personalizzato: altri colori"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                 </div>
               </PopoverContent>
             </Popover>
@@ -1033,7 +1137,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               title={
                 soloUdienze
                   ? "Disattiva per mostrare tutti gli eventi"
-                  : "Mostra solo eventi il cui titolo contiene «udienza»"
+                  : "Mostra solo titoli con: Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
               }
             >
               <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">SOLO UDIENZE</span>

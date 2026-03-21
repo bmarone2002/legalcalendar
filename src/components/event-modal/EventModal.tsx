@@ -1527,7 +1527,7 @@ export function EventModal({
                       }
                       className="border-zinc-300 text-zinc-700 hover:bg-zinc-50"
                     >
-                      + Aggiungi evento collegato
+                      + Aggiungi adempimento collegato
                     </Button>
                   </div>
                 </div>
@@ -1544,7 +1544,7 @@ export function EventModal({
                     <div key={i} className="flex flex-wrap items-center gap-2">
                       <Input
                         className="min-w-[160px] flex-1 max-w-md"
-                        placeholder={"Titolo dell'evento collegato"}
+                        placeholder={"Titolo dell'adempimento collegato"}
                         value={row.title}
                         onChange={(e) =>
                           setForm((f) => {
@@ -1605,7 +1605,7 @@ export function EventModal({
                           }))
                         }
                         className="text-red-500 hover:text-red-700 text-lg leading-none px-1"
-                        aria-label="Rimuovi evento collegato"
+                        aria-label="Rimuovi adempimento collegato"
                         disabled={readOnly}
                       >
                         ×

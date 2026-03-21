@@ -40,3 +40,18 @@ export function paletteKeyForFilter(color: string | null | undefined): string {
 export function allCalendarFilterColorKeys(): string[] {
   return [...EVENT_TAG_COLORS.map((c) => c.toLowerCase()), COLOR_FILTER_NONE, COLOR_FILTER_OTHER];
 }
+
+/** Frasi nel titolo (case-insensitive) per il filtro «Solo udienze». */
+export const UDIENZA_TITLE_PHRASES = [
+  "prima udienza",
+  "udienza istruttoria",
+  "udienza conclusioni",
+  "udienza sospensiva",
+  "udienza trattazione",
+  "udienza",
+] as const;
+
+export function titleMatchesUdienzaFilter(title: string | null | undefined): boolean {
+  const t = (title ?? "").toLowerCase();
+  return UDIENZA_TITLE_PHRASES.some((phrase) => t.includes(phrase));
+}

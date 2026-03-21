@@ -746,13 +746,13 @@ export function ProsecuzionePanel({
                 }
                 className="h-7 text-xs border-zinc-300 text-zinc-700 hover:bg-zinc-50"
               >
-                + Aggiungi evento collegato
+                + Aggiungi adempimento collegato
               </Button>
             </div>
             {linkedEvents.length > 0 && (
               <div className="space-y-2 pt-1 border-t border-zinc-100">
                 <Label className="text-xs font-medium text-zinc-700">
-                  Eventi collegati (data = data udienza di questo rinvio)
+                  Adempimenti collegati (data = data udienza di questo rinvio)
                 </Label>
                 <p className="text-[11px] text-zinc-500">
                   Titolo a scelta; giorni ± dalla data udienza (stesse regole sui festivi dei promemoria).
