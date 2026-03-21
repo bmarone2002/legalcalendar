@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "./DatePicker";
+import { DatePickerWithOptionalTime } from "./DatePickerWithOptionalTime";
 import { DateTimePicker } from "./DateTimePicker";
 import type {
   ActionType,
@@ -57,10 +57,6 @@ function toDateTime(s: string): Date {
   if (!s) return new Date();
   const d = new Date(s);
   return isNaN(d.getTime()) ? new Date() : d;
-}
-
-function toDateOnlyString(d: Date): string {
-  return format(d, "yyyy-MM-dd");
 }
 
 function getMemorieLibere(inputs: Record<string, unknown>): MemoriaLibera[] {
@@ -133,13 +129,11 @@ function MemorieLibereBlock({
               className="h-8 text-sm"
             />
           </div>
-          <div className="w-[180px]">
+          <div className="min-w-[240px] flex-1 max-w-md">
             <Label className="text-xs">Scadenza</Label>
-            <DatePicker
-              value={toDateOrNull(m.scadenza)}
-              onChange={(d) =>
-                updateMemoria(idx, "scadenza", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={m.scadenza}
+              onChange={(v) => updateMemoria(idx, "scadenza", v)}
               placeholder="Data scadenza"
             />
           </div>
@@ -191,9 +185,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica citazione</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotifica"))}
-              onChange={(d) => update("dataNotifica", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotifica")}
+              onChange={(v) => update("dataNotifica", v)}
               placeholder="Scegli data notifica"
             />
           </div>
@@ -217,14 +211,12 @@ export function AttoGiuridicoPanel({
                 (default = udienza, modificabile se il giudice cambia la data)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(
+            <DatePickerWithOptionalTime
+              value={
                 getStr(inputs, "dataUdienzaRiferimentoMemorie") ||
-                  getStr(inputs, "dataUdienzaComparizione")
-              )}
-              onChange={(d) =>
-                update("dataUdienzaRiferimentoMemorie", d ? toDateOnlyString(d) : "")
+                getStr(inputs, "dataUdienzaComparizione")
               }
+              onChange={(v) => update("dataUdienzaRiferimentoMemorie", v)}
               placeholder="Scegli data riferimento memorie"
             />
           </div>
@@ -244,11 +236,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica citazione</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaCitazione"))}
-              onChange={(d) =>
-                update("dataNotificaCitazione", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaCitazione")}
+              onChange={(v) => update("dataNotificaCitazione", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -267,14 +257,12 @@ export function AttoGiuridicoPanel({
                 (default = udienza, modificabile)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(
+            <DatePickerWithOptionalTime
+              value={
                 getStr(inputs, "dataUdienzaRiferimentoMemorie") ||
-                  getStr(inputs, "dataUdienzaComparizione")
-              )}
-              onChange={(d) =>
-                update("dataUdienzaRiferimentoMemorie", d ? toDateOnlyString(d) : "")
+                getStr(inputs, "dataUdienzaComparizione")
               }
+              onChange={(v) => update("dataUdienzaRiferimentoMemorie", v)}
               placeholder="Scegli data riferimento memorie"
             />
           </div>
@@ -286,11 +274,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica decreto ingiuntivo</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaDecretoIngiuntivo"))}
-              onChange={(d) =>
-                update("dataNotificaDecretoIngiuntivo", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaDecretoIngiuntivo")}
+              onChange={(v) => update("dataNotificaDecretoIngiuntivo", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -340,9 +326,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data udienza fissata</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -375,11 +361,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica atto impugnato</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaAttoImpugnato"))}
-              onChange={(d) =>
-                update("dataNotificaAttoImpugnato", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaAttoImpugnato")}
+              onChange={(v) => update("dataNotificaAttoImpugnato", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -390,11 +374,9 @@ export function AttoGiuridicoPanel({
                 (per iscrizione a ruolo, 30 gg)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaRicorso"))}
-              onChange={(d) =>
-                update("dataNotificaRicorso", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaRicorso")}
+              onChange={(v) => update("dataNotificaRicorso", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -405,9 +387,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -419,11 +401,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica ricorso</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaRicorso"))}
-              onChange={(d) =>
-                update("dataNotificaRicorso", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaRicorso")}
+              onChange={(v) => update("dataNotificaRicorso", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -434,9 +414,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -471,11 +451,9 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) !== "LUNGO" && (
             <div>
               <Label>Data notifica sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(getStr(inputs, "dataNotificaSentenza"))}
-                onChange={(d) =>
-                  update("dataNotificaSentenza", d ? toDateOnlyString(d) : "")
-                }
+              <DatePickerWithOptionalTime
+                value={getStr(inputs, "dataNotificaSentenza")}
+                onChange={(v) => update("dataNotificaSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -483,11 +461,9 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) === "LUNGO" && (
             <div>
               <Label>Data pubblicazione sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(getStr(inputs, "dataPubblicazioneSentenza"))}
-                onChange={(d) =>
-                  update("dataPubblicazioneSentenza", d ? toDateOnlyString(d) : "")
-                }
+              <DatePickerWithOptionalTime
+                value={getStr(inputs, "dataPubblicazioneSentenza")}
+                onChange={(v) => update("dataPubblicazioneSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -499,11 +475,9 @@ export function AttoGiuridicoPanel({
                 (per iscrizione a ruolo, 10 gg)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaAppello"))}
-              onChange={(d) =>
-                update("dataNotificaAppello", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaAppello")}
+              onChange={(v) => update("dataNotificaAppello", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -514,9 +488,9 @@ export function AttoGiuridicoPanel({
       {actionType === "APPELLO_CIVILE" && actionMode === "COSTITUZIONE" && (
         <div>
           <Label>Data udienza</Label>
-          <DatePicker
-            value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-            onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+          <DatePickerWithOptionalTime
+            value={getStr(inputs, "dataUdienza")}
+            onChange={(v) => update("dataUdienza", v)}
             placeholder="Scegli data udienza"
           />
         </div>
@@ -548,17 +522,12 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) !== "LUNGO" && (
             <div>
               <Label>Data notifica sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(
+              <DatePickerWithOptionalTime
+                value={
                   getStr(inputs, "dataNotificaSentenza") ||
-                    getStr(inputs, "dataNotificaSentenzaTributaria")
-                )}
-                onChange={(d) =>
-                  update(
-                    "dataNotificaSentenza",
-                    d ? toDateOnlyString(d) : ""
-                  )
+                  getStr(inputs, "dataNotificaSentenzaTributaria")
                 }
+                onChange={(v) => update("dataNotificaSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -566,17 +535,12 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) === "LUNGO" && (
             <div>
               <Label>Data pubblicazione sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(
+              <DatePickerWithOptionalTime
+                value={
                   getStr(inputs, "dataPubblicazioneSentenza") ||
-                    getStr(inputs, "dataPubblicazioneSentenzaTributaria")
-                )}
-                onChange={(d) =>
-                  update(
-                    "dataPubblicazioneSentenza",
-                    d ? toDateOnlyString(d) : ""
-                  )
+                  getStr(inputs, "dataPubblicazioneSentenzaTributaria")
                 }
+                onChange={(v) => update("dataPubblicazioneSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -588,11 +552,9 @@ export function AttoGiuridicoPanel({
                 (per iscrizione a ruolo, 30 gg)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaAppello"))}
-              onChange={(d) =>
-                update("dataNotificaAppello", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaAppello")}
+              onChange={(v) => update("dataNotificaAppello", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -603,9 +565,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -617,11 +579,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica ricorso/appello</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaRicorso"))}
-              onChange={(d) =>
-                update("dataNotificaRicorso", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaRicorso")}
+              onChange={(v) => update("dataNotificaRicorso", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -632,9 +592,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -667,11 +627,9 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) !== "LUNGO" && (
             <div>
               <Label>Data notifica sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(getStr(inputs, "dataNotificaSentenza"))}
-                onChange={(d) =>
-                  update("dataNotificaSentenza", d ? toDateOnlyString(d) : "")
-                }
+              <DatePickerWithOptionalTime
+                value={getStr(inputs, "dataNotificaSentenza")}
+                onChange={(v) => update("dataNotificaSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -679,11 +637,9 @@ export function AttoGiuridicoPanel({
           {(inputs.sceltaTermineImpugnazione as string) === "LUNGO" && (
             <div>
               <Label>Data pubblicazione sentenza</Label>
-              <DatePicker
-                value={toDateOrNull(getStr(inputs, "dataPubblicazioneSentenza"))}
-                onChange={(d) =>
-                  update("dataPubblicazioneSentenza", d ? toDateOnlyString(d) : "")
-                }
+              <DatePickerWithOptionalTime
+                value={getStr(inputs, "dataPubblicazioneSentenza")}
+                onChange={(v) => update("dataPubblicazioneSentenza", v)}
                 placeholder="Scegli data"
               />
             </div>
@@ -695,11 +651,9 @@ export function AttoGiuridicoPanel({
                 (per iscrizione a ruolo, 20 gg)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaRicorso"))}
-              onChange={(d) =>
-                update("dataNotificaRicorso", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaRicorso")}
+              onChange={(v) => update("dataNotificaRicorso", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -710,9 +664,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>
@@ -724,11 +678,9 @@ export function AttoGiuridicoPanel({
         <>
           <div>
             <Label>Data notifica ricorso per cassazione</Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataNotificaRicorso"))}
-              onChange={(d) =>
-                update("dataNotificaRicorso", d ? toDateOnlyString(d) : "")
-              }
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataNotificaRicorso")}
+              onChange={(v) => update("dataNotificaRicorso", v)}
               placeholder="Scegli data"
             />
           </div>
@@ -739,9 +691,9 @@ export function AttoGiuridicoPanel({
                 (per memorie, inserire quando comunicata dal giudice)
               </span>
             </Label>
-            <DatePicker
-              value={toDateOrNull(getStr(inputs, "dataUdienza"))}
-              onChange={(d) => update("dataUdienza", d ? toDateOnlyString(d) : "")}
+            <DatePickerWithOptionalTime
+              value={getStr(inputs, "dataUdienza")}
+              onChange={(v) => update("dataUdienza", v)}
               placeholder="Scegli data udienza"
             />
           </div>

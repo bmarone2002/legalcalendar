@@ -1054,9 +1054,6 @@ export function EventModal({
       open
       onOpenChange={(open) => {
         if (!open) {
-          if (mode === "create" && onDraft) {
-            onDraft(draftId ?? null, form);
-          }
           onClose();
         }
       }}
@@ -1870,9 +1867,6 @@ export function EventModal({
             <Button
               variant="outline"
               onClick={() => {
-                if (!readOnly && mode === "create" && onDraft) {
-                  onDraft(draftId ?? null, form);
-                }
                 onClose();
               }}
               disabled={saving || calculating}

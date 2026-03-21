@@ -3,7 +3,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { DatePicker } from "./DatePicker";
+import { DatePickerWithOptionalTime } from "./DatePickerWithOptionalTime";
 import {
   Select,
   SelectContent,
@@ -47,10 +47,9 @@ function toDateOnlyString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function toDateOrNull(v: unknown): Date | null {
-  if (!v || typeof v !== "string") return null;
-  const d = new Date(v.length === 10 ? v + "T12:00:00" : v);
-  return isNaN(d.getTime()) ? null : d;
+function strInput(inputs: Record<string, unknown>, key: string): string {
+  const v = inputs[key];
+  return typeof v === "string" ? v : "";
 }
 
 function getInputLabelFromKey(inputKey: string, fallback: string): string {
@@ -163,8 +162,7 @@ export function MacroAreaPanel({
       ? getEventoByCode(procedimento, eventoCode)
       : undefined;
 
-  const handleDateChange = (key: string) => (d: Date | null) => {
-    const value = d ? toDateOnlyString(d) : "";
+  const handleDateChange = (key: string) => (value: string) => {
     onInputsChange({ ...inputs, [key]: value });
   };
 
@@ -190,9 +188,6 @@ export function MacroAreaPanel({
   const showDataPrimaUdienza =
     procedimento === "CITAZIONE_CIVILE" && selectedEvento && selectedEvento.ordine <= 7;
 
-  const currentDate = selectedEvento
-    ? toDateOrNull(inputs[selectedEvento.inputKey])
-    : null;
   const currentDateLabel = selectedEvento
     ? getInputLabelFromKey(selectedEvento.inputKey, selectedEvento.label)
     : "";
@@ -200,10 +195,6 @@ export function MacroAreaPanel({
   const isEventoCodeKnown =
     !!eventoCode && eventiDisponibili.some((ev) => ev.code === eventoCode);
   const isManualMode = !!eventoCode && !isEventoCodeKnown;
-  const dataManuale = toDateOrNull(inputs["dataManuale"]);
-  const dataNotificaCitazione = toDateOrNull(inputs["dataPrimaNotificaCitazione"]);
-  const dataPrimaUdienza = toDateOrNull(inputs["dataPrimaUdienza"]);
-  const dataUdienzaComparizione = toDateOrNull(inputs["dataUdienzaComparizione"]);
 
   return (
     <div className="space-y-4">
@@ -322,8 +313,8 @@ export function MacroAreaPanel({
       {isManualMode && macroArea && procedimento && parteProcessuale && (
         <div className="pt-2 border-t border-zinc-200">
           <Label className="text-sm font-semibold text-zinc-700">Data</Label>
-          <DatePicker
-            value={dataManuale}
+          <DatePickerWithOptionalTime
+            value={strInput(inputs, "dataManuale")}
             onChange={handleDateChange("dataManuale")}
             placeholder="Inserisci data"
           />
@@ -336,8 +327,8 @@ export function MacroAreaPanel({
           <Label className="text-sm font-semibold text-zinc-700">
             Data prima udienza
           </Label>
-          <DatePicker
-            value={dataPrimaUdienza}
+          <DatePickerWithOptionalTime
+            value={strInput(inputs, "dataPrimaUdienza")}
             onChange={handleDateChange("dataPrimaUdienza")}
             placeholder="Inserisci data prima udienza"
           />
@@ -352,8 +343,8 @@ export function MacroAreaPanel({
             <Label className="text-sm font-semibold text-zinc-700">
               Data udienza di comparizione
             </Label>
-            <DatePicker
-              value={dataUdienzaComparizione}
+            <DatePickerWithOptionalTime
+              value={strInput(inputs, "dataUdienzaComparizione")}
               onChange={handleDateChange("dataUdienzaComparizione")}
               placeholder="Inserisci data udienza di comparizione"
             />
@@ -365,8 +356,8 @@ export function MacroAreaPanel({
             <Label className="text-sm font-semibold text-zinc-700">
               Data prima udienza
             </Label>
-            <DatePicker
-              value={dataPrimaUdienza}
+            <DatePickerWithOptionalTime
+              value={strInput(inputs, "dataPrimaUdienza")}
               onChange={handleDateChange("dataPrimaUdienza")}
               placeholder="Inserisci data prima udienza"
             />
@@ -382,8 +373,8 @@ export function MacroAreaPanel({
             <Label className="text-sm font-semibold text-zinc-700">
               {currentDateLabel}
             </Label>
-            <DatePicker
-              value={currentDate}
+            <DatePickerWithOptionalTime
+              value={strInput(inputs, selectedEvento.inputKey)}
               onChange={handleDateChange(selectedEvento.inputKey)}
               placeholder={`Inserisci ${currentDateLabel.toLowerCase()}`}
             />
@@ -396,8 +387,8 @@ export function MacroAreaPanel({
               <Label className="text-sm font-semibold text-zinc-700">
                 Data prima udienza
               </Label>
-              <DatePicker
-                value={dataPrimaUdienza}
+              <DatePickerWithOptionalTime
+                value={strInput(inputs, "dataPrimaUdienza")}
                 onChange={handleDateChange("dataPrimaUdienza")}
                 placeholder="Inserisci data prima udienza"
               />
@@ -414,8 +405,8 @@ export function MacroAreaPanel({
             <Label className="text-sm font-semibold text-zinc-700">
               Data notifica atto di citazione
             </Label>
-            <DatePicker
-              value={dataNotificaCitazione}
+            <DatePickerWithOptionalTime
+              value={strInput(inputs, "dataPrimaNotificaCitazione")}
               onChange={handleDateChange("dataPrimaNotificaCitazione")}
               placeholder="Inserisci data notifica citazione"
             />
@@ -427,8 +418,8 @@ export function MacroAreaPanel({
             <Label className="text-sm font-semibold text-zinc-700">
               Data prima udienza
             </Label>
-            <DatePicker
-              value={dataPrimaUdienza}
+            <DatePickerWithOptionalTime
+              value={strInput(inputs, "dataPrimaUdienza")}
               onChange={handleDateChange("dataPrimaUdienza")}
               placeholder="Inserisci data prima udienza"
             />

@@ -26,7 +26,6 @@ import { parseDocumentForRinvio } from "@/lib/actions/parse-document";
 import {
   TIPI_UDIENZA,
   TIPO_UDIENZA_LABELS,
-  ADEMPIMENTI_SUGGERITI,
   ADEMPIMENTO_SUGGERITO_LABELS,
   DEFAULT_GIORNI_ALERT,
   DEFAULT_GIORNI_ALERT_UDIENZA,
@@ -62,10 +61,6 @@ interface ProsecuzionePanelProps {
 }
 
 type PendingRinvioSaveResult = "not_required" | "saved" | "failed";
-
-function toDateOnlyString(d: Date): string {
-  return format(d, "yyyy-MM-dd");
-}
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -120,118 +115,6 @@ function adempimentoFormToData(f: AdempimentoForm): Adempimento {
     giorniAlert: f.giorniAlert,
     note: f.note || undefined,
   };
-}
-
-// ── Inline Adempimento Row ──────────────────────────────────────────
-
-function AdempimentoRow({
-  form,
-  onChange,
-  onRemove,
-}: {
-  form: AdempimentoForm;
-  onChange: (updated: AdempimentoForm) => void;
-  onRemove: () => void;
-}) {
-  const isAltro = form.tipoSuggerito === "ALTRO";
-
-  return (
-    <div className="space-y-2 rounded-md border border-zinc-200 bg-white p-3">
-      <div className="flex items-end gap-2">
-        <div className="flex-1">
-          <Label className="text-xs">Tipo adempimento</Label>
-          <Select
-            value={form.tipoSuggerito || "__empty"}
-            onValueChange={(v) => {
-              const val = v === "__empty" ? "" : v;
-              onChange({
-                ...form,
-                tipoSuggerito: val as AdempimentoSuggerito | "",
-                titolo:
-                  val && val !== "ALTRO"
-                    ? ADEMPIMENTO_SUGGERITO_LABELS[val as AdempimentoSuggerito]
-                    : form.titolo,
-              });
-            }}
-          >
-            <SelectTrigger className="h-8 text-sm bg-white">
-              <SelectValue placeholder="Seleziona..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__empty" disabled>
-                Seleziona...
-              </SelectItem>
-              {ADEMPIMENTI_SUGGERITI.map((a) => (
-                <SelectItem key={a} value={a}>
-                  {ADEMPIMENTO_SUGGERITO_LABELS[a]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-          onClick={onRemove}
-          title="Rimuovi adempimento"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {isAltro && (
-        <div>
-          <Label className="text-xs">Titolo (specificare)</Label>
-          <Input
-            value={form.titolo}
-            onChange={(e) => onChange({ ...form, titolo: e.target.value })}
-            placeholder="Es. Deposito atto integrativo..."
-            className="h-8 text-sm"
-          />
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Label className="text-xs">Scadenza</Label>
-          <DatePicker
-            value={form.scadenza ? new Date(form.scadenza + "T12:00:00") : null}
-            onChange={(d) =>
-              onChange({ ...form, scadenza: d ? toDateOnlyString(d) : "" })
-            }
-            placeholder="Data scadenza"
-          />
-        </div>
-        <div className="w-28">
-          <Label className="text-xs">Giorni alert</Label>
-          <Input
-            type="number"
-            min={0}
-            value={form.giorniAlert}
-            onChange={(e) =>
-              onChange({
-                ...form,
-                giorniAlert: e.target.value ? Number(e.target.value) : 0,
-              })
-            }
-            className="h-10 text-sm"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-xs">Note (opzionale)</Label>
-        <Input
-          value={form.note}
-          onChange={(e) => onChange({ ...form, note: e.target.value })}
-          placeholder="Note aggiuntive..."
-          className="h-8 text-sm"
-        />
-      </div>
-    </div>
-  );
 }
 
 // ── Existing Rinvio Card (collapsed/expanded) ───────────────────────
@@ -414,18 +297,6 @@ export function ProsecuzionePanel({
     setEditingRinvioId(null);
     setShowForm(false);
     setError(null);
-  };
-
-  const handleAddAdempimento = () => {
-    setAdempimenti((prev) => [...prev, emptyAdempimento()]);
-  };
-
-  const handleUpdateAdempimento = (idx: number, updated: AdempimentoForm) => {
-    setAdempimenti((prev) => prev.map((a, i) => (i === idx ? updated : a)));
-  };
-
-  const handleRemoveAdempimento = (idx: number) => {
-    setAdempimenti((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSaveRinvio = async (): Promise<boolean> => {
@@ -677,8 +548,9 @@ export function ProsecuzionePanel({
         />
       )}
       <p className="text-sm text-zinc-600">
-        Cronologia delle udienze successive all&apos;atto iniziale. Aggiungi i
-        rinvii di udienza con i relativi adempimenti e promemoria.
+        Cronologia delle udienze successive all&apos;atto iniziale. Aggiungi i rinvii di udienza e i
+        promemoria; gli adempimenti collegati puoi gestirli dalla scheda Dettagli (eventi collegati alla
+        pratica).
       </p>
 
       {/* Existing rinvii list */}
@@ -797,39 +669,6 @@ export function ProsecuzionePanel({
               onChange={(e) => setNote(e.target.value)}
               placeholder="Note o disposizioni del giudice..."
             />
-          </div>
-
-          {/* Adempimenti */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-medium text-zinc-700">
-                Adempimenti e scadenze
-              </Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                onClick={handleAddAdempimento}
-              >
-                + Aggiungi adempimento
-              </Button>
-            </div>
-
-            {adempimenti.length === 0 && (
-              <p className="text-xs text-zinc-400">
-                Nessun adempimento. Usa il pulsante per aggiungerne.
-              </p>
-            )}
-
-            {adempimenti.map((a, idx) => (
-              <AdempimentoRow
-                key={a.id}
-                form={a}
-                onChange={(updated) => handleUpdateAdempimento(idx, updated)}
-                onRemove={() => handleRemoveAdempimento(idx)}
-              />
-            ))}
           </div>
 
           {/* Promemoria udienza (opzionali, personalizzabili) */}
