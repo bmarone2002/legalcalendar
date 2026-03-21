@@ -457,10 +457,15 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               if (!key) return true;
               return visibleTagColors.has(key);
             });
-            // Solo udienze: una delle frasi in Fase (campo pratica, non titolo)
+            // Solo udienze: solo evento principale (no promemoria/adempimenti/sottoeventi); Fase con frasi previste
             if (soloUdienze) {
               events = events.filter((ev) => {
-                const fase = (ev.extendedProps as { faseFiltroText?: string }).faseFiltroText ?? "";
+                const ext = ev.extendedProps as {
+                  isSubEvent?: boolean;
+                  faseFiltroText?: string;
+                };
+                if (ext.isSubEvent) return false;
+                const fase = ext.faseFiltroText ?? "";
                 return matchesUdienzaPhrasesInFaseText(fase);
               });
             }
@@ -1185,7 +1190,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               title={
                 soloUdienze
                   ? "Disattiva per mostrare tutti gli eventi"
-                  : "Mostra solo pratiche la cui Fase contiene (tra le altre): Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
+                  : "Solo eventi principali (no promemoria/adempimenti): Fase con Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
               }
             >
               <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">SOLO UDIENZE</span>
