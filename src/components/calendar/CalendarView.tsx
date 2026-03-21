@@ -20,8 +20,9 @@ import {
   allCalendarFilterColorKeys,
   COLOR_FILTER_NONE,
   COLOR_FILTER_OTHER,
-  titleMatchesUdienzaFilter,
+  matchesUdienzaPhrasesInFaseText,
 } from "@/constants/event-tag-colors";
+import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
@@ -108,6 +109,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
     normalized === "#fff" || normalized === "#ffffff" || normalized === "white";
   const tagColor = rawColor && !isWhiteLike ? rawColor : null;
   const filterColorKey = paletteKeyForFilter(e.color);
+  const faseFiltroText = getFaseDisplayString(e);
   const mainBackground = tagColor ?? "#ffffff";
   const mainBorder = tagColor ?? "#E5E5E5";
   const rawTitle = (e.title ?? "").trimStart();
@@ -130,6 +132,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
         status: e.status ?? "pending",
         filterColorKey,
         parentTagColor: tagColor,
+        faseFiltroText,
       },
     },
   ];
@@ -180,6 +183,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
         parentTitle: mainTitle,
         parentTagColor: tagColor,
         filterColorKey,
+        faseFiltroText,
         kind: se.kind,
         status: se.status,
       },
@@ -240,9 +244,12 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const [allEvents, setAllEvents] = useState<AppEvent[]>([]);
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
   const [searchFilterEventId, setSearchFilterEventId] = useState<string | null>(null);
-  const [hideSubEvents, setHideSubEvents] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("calendar:hideSubEvents") === "true";
+  /** Se false, nasconde eventi/sottoeventi il cui titolo contiene «Promemoria». */
+  const [showPromemoriaTitle, setShowPromemoriaTitle] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const v = window.localStorage.getItem("calendar:showPromemoriaTitle");
+    if (v === "false") return false;
+    return true;
   });
   const [visibleTagColors, setVisibleTagColors] = useState<Set<string>>(() => {
     const all = allCalendarFilterColorKeys();
@@ -300,7 +307,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       return;
     }
     calendarRef.current?.getApi()?.refetchEvents();
-  }, [visibleTagColors, soloUdienze]);
+  }, [visibleTagColors, soloUdienze, showPromemoriaTitle]);
 
   const toggleTagColorFilter = useCallback((key: string) => {
     setVisibleTagColors((prev) => {
@@ -389,6 +396,10 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               const rawTitle = (f.title as string | undefined)?.trim() || "Evento senza titolo";
               const draftColor = f.color as string | null | undefined;
               const tag = paletteKeyForFilter(draftColor);
+              const faseFiltroText = getFaseDisplayFromFields(
+                (f.eventoCode as string | null | undefined) ?? null,
+                (f.procedimento as string | null | undefined) ?? null
+              );
               return {
                 id: draft.id,
                 title: `BOZZA – ${rawTitle}`,
@@ -403,6 +414,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   status: f.status ?? "pending",
                   filterColorKey: tag,
                   parentTagColor: null,
+                  faseFiltroText,
                 },
               } as Record<string, unknown>;
             });
@@ -413,11 +425,19 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               if (!key) return true;
               return visibleTagColors.has(key);
             });
-            // Solo udienze: titolo con una delle frasi previste (vedi UDIENZA_TITLE_PHRASES)
+            // Solo udienze: una delle frasi in Fase (campo pratica, non titolo)
             if (soloUdienze) {
-              events = events.filter((ev) =>
-                titleMatchesUdienzaFilter(ev.title as string)
-              );
+              events = events.filter((ev) => {
+                const fase = (ev.extendedProps as { faseFiltroText?: string }).faseFiltroText ?? "";
+                return matchesUdienzaPhrasesInFaseText(fase);
+              });
+            }
+            // Titolo con «Promemoria»: se disattivato, nascondi quelle voci
+            if (!showPromemoriaTitle) {
+              events = events.filter((ev) => {
+                const t = ((ev.title as string) ?? "").toLowerCase();
+                return !t.includes("promemoria");
+              });
             }
             // Filtro stato: rossi (da fare) / verdi (completati)
             events = events.filter((ev) => {
@@ -428,10 +448,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               }
               return showPending;
             });
-            // Filtro "Solo eventi principali": nasconde promemoria e sottoeventi
-            if (hideSubEvents) {
-              events = events.filter((ev) => !(ev.extendedProps as { isSubEvent?: boolean }).isSubEvent);
-            }
             successCallback(events);
           } else {
             failureCallback(
@@ -454,13 +470,13 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     [
       isSearchActive,
       searchFilterEventId,
-      hideSubEvents,
       draftEvents,
       showPending,
       showDone,
       targetUserId,
       visibleTagColors,
       soloUdienze,
+      showPromemoriaTitle,
     ]
   );
 
@@ -560,11 +576,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     }
   }, []);
 
-  const handleToggleHideSubEvents = useCallback(() => {
-    setHideSubEvents((prev) => {
+  const handleToggleShowPromemoriaTitle = useCallback(() => {
+    setShowPromemoriaTitle((prev) => {
       const next = !prev;
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("calendar:hideSubEvents", String(next));
+        window.localStorage.setItem("calendar:showPromemoriaTitle", String(next));
       }
       calendarRef.current?.getApi()?.refetchEvents();
       return next;
@@ -1137,7 +1153,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               title={
                 soloUdienze
                   ? "Disattiva per mostrare tutti gli eventi"
-                  : "Mostra solo titoli con: Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
+                  : "Mostra solo pratiche la cui Fase contiene (tra le altre): Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
               }
             >
               <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">SOLO UDIENZE</span>
@@ -1157,21 +1173,25 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             {/* Toggle promemoria */}
             <button
               type="button"
-              onClick={handleToggleHideSubEvents}
+              onClick={handleToggleShowPromemoriaTitle}
               className="flex items-center gap-2 select-none"
-              title={hideSubEvents ? "Promemoria nascosti. Clicca per mostrarli." : "Promemoria visibili. Clicca per nasconderli."}
+              title={
+                showPromemoriaTitle
+                  ? "Disattiva per nascondere eventi/sottoeventi che nel titolo contengono «Promemoria»"
+                  : "Attiva per mostrare anche quelle voci con «Promemoria» nel titolo"
+              }
             >
               <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">Promemoria</span>
               <span
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors ${
-                  hideSubEvents
-                    ? "bg-zinc-300 border-zinc-400"
-                    : "bg-[var(--navy)] border-[var(--navy)]"
+                  showPromemoriaTitle
+                    ? "bg-[var(--navy)] border-[var(--navy)]"
+                    : "bg-zinc-300 border-zinc-400"
                 }`}
               >
                 <span
                   className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
-                  style={{ transform: hideSubEvents ? "translateX(2px)" : "translateX(18px)" }}
+                  style={{ transform: showPromemoriaTitle ? "translateX(18px)" : "translateX(2px)" }}
                 />
               </span>
             </button>
