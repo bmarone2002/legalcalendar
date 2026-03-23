@@ -79,11 +79,13 @@ Se il procedimento è CITAZIONE_CIVILE e l’evento è NOTIFICA_CITAZIONE (o il 
 Non confondere le due: la notifica è di solito PRIMA dell’udienza. Inserisci entrambe con le chiavi corrette, se presenti.
 
 TITOLO E NOTE:
-- Il titolo deve rimanere sintetico e operativo, includendo se possibile R.G. o elementi identificativi della pratica (es. "Citazione Tizio vs Caio – Tribunale di Napoli R.G. 1234/2025").
+- Il titolo pratica DEVE essere composto e compilato con questi 4 elementi in quest'ordine: PARTI, RG, AUTORITÀ, LUOGO.
+- Formato consigliato del campo title: "PARTI: <parte1 vs parte2> | RG: <numero RG o N/D> | AUTORITÀ: <autorita giudiziaria o N/D> | LUOGO: <citta/foro o N/D>".
+- Se un elemento non e' leggibile nel testo, non inventarlo: usa "N/D" solo per quel singolo elemento mancante e compila comunque gli altri.
 - Le note servono solo per aggiungere chiarimenti utili all’avvocato (es. incertezze sull’esatta fase/parte o informazioni che non entrano in altri campi).
 
 Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste chiavi:
-- title: stringa breve (es. "Citazione Tizio vs Caio – Tribunale di Napoli R.G. 1234/2025")
+- title: stringa nel formato a 4 elementi obbligatori, es. "PARTI: Tizio vs Caio | RG: 1234/2025 | AUTORITÀ: Tribunale | LUOGO: Napoli"
 - description: opzionale, dettagli o adempimenti
 - type: uno tra "udienza", "notifica", "deposito", "scadenza", "altro"
 - macroArea: uno dei codici macroArea presenti nel JSON fornito
