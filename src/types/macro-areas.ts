@@ -94,10 +94,10 @@ export const PROCEDIMENTO_LABELS: Record<ProcedimentoCode, string> = {
   ATP: "Accertamento tecnico preventivo (ATP) 696 c.p.c.",
   // Esecuzioni
   PIGNORAMENTO_MOBILIARE: "Pignoramento mobiliare",
-  PIGNORAMENTO_IMMOBILIARE: "Pignoramento immobiliare",
+  PIGNORAMENTO_IMMOBILIARE: "Pignoramento immobiliare - post Riforma Cartabia",
   PIGNORAMENTO_PRESSO_TERZI: "Pignoramento presso terzi",
-  OPPOSIZIONE_ESECUZIONE: "Opposizione all'esecuzione",
-  OPPOSIZIONE_ATTI_ESECUTIVI: "Opposizione agli atti esecutivi",
+  OPPOSIZIONE_ESECUZIONE: "Opposizione all'esecuzione - post Riforma Cartabia",
+  OPPOSIZIONE_ATTI_ESECUTIVI: "Opposizione agli atti esecutivi - post Riforma Cartabia",
   // Lavoro
   RICORSO_LAVORO: "Ricorso lavoro",
   APPELLO_LAVORO: "Appello lavoro",
@@ -689,6 +689,205 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       inputKey: "dataDepositoSentenzaMobiliare",
       parteProcessuale: "COMUNE",
       ordine: 11,
+    },
+  ],
+  PIGNORAMENTO_IMMOBILIARE: [
+    // ATTORE / creditore
+    {
+      code: "NOTIFICA_PRECETTO_IMMOBILIARE",
+      label: "Notifica precetto",
+      inputKey: "dataNotificaPrecettoImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+    {
+      code: "NOTIFICA_ATTO_PIGNORAMENTO_IMMOBILIARE",
+      label: "Notificazione Atto di Pignoramento",
+      inputKey: "dataNotificaAttoPignoramentoImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 3,
+    },
+    {
+      code: "ISCRIZIONE_RUOLO_IMMOBILIARE",
+      label: "Iscrizione a Ruolo",
+      inputKey: "dataRestituzioneAttoPignoramentoImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 4,
+    },
+    {
+      code: "TRASCRIZIONE_PIGNORAMENTO_IMMOBILIARE",
+      label: "Trascrizione del Pignoramento",
+      inputKey: "dataTrascrizionePignoramentoImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 5,
+    },
+    {
+      code: "ISTANZA_VENDITA_DEPOSITO_IPOCATASTALE_IMMOBILIARE",
+      label: "Istanza di Vendita e Deposito Documentazione Ipocatastale",
+      inputKey: "dataPerfezionamentoNotificaPignoramentoImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 6,
+    },
+    {
+      code: "PROROGA_ISTANZA_VENDITA_DEPOSITO_IMMOBILIARE",
+      label: "Proroga eventuale del termine per istanza di vendita e deposito documentazione",
+      inputKey: "dataScadenzaTermineOriginarioIstanzaVenditaImmobiliare",
+      parteProcessuale: "ATTORE",
+      ordine: 7,
+    },
+
+    // COMUNE (eventi condivisi)
+    {
+      code: "TERMINE_EFFICACIA_PRECETTO_IMMOBILIARE",
+      label: "Termine efficacia precetto",
+      inputKey: "dataNotificaPrecettoImmobiliare",
+      parteProcessuale: "COMUNE",
+      ordine: 2,
+    },
+    {
+      code: "FISSAZIONE_UDIENZA_AUTORIZZAZIONE_VENDITA_IMMOBILIARE",
+      label: "Fissazione Udienza per l'Autorizzazione alla Vendita (art. 569 c.p.c.)",
+      inputKey: "dataNominaEspertoStimatoreImmobiliare",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
+    },
+    {
+      code: "PRESENTAZIONE_OFFERTE_ACQUISTO_IMMOBILIARE",
+      label: "Presentazione Offerte d'Acquisto",
+      inputKey: "dataPresentazioneOfferteAcquistoImmobiliare",
+      parteProcessuale: "COMUNE",
+      ordine: 9,
+    },
+    {
+      code: "VERSAMENTO_SALDO_PREZZO_IMMOBILIARE",
+      label: "Versamento Saldo Prezzo",
+      inputKey: "dataAggiudicazioneImmobiliare",
+      parteProcessuale: "COMUNE",
+      ordine: 10,
+    },
+  ],
+  OPPOSIZIONE_ESECUZIONE: [
+    // CREDITORE / DEBITORE
+    {
+      code: "NOTIFICA_PRECETTO_OPPOSIZIONE_ESECUZIONE",
+      label: "Notificazione dell'Atto di Precetto",
+      inputKey: "dataNotificaPrecettoOpposizioneEsecuzione",
+      parteProcessuale: "ATTORE",
+      ordine: 1,
+    },
+
+    // OPPONENTE
+    {
+      code: "PROPOSIZIONE_OPPOSIZIONE_NOTIFICA_CITAZIONE_615_1",
+      label: "Proposizione dell'Opposizione - Notifica Atto di citazione",
+      inputKey: "dataProposizioneOpposizioneNotificaCitazione615_1",
+      parteProcessuale: "CONVENUTO",
+      ordine: 2,
+    },
+    {
+      code: "PROPOSIZIONE_OPPOSIZIONE_DEPOSITO_RICORSO_615_2",
+      label: "Proposizione dell'Opposizione - Deposito Ricorso al giudice dell'esecuzione",
+      inputKey: "dataProposizioneOpposizioneDepositoRicorso615_2",
+      parteProcessuale: "CONVENUTO",
+      ordine: 5,
+    },
+
+    // COMUNE (eventi condivisi)
+    {
+      code: "PONTE_RITO_ORDINARIO_O_SPECIALE_615_1",
+      label: "Il giudizio si svolgera secondo le forme ordinarie - rito ordinario o rito speciale",
+      inputKey: "dataEsitoFaseIntroduttivaOpposizioneEsecuzione",
+      parteProcessuale: "COMUNE",
+      ordine: 3,
+    },
+    {
+      code: "NOTIFICA_ATTO_PIGNORAMENTO_OPPOSIZIONE_ESECUZIONE",
+      label: "Notificazione dell'atto di pignoramento",
+      inputKey: "dataNotificaAttoPignoramentoOpposizioneEsecuzione",
+      parteProcessuale: "COMUNE",
+      ordine: 4,
+    },
+    {
+      code: "UDIENZA_FISSATA_GIUDICE_DECRETO_FASE_CAUTELARE_618",
+      label: "Udienza fissata dal giudice con decreto - fase cautelare",
+      inputKey: "dataUdienzaFissataGiudiceDecretoFaseCautelare618",
+      parteProcessuale: "COMUNE",
+      ordine: 6,
+    },
+    {
+      code: "INTRODUZIONE_GIUDIZIO_MERITO_TERMINE_FISSATO_GIUDICE_616",
+      label: "Introduzione del Giudizio di Merito - termine perentorio fissato dal giudice",
+      inputKey: "dataIntroduzioneGiudizioMeritoTermineFissatoGiudice616",
+      parteProcessuale: "COMUNE",
+      ordine: 7,
+    },
+    {
+      code: "PONTE_GIUDIZIO_MERITO_FORME_ORDINARIE_616",
+      label: "Il giudizio di merito prosegue nelle forme ordinarie",
+      inputKey: "dataEsitoFaseSommariaOpposizioneEsecuzione",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
+    },
+  ],
+  OPPOSIZIONE_ATTI_ESECUTIVI: [
+    // OPPONENTE
+    {
+      code: "NOTIFICA_TITOLO_O_PRECETTO_617_1",
+      label: "Notificazione del Titolo Esecutivo o del Precetto",
+      inputKey: "dataNotificaTitoloPrecetto617_1",
+      parteProcessuale: "CONVENUTO",
+      ordine: 1,
+    },
+    {
+      code: "PROPOSIZIONE_OPPOSIZIONE_ATTI_NOTIFICA_CITAZIONE_617_1",
+      label: "Proposizione dell'Opposizione - Notifica Atto di citazione",
+      inputKey: "dataNotificaTitoloPrecetto617_1",
+      parteProcessuale: "CONVENUTO",
+      ordine: 2,
+    },
+    {
+      code: "ATTO_ESECUTIVO_CONOSCENZA_LEGALE_FATTO_617_2",
+      label: "Atto Esecutivo e Conoscenza Legale/di Fatto",
+      inputKey: "dataConoscenzaMotivoOpposizione617_2",
+      parteProcessuale: "CONVENUTO",
+      ordine: 3,
+    },
+    {
+      code: "RICORSO_OPPOSIZIONE_DEPOSITO_CANCELLERIA_GE_617_2",
+      label: "Ricorso in opposizione - deposito in cancelleria del G.E.",
+      inputKey: "dataCompimentoAttoOConoscenza617_2",
+      parteProcessuale: "CONVENUTO",
+      ordine: 4,
+    },
+
+    // COMUNE (eventi condivisi)
+    {
+      code: "ORDINANZA_DECISIONE_ISTANZA_SOSPENSIONE_624_618",
+      label: "Ordinanza di decisione sull'eventuale Istanza di Sospensione",
+      inputKey: "dataProvvedimentoGiudiceOrdinanzaSospensione624_618",
+      parteProcessuale: "COMUNE",
+      ordine: 5,
+    },
+    {
+      code: "RECLAMO_ORDINANZA_SOSPENSIONE_669_TERDECIES",
+      label: "Reclamo contro l'Ordinanza sulla Sospensione",
+      inputKey: "dataProvvedimentoSospensione669Terdecies",
+      parteProcessuale: "COMUNE",
+      ordine: 6,
+    },
+    {
+      code: "INTRODUZIONE_GIUDIZIO_MERITO_618",
+      label: "Introduzione del Giudizio di Merito",
+      inputKey: "dataFissataGEOpposizioneAtti618",
+      parteProcessuale: "COMUNE",
+      ordine: 7,
+    },
+    {
+      code: "PONTE_GIUDIZIO_MERITO_FORME_ORDINARIE_618",
+      label: "Il giudizio di merito prosegue nelle forme ordinarie",
+      inputKey: "dataEsitoFaseSommariaOpposizioneAtti618",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
     },
   ],
   PIGNORAMENTO_PRESSO_TERZI: [
