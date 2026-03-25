@@ -1108,7 +1108,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                     setModalState({ mode: "create", start: slot.start, end: slot.end });
                   }}
                 >
-                  <span className="mr-1">Nuovo evento</span>
+                  <span className="mr-1">Nuova pratica</span>
                   <span className="text-xs">▾</span>
                 </Button>
               )}
