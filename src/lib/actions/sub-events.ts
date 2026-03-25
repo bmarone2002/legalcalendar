@@ -10,7 +10,11 @@ import { toSubEvent } from "@/lib/mappers";
 import type { SubEventCandidate } from "../rules/types";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 import { getEventoByCode } from "@/types/macro-areas";
-import { computePhase1MainDueAt } from "../rules/plugins/data-driven-engine";
+import {
+  computePhase1MainDueAt,
+  computePhase1MainPreview,
+} from "../rules/plugins/data-driven-engine";
+import type { MacroAreaCode, ParteProcessuale, ProcedimentoCode } from "@/types/macro-areas";
 
 export { toSubEvent };
 
@@ -195,6 +199,43 @@ export async function getSubEventsPreview(
     return {
       success: false,
       error: e instanceof Error ? e.message : "Errore preview sottoeventi",
+    };
+  }
+}
+
+/** Anteprima data e formula della fase 1 promossa (stesso calcolo del salvataggio). */
+export async function getPhase1MainPreview(input: {
+  macroArea: string | null;
+  procedimento: string | null;
+  parteProcessuale: string | null;
+  eventoCode: string | null;
+  inputs: Record<string, unknown> | null;
+}): Promise<ActionResult<{ dueAt: string | null; explanation: string }>> {
+  try {
+    const { macroArea, procedimento, parteProcessuale, eventoCode, inputs } = input;
+    if (!macroArea || !procedimento || !parteProcessuale || !eventoCode) {
+      return { success: true, data: { dueAt: null, explanation: "" } };
+    }
+    const settings = await getSettings();
+    const preview = computePhase1MainPreview({
+      macroArea: macroArea as MacroAreaCode,
+      procedimento: procedimento as ProcedimentoCode,
+      parteProcessuale: parteProcessuale as ParteProcessuale,
+      eventoCode,
+      inputs: inputs ?? {},
+      settings,
+    });
+    return {
+      success: true,
+      data: {
+        dueAt: preview.dueAt ? preview.dueAt.toISOString() : null,
+        explanation: preview.explanation,
+      },
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Errore anteprima fase 1",
     };
   }
 }

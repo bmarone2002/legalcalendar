@@ -21,6 +21,7 @@ import { parseDocumentForEvent } from "@/lib/actions/parse-document";
 import {
   regenerateSubEvents,
   getSubEventsPreview,
+  getPhase1MainPreview,
   updateSubEvent,
   createSubEventsFromPreview,
   deleteSubEvent,
@@ -287,6 +288,10 @@ interface EventSummaryPanelProps {
   readOnly: boolean;
   /** Se true, il pannello è mostrato nel bottom sheet mobile (niente hidden lg). */
   embedInSheet?: boolean;
+  /** Data calcolata per la fase 1 promossa (anteprima prima del salvataggio). */
+  phase1MainDueAt: Date | null;
+  /** Testo formula / norma sotto la data della fase 1. */
+  phase1MainExplanation: string;
 }
 
 function EventSummaryPanel({
@@ -304,12 +309,14 @@ function EventSummaryPanel({
   saving,
   readOnly,
   embedInSheet = false,
+  phase1MainDueAt,
+  phase1MainExplanation,
 }: EventSummaryPanelProps) {
   const baseEventsToShow =
     mode === "edit" && subEvents.length > 0 ? subEvents : previewSubEvents;
 
-  // "Promuovi fase1": la data di riferimento della riga iniziale coincide con l'anchor dell'evento madre.
-  const mainDate = form.startAt;
+  // "Promuovi fase1": in anteprima la data segue il motore regole; se manca la base, resta il giorno cliccato sul calendario.
+  const mainDate = phase1MainDueAt ?? form.startAt;
 
   const practiceTitle = composePracticeTitle(form).trim() || "Pratica senza titolo";
   const phaseTitle =
@@ -323,7 +330,7 @@ function EventSummaryPanel({
       id: "phase-1-main",
       title: phaseTitle,
       dueAt: mainDate,
-      explanation: "",
+      explanation: phase1MainExplanation,
       ruleId: "main",
       kind: "attivita",
       __isMainEvent: true,
@@ -517,6 +524,10 @@ export function EventModal({
       isPlaceholder?: boolean;
     }>
   >([]);
+  const [phase1Preview, setPhase1Preview] = useState<{
+    dueAt: Date | null;
+    explanation: string;
+  }>({ dueAt: null, explanation: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -672,6 +683,7 @@ export function EventModal({
   useEffect(() => {
     if (!form.generateSubEvents || !form.ruleTemplateId) {
       setPreviewSubEvents([]);
+      setPhase1Preview({ dueAt: null, explanation: "" });
       return;
     }
     let cancelled = false;
@@ -686,6 +698,14 @@ export function EventModal({
             endAt = new Date(primary.getTime() + 60 * 60 * 1000);
           }
         }
+        const mergedInputsDataDriven = {
+          ...serializeInputsForServer(form.inputs),
+          macroArea: form.macroArea,
+          procedimento: form.procedimento,
+          parteProcessuale: form.parteProcessuale,
+          reminderOffsets: form.reminderOffsets,
+          linkedEvents: form.linkedEvents,
+        };
         const payload = {
           title: form.title,
           startAt: startAt.toISOString(),
@@ -700,7 +720,7 @@ export function EventModal({
                 procedimento: form.procedimento,
                 parteProcessuale: form.parteProcessuale,
                 eventoCode: form.eventoCode,
-                inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
+                inputs: mergedInputsDataDriven,
               }
             : form.ruleTemplateId === "atto-giuridico"
             ? {
@@ -713,8 +733,34 @@ export function EventModal({
                 inputs: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
               }),
         };
-        const result = await getSubEventsPreview(payload);
+        const phase1Promise =
+          form.ruleTemplateId === "data-driven" &&
+          form.macroArea &&
+          form.procedimento &&
+          form.parteProcessuale &&
+          form.eventoCode
+            ? getPhase1MainPreview({
+                macroArea: form.macroArea,
+                procedimento: form.procedimento,
+                parteProcessuale: form.parteProcessuale,
+                eventoCode: form.eventoCode,
+                inputs: mergedInputsDataDriven,
+              })
+            : Promise.resolve({ success: true as const, data: { dueAt: null as string | null, explanation: "" } });
+
+        const [result, phase1Result] = await Promise.all([
+          getSubEventsPreview(payload),
+          phase1Promise,
+        ]);
         if (cancelled) return;
+        if (phase1Result.success && phase1Result.data) {
+          setPhase1Preview({
+            dueAt: phase1Result.data.dueAt ? new Date(phase1Result.data.dueAt) : null,
+            explanation: phase1Result.data.explanation ?? "",
+          });
+        } else {
+          setPhase1Preview({ dueAt: null, explanation: "" });
+        }
         if (result.success && result.data) {
           setPreviewSubEvents(
             result.data.map((c) => ({
@@ -733,7 +779,7 @@ export function EventModal({
           setPreviewSubEvents([]);
         }
       })();
-    }, 500);
+    }, 300);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [
     form.title,
@@ -1987,6 +2033,8 @@ export function EventModal({
               onDeleteSelectedSubEvent={handleDeleteSelectedSubEvent}
               saving={saving}
               readOnly={readOnly}
+              phase1MainDueAt={phase1Preview.dueAt}
+              phase1MainExplanation={phase1Preview.explanation}
             />
           </div>
         </Tabs>
@@ -2058,6 +2106,8 @@ export function EventModal({
                   saving={saving}
                   readOnly={readOnly}
                   embedInSheet
+                  phase1MainDueAt={phase1Preview.dueAt}
+                  phase1MainExplanation={phase1Preview.explanation}
                 />
               </div>
             </div>

@@ -412,6 +412,105 @@ export const dataDrivenRule: RuleDefinition = {
   },
 };
 
+/** Etichette leggibili per chiavi input usate nelle formule (riepilogo modale). */
+const INPUT_KEY_LABELS: Record<string, string> = {
+  dataUdienzaComparizione: "data udienza di comparizione",
+  dataPrimaUdienza: "data prima udienza",
+  dataPrimaNotificaCitazione: "data prima notifica citazione",
+  dataNotifica: "data notifica",
+  dataNotificaCitazione: "data notifica citazione",
+  dataManuale: "data manuale",
+  dataUdienzaRiferimentoMemorie: "data udienza di riferimento memorie",
+  dataComunicazioneDecretoFissazioneUdienzaAppelloLavoro: "data comunicazione decreto fissazione udienza",
+  dataUdienzaAppelloLavoro: "data udienza appello lavoro",
+  dataPrimaUdienzaRicorso: "data prima udienza ricorso",
+};
+
+function labelForInputKey(key: string): string {
+  return INPUT_KEY_LABELS[key] ?? key;
+}
+
+export type Phase1MainPreview = { dueAt: Date | null; explanation: string };
+
+/**
+ * Data e testo esplicativo della fase 1 promossa (stessa logica di {@link computePhase1MainDueAt}).
+ */
+export function computePhase1MainPreview(params: {
+  macroArea: MacroAreaCode;
+  procedimento: ProcedimentoCode;
+  parteProcessuale: ParteProcessuale;
+  eventoCode: string;
+  inputs: Record<string, unknown>;
+  settings: AppSettings;
+}): Phase1MainPreview {
+  const { macroArea, procedimento, parteProcessuale, eventoCode, inputs, settings } = params;
+
+  const ev = getEventoByCode(procedimento, eventoCode);
+  const allRules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
+
+  if (!ev) {
+    const baseValue = inputs.dataManuale as string | undefined;
+    if (!baseValue || typeof baseValue !== "string" || !baseValue.trim()) {
+      return { dueAt: null, explanation: "" };
+    }
+    const baseDate = new Date(baseValue.length === 10 ? baseValue + "T12:00:00" : baseValue);
+    if (isNaN(baseDate.getTime())) return { dueAt: null, explanation: "" };
+    const dueAt = applyDeadlineTime(baseDate, settings);
+    return {
+      dueAt,
+      explanation: "Data manuale (fase non in tabella)",
+    };
+  }
+
+  const startOrdine = ev.ordine;
+  const selectedEventoInputKey = ev.inputKey;
+  const startRule = allRules.find((r) => r.ordine === startOrdine);
+  if (!startRule) return { dueAt: null, explanation: "" };
+
+  const baseKeyUsed = startRule.eventoBaseKey ?? selectedEventoInputKey;
+  const baseValue = startRule.eventoBaseKey
+    ? (inputs[startRule.eventoBaseKey] as string | undefined)
+    : (inputs[selectedEventoInputKey] as string | undefined);
+  if (!baseValue || typeof baseValue !== "string" || !baseValue.trim()) {
+    return { dueAt: null, explanation: "" };
+  }
+
+  const baseDate = new Date(baseValue.length === 10 ? baseValue + "T12:00:00" : baseValue);
+  if (isNaN(baseDate.getTime())) return { dueAt: null, explanation: "" };
+
+  const hasFormula =
+    startRule.direzioneCalcolo != null && startRule.numero != null && startRule.unita != null;
+  if (!hasFormula) {
+    const dueAt = applyDeadlineTime(baseDate, settings);
+    const explanation = startRule.norma
+      ? `${startRule.eventoLabel} – ${startRule.norma}`
+      : startRule.eventoLabel;
+    return { dueAt, explanation };
+  }
+
+  const direzione = startRule.direzioneCalcolo as "+" | "-";
+  const numero = startRule.numero as number;
+  const unita = startRule.unita as "giorni" | "mesi" | "anno";
+  let dueDate = computeDate(baseDate, direzione, numero, unita);
+  const direction: "forward" | "backward" = direzione === "+" ? "forward" : "backward";
+  if (startRule.unita === "giorni") {
+    dueDate = adjustFinalDeadline(dueDate, direction, settings);
+  }
+  const dueAt = applyDeadlineTime(dueDate, settings);
+
+  const baseLabel = labelForInputKey(baseKeyUsed);
+  const explanation = [
+    startRule.eventoLabel,
+    `${direzione === "+" ? "+" : "−"}${numero} ${unita} da ${baseLabel}`,
+    startRule.norma ? `(${startRule.norma})` : null,
+    startRule.isSospensioneFeriale ? "[sosp. feriale]" : null,
+  ]
+    .filter(Boolean)
+    .join(" – ");
+
+  return { dueAt, explanation };
+}
+
 /**
  * Calcola la "data madre" della fase1 promossa (la voce principale deve avere una data coerente
  * con quanto sarebbe stato generato come sottoevento principale per l'ordine startOrdine).
@@ -428,46 +527,5 @@ export function computePhase1MainDueAt(params: {
   inputs: Record<string, unknown>;
   settings: AppSettings;
 }): Date | null {
-  const { macroArea, procedimento, parteProcessuale, eventoCode, inputs, settings } = params;
-
-  const ev = getEventoByCode(procedimento, eventoCode);
-  const allRules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
-
-  // Fase manuale: nessuna regola in tabella → usiamo dataManuale come base.
-  if (!ev) {
-    const baseValue = inputs.dataManuale as string | undefined;
-    if (!baseValue || typeof baseValue !== "string" || !baseValue.trim()) return null;
-    const baseDate = new Date(baseValue.length === 10 ? baseValue + "T12:00:00" : baseValue);
-    if (isNaN(baseDate.getTime())) return null;
-    return applyDeadlineTime(baseDate, settings);
-  }
-
-  const startOrdine = ev.ordine;
-  const selectedEventoInputKey = ev.inputKey;
-  const startRule = allRules.find((r) => r.ordine === startOrdine);
-  if (!startRule) return null;
-
-  const baseValue = startRule.eventoBaseKey
-    ? (inputs[startRule.eventoBaseKey] as string | undefined)
-    : (inputs[selectedEventoInputKey] as string | undefined);
-  if (!baseValue || typeof baseValue !== "string" || !baseValue.trim()) return null;
-
-  const baseDate = new Date(baseValue.length === 10 ? baseValue + "T12:00:00" : baseValue);
-  if (isNaN(baseDate.getTime())) return null;
-
-  const hasFormula = startRule.direzioneCalcolo != null && startRule.numero != null && startRule.unita != null;
-  if (!hasFormula) {
-    return applyDeadlineTime(baseDate, settings);
-  }
-
-  // Copia la logica di processRule sul ramo con formula per ottenere la dueAt della voce principale.
-  const direzione = startRule.direzioneCalcolo as "+" | "-";
-  const numero = startRule.numero as number;
-  const unita = startRule.unita as "giorni" | "mesi" | "anno";
-  let dueDate = computeDate(baseDate, direzione, numero, unita);
-  const direction: "forward" | "backward" = direzione === "+" ? "forward" : "backward";
-  if (startRule.unita === "giorni") {
-    dueDate = adjustFinalDeadline(dueDate, direction, settings);
-  }
-  return applyDeadlineTime(dueDate, settings);
+  return computePhase1MainPreview(params).dueAt;
 }
