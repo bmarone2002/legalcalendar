@@ -1266,7 +1266,7 @@ export function EventModal({
                     />
                   </div>
                   <div>
-                    <Label className="font-bold">AUTORITA'</Label>
+                    <Label className="font-bold">AUTORITA&apos;</Label>
                     <Input
                       value={form.autorita}
                       onChange={(e) =>
