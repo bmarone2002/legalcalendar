@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DatePickerWithOptionalTime } from "./DatePickerWithOptionalTime";
@@ -21,8 +21,10 @@ import {
   MACRO_AREA_LABELS,
   PROCEDIMENTI_PER_MACRO_AREA,
   PROCEDIMENTO_LABELS,
+  ALL_PROCEDIMENTI,
   PARTI_PROCESSUALI,
   PARTI_LABELS,
+  getMacroAreaForProcedimento,
   getEventiDisponibili,
   getEventoByCode,
 } from "@/types/macro-areas";
@@ -151,9 +153,37 @@ export function MacroAreaPanel({
 }: MacroAreaPanelProps) {
   const MANUALE_CODE = "__MANUALE__";
 
-  const procedimenti = macroArea
-    ? (PROCEDIMENTI_PER_MACRO_AREA[macroArea] as readonly string[])
-    : [];
+  const procedimentiSelezionabili = useMemo(() => {
+    return macroArea
+      ? (PROCEDIMENTI_PER_MACRO_AREA[macroArea] as readonly ProcedimentoCode[])
+      : ALL_PROCEDIMENTI;
+  }, [macroArea]);
+
+  const [procedimentoQuery, setProcedimentoQuery] = useState("");
+  useEffect(() => {
+    setProcedimentoQuery("");
+  }, [macroArea]);
+
+  const labelCountsInCurrentOptions = useMemo(() => {
+    const out = new Map<string, number>();
+    for (const p of procedimentiSelezionabili) {
+      const baseLabel = PROCEDIMENTO_LABELS[p as ProcedimentoCode] ?? String(p);
+      out.set(baseLabel, (out.get(baseLabel) ?? 0) + 1);
+    }
+    return out;
+  }, [procedimentiSelezionabili]);
+
+  const filteredProcedimenti = useMemo(() => {
+    const q = procedimentoQuery.trim().toLowerCase();
+    if (!q) return procedimentiSelezionabili;
+
+    return procedimentiSelezionabili.filter((p) => {
+      const baseLabel = PROCEDIMENTO_LABELS[p as ProcedimentoCode] ?? String(p);
+      const ma = getMacroAreaForProcedimento(p as ProcedimentoCode);
+      const maLabel = MACRO_AREA_LABELS[ma] ?? "";
+      return `${baseLabel} ${maLabel}`.toLowerCase().includes(q);
+    });
+  }, [procedimentoQuery, procedimentiSelezionabili]);
 
   const partiLabels = getEffectivePartiLabels(macroArea, procedimento);
 
@@ -231,27 +261,49 @@ export function MacroAreaPanel({
         </Select>
       </div>
 
-      {/* Livello 2: Procedimento */}
-      {macroArea && procedimenti.length > 0 && (
-        <div>
-          <Label>Procedimento</Label>
-          <Select
-            value={procedimento ?? ""}
-            onValueChange={(v) => onProcedimentoChange(v as ProcedimentoCode)}
-          >
-            <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-              <SelectValue placeholder="Seleziona procedimento" />
-            </SelectTrigger>
-            <SelectContent className="max-h-none">
-              {procedimenti.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {PROCEDIMENTO_LABELS[p as ProcedimentoCode] ?? p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      {/* Livello 2: Procedimento (cercabile e selezionabile anche senza macro area) */}
+      <div>
+        <Label>Procedimento</Label>
+        <Select
+          value={procedimento ?? ""}
+          onValueChange={(v) => {
+            setProcedimentoQuery("");
+            onProcedimentoChange(v as ProcedimentoCode);
+          }}
+        >
+          <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
+            <SelectValue placeholder="Seleziona procedimento" />
+          </SelectTrigger>
+          <SelectContent className="p-2 max-h-[320px] overflow-y-auto">
+            <div className="sticky top-0 bg-white z-10 pb-2">
+              <Input
+                value={procedimentoQuery}
+                onChange={(e) => setProcedimentoQuery(e.target.value)}
+                placeholder="Cerca procedimento…"
+                className="h-8 text-sm"
+                onPointerDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {filteredProcedimenti.length > 0 ? (
+              filteredProcedimenti.map((p) => {
+                const baseLabel = PROCEDIMENTO_LABELS[p as ProcedimentoCode] ?? String(p);
+                const ma = getMacroAreaForProcedimento(p as ProcedimentoCode);
+                const needsMacroAreaSuffix = (labelCountsInCurrentOptions.get(baseLabel) ?? 0) > 1;
+                const displayLabel = needsMacroAreaSuffix ? `${baseLabel} (${MACRO_AREA_LABELS[ma]})` : baseLabel;
+                return (
+                  <SelectItem key={p} value={p}>
+                    {displayLabel}
+                  </SelectItem>
+                );
+              })
+            ) : (
+              <div className="px-2 py-2 text-xs text-zinc-500">Nessun risultato</div>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Livello 3: Parte processuale */}
       {macroArea && procedimento && selectableParti.length > 0 && (

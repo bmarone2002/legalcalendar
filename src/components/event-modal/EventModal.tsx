@@ -33,7 +33,7 @@ import { AttoGiuridicoPanel } from "./AttoGiuridicoPanel";
 import { MacroAreaPanel } from "./MacroAreaPanel";
 import { ProsecuzionePanel } from "./ProsecuzionePanel";
 import type { MacroAreaCode, ProcedimentoCode, ParteProcessuale } from "@/types/macro-areas";
-import { LEGACY_ACTION_TYPE_MAP, LEGACY_ACTION_MODE_MAP } from "@/types/macro-areas";
+import { LEGACY_ACTION_TYPE_MAP, LEGACY_ACTION_MODE_MAP, getMacroAreaForProcedimento } from "@/types/macro-areas";
 import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
@@ -1506,13 +1506,17 @@ export function EventModal({
                       }))
                     }
                     onProcedimentoChange={(p) =>
-                      setForm((f) => ({
-                        ...f,
-                        procedimento: p,
-                        parteProcessuale: null,
-                        eventoCode: null,
-                        inputs: {},
-                      }))
+                      setForm((f) => {
+                        const resolvedMacroArea = getMacroAreaForProcedimento(p);
+                        return {
+                          ...f,
+                          macroArea: resolvedMacroArea,
+                          procedimento: p,
+                          parteProcessuale: null,
+                          eventoCode: null,
+                          inputs: {},
+                        };
+                      })
                     }
                     onParteProcessualeChange={(p) =>
                       setForm((f) => ({ ...f, parteProcessuale: p, eventoCode: null, inputs: {} }))

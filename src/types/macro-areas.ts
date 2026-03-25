@@ -84,6 +84,26 @@ export const PROCEDIMENTI_PER_MACRO_AREA = {
 export type ProcedimentoCode =
   (typeof PROCEDIMENTI_PER_MACRO_AREA)[MacroAreaCode][number];
 
+// ── Reverse mapping: Procedimento → Macro Area ─────────────────────
+// Serve per supportare l'UX “procedimento prima”: se l'utente sceglie un procedimento,
+// possiamo auto-compilare la macro area corretta (ma l'utente può comunque cambiarla).
+export const ALL_PROCEDIMENTI: ProcedimentoCode[] = Object.values(PROCEDIMENTI_PER_MACRO_AREA).flat() as ProcedimentoCode[];
+
+export const MACRO_AREA_FOR_PROCEDIMENTO: Record<ProcedimentoCode, MacroAreaCode> = (() => {
+  const out = {} as Record<ProcedimentoCode, MacroAreaCode>;
+  const entries = Object.entries(PROCEDIMENTI_PER_MACRO_AREA) as Array<[MacroAreaCode, readonly ProcedimentoCode[]]>;
+  for (const [macroArea, procedimenti] of entries) {
+    for (const procedimento of procedimenti) {
+      out[procedimento] = macroArea;
+    }
+  }
+  return out;
+})();
+
+export function getMacroAreaForProcedimento(procedimento: ProcedimentoCode): MacroAreaCode {
+  return MACRO_AREA_FOR_PROCEDIMENTO[procedimento];
+}
+
 export const PROCEDIMENTO_LABELS: Record<ProcedimentoCode, string> = {
   // Civile – Contenzioso ordinario
   CITAZIONE_CIVILE: "Citazione civile",
