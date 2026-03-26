@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
+import { ClerkProvider, useAuth, useOAuth } from "@clerk/clerk-expo";
 import * as WebBrowser from "expo-web-browser";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import { makeRedirectUri } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -16,7 +17,8 @@ function appendEventId(baseUrl, eventId) {
 
 export default function App() {
   const extra = Constants.expoConfig?.extra ?? {};
-  const webBaseUrl = extra.webBaseUrl || "https://legal-calendar-production.up.railway.app";
+  const webBaseUrl =
+    extra.webBaseUrl || "https://legalcalendar-production.up.railway.app";
   const clerkPublishableKey = extra.clerkPublishableKey || "";
   const oneSignalAppId = extra.oneSignalAppId || "";
 
@@ -32,21 +34,25 @@ export default function App() {
     if (!canUseOneSignal) return;
     let removeClickListener;
     try {
-      // When the native OneSignal plugin is not configured, skip setup to avoid startup crashes.
       const OneSignal = require("react-native-onesignal").default;
       OneSignal.initialize(oneSignalAppId);
       OneSignal.Notifications.requestPermission(true);
-      removeClickListener = OneSignal.Notifications.addClickListener((event) => {
-        const launchUrl = event?.notification?.additionalData?.url;
-        const launchEventId = event?.notification?.additionalData?.eventId;
-        if (typeof launchUrl === "string" && launchUrl.length > 0) {
-          setCurrentUrl(launchUrl);
-          return;
+      removeClickListener = OneSignal.Notifications.addClickListener(
+        (event) => {
+          const launchUrl = event?.notification?.additionalData?.url;
+          const launchEventId = event?.notification?.additionalData?.eventId;
+          if (typeof launchUrl === "string" && launchUrl.length > 0) {
+            setCurrentUrl(launchUrl);
+            return;
+          }
+          if (
+            typeof launchEventId === "string" &&
+            launchEventId.length > 0
+          ) {
+            setCurrentUrl(appendEventId(webBaseUrl, launchEventId));
+          }
         }
-        if (typeof launchEventId === "string" && launchEventId.length > 0) {
-          setCurrentUrl(appendEventId(webBaseUrl, launchEventId));
-        }
-      });
+      );
     } catch (error) {
       console.warn("OneSignal non disponibile in questa build:", error);
     }
@@ -55,31 +61,25 @@ export default function App() {
     };
   }, [canUseOneSignal, oneSignalAppId, webBaseUrl]);
 
-  const webView = useMemo(
-    () => (
-      <WebView
-        source={{ uri: currentUrl }}
-        originWhitelist={["*"]}
-        javaScriptEnabled
-        sharedCookiesEnabled
-        thirdPartyCookiesEnabled
-        setSupportMultipleWindows={false}
-        startInLoadingState
-      />
-    ),
-    [currentUrl]
-  );
-
   if (!canUseClerk) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.warning}>
           <Text style={styles.warningTitle}>Config mancante</Text>
           <Text style={styles.warningText}>
-            Imposta `expo.extra.clerkPublishableKey` in `app.json` per abilitare Clerk.
+            Imposta expo.extra.clerkPublishableKey in app.json per abilitare
+            Clerk.
           </Text>
         </View>
-        {webView}
+        <WebView
+          source={{ uri: currentUrl }}
+          originWhitelist={["*"]}
+          javaScriptEnabled
+          sharedCookiesEnabled
+          thirdPartyCookiesEnabled
+          setSupportMultipleWindows={false}
+          startInLoadingState
+        />
         <StatusBar style="auto" />
       </SafeAreaView>
     );
@@ -88,16 +88,90 @@ export default function App() {
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <MobileShell
-        webView={webView}
+        webBaseUrl={webBaseUrl}
+        currentUrl={currentUrl}
+        setCurrentUrl={setCurrentUrl}
       />
     </ClerkProvider>
   );
 }
 
-function MobileShell({ webView }) {
+function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
+  const webViewRef = useRef(null);
+  const { isSignedIn, getToken } = useAuth();
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const oauthPending = useRef(false);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      WebBrowser.warmUpAsync();
+      return () => {
+        WebBrowser.coolDownAsync();
+      };
+    }
+  }, []);
+
+  // After native Clerk OAuth succeeds, bridge the session into the WebView
+  // by navigating to the exchange endpoint that sets the __session cookie.
+  useEffect(() => {
+    if (isSignedIn && oauthPending.current) {
+      oauthPending.current = false;
+      getToken().then((token) => {
+        if (token) {
+          setCurrentUrl(
+            `${webBaseUrl}/api/mobile/exchange?token=${encodeURIComponent(token)}`
+          );
+        }
+      });
+    }
+  }, [isSignedIn, getToken, webBaseUrl, setCurrentUrl]);
+
+  const handleGoogleOAuth = useCallback(async () => {
+    if (oauthPending.current) return;
+    try {
+      oauthPending.current = true;
+      const redirectUrl = makeRedirectUri({
+        scheme: "legalcalendar",
+        path: "oauth-native-callback",
+      });
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl,
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+      } else {
+        oauthPending.current = false;
+      }
+    } catch (err) {
+      oauthPending.current = false;
+      console.warn("Google OAuth error:", err);
+    }
+  }, [startOAuthFlow]);
+
+  const handleShouldStartLoad = useCallback(
+    (request) => {
+      if (request.url.includes("accounts.google.com")) {
+        handleGoogleOAuth();
+        return false;
+      }
+      return true;
+    },
+    [handleGoogleOAuth]
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      {webView}
+      <WebView
+        ref={webViewRef}
+        source={{ uri: currentUrl }}
+        originWhitelist={["*"]}
+        javaScriptEnabled
+        sharedCookiesEnabled
+        thirdPartyCookiesEnabled
+        setSupportMultipleWindows={false}
+        startInLoadingState
+        onShouldStartLoadWithRequest={handleShouldStartLoad}
+      />
       <StatusBar style="auto" />
     </SafeAreaView>
   );

@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
     const launchUrl =
       payload.url ??
-      `${process.env.NEXT_PUBLIC_APP_URL ?? "https://legal-calendar-production.up.railway.app"}/?eventId=${encodeURIComponent(event.id)}`;
+      `${process.env.NEXT_PUBLIC_APP_URL ?? "https://legalcalendar-production.up.railway.app"}/?eventId=${encodeURIComponent(event.id)}`;
 
     const oneSignalResult = await sendOneSignalNotification({
       externalUserIds,
