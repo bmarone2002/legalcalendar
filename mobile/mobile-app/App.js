@@ -3,8 +3,10 @@ import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
+import * as WebBrowser from "expo-web-browser";
 import { ClerkProvider } from "@clerk/clerk-expo";
-import OneSignal from "react-native-onesignal";
+
+WebBrowser.maybeCompleteAuthSession();
 
 function appendEventId(baseUrl, eventId) {
   if (!eventId) return baseUrl;
@@ -28,19 +30,29 @@ export default function App() {
 
   useEffect(() => {
     if (!canUseOneSignal) return;
-    OneSignal.initialize(oneSignalAppId);
-    OneSignal.Notifications.requestPermission(true);
-    OneSignal.Notifications.addClickListener((event) => {
-      const launchUrl = event?.notification?.additionalData?.url;
-      const launchEventId = event?.notification?.additionalData?.eventId;
-      if (typeof launchUrl === "string" && launchUrl.length > 0) {
-        setCurrentUrl(launchUrl);
-        return;
-      }
-      if (typeof launchEventId === "string" && launchEventId.length > 0) {
-        setCurrentUrl(appendEventId(webBaseUrl, launchEventId));
-      }
-    });
+    let removeClickListener;
+    try {
+      // When the native OneSignal plugin is not configured, skip setup to avoid startup crashes.
+      const OneSignal = require("react-native-onesignal").default;
+      OneSignal.initialize(oneSignalAppId);
+      OneSignal.Notifications.requestPermission(true);
+      removeClickListener = OneSignal.Notifications.addClickListener((event) => {
+        const launchUrl = event?.notification?.additionalData?.url;
+        const launchEventId = event?.notification?.additionalData?.eventId;
+        if (typeof launchUrl === "string" && launchUrl.length > 0) {
+          setCurrentUrl(launchUrl);
+          return;
+        }
+        if (typeof launchEventId === "string" && launchEventId.length > 0) {
+          setCurrentUrl(appendEventId(webBaseUrl, launchEventId));
+        }
+      });
+    } catch (error) {
+      console.warn("OneSignal non disponibile in questa build:", error);
+    }
+    return () => {
+      if (typeof removeClickListener === "function") removeClickListener();
+    };
   }, [canUseOneSignal, oneSignalAppId, webBaseUrl]);
 
   const webView = useMemo(
@@ -75,11 +87,19 @@ export default function App() {
 
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
-      <SafeAreaView style={styles.container}>
-        {webView}
-        <StatusBar style="auto" />
-      </SafeAreaView>
+      <MobileShell
+        webView={webView}
+      />
     </ClerkProvider>
+  );
+}
+
+function MobileShell({ webView }) {
+  return (
+    <SafeAreaView style={styles.container}>
+      {webView}
+      <StatusBar style="auto" />
+    </SafeAreaView>
   );
 }
 
