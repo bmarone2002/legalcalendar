@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -95,6 +95,40 @@ type EventFormState = {
   linkedEvents: LinkedEventSpec[];
   status: "pending" | "done";
 };
+
+const AUTORITA_SUGGESTIONS: string[] = [
+  "Giudice di Pace",
+  "Tribunale ordinario",
+  "Corte d'Appello",
+  "Corte di Cassazione",
+  "TAR",
+  "Consiglio di Stato",
+  "CGARS",
+  "Corte dei conti",
+  "Sezioni giurisdizionali centrali di appello Corte dei Conti",
+  "Corte di giustizia tributaria di primo grado",
+  "Corte di giustizia tributaria di secondo grado",
+  "Corte Costituzionale",
+  "Tribunale Regionale delle Acque Pubbliche",
+  "Tribunale Superiore delle Acque Pubbliche",
+  "Organismo di Mediazione",
+  "Camera Arbitrale",
+  "Collegio Arbitrale",
+];
+
+type ComuneJsonItem = {
+  nome?: string;
+  provincia?: { nome?: string } | null;
+  sigla?: string | null;
+};
+
+function normalizeSuggestionValue(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
 function toDateOnlyStringLocal(d: Date): string {
   const y = d.getFullYear();
@@ -532,6 +566,9 @@ export function EventModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAutoritaSuggestions, setShowAutoritaSuggestions] = useState(false);
+  const [showLuogoSuggestions, setShowLuogoSuggestions] = useState(false);
+  const [comuniLuogoSuggestions, setComuniLuogoSuggestions] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>("dettagli");
   const [calculating, setCalculating] = useState(false);
   const [parsingDocument, setParsingDocument] = useState(false);
@@ -563,6 +600,55 @@ export function EventModal({
     if (typeof window === "undefined") return;
     window.localStorage.setItem("eventModal.desktopSummaryWidthPct", String(desktopSummaryWidthPct));
   }, [desktopSummaryWidthPct]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const comuniModule = await import("comuni-json/comuni.json");
+        const raw = (comuniModule.default ?? []) as ComuneJsonItem[];
+        const labels = raw
+          .map((item) => {
+            const nome = (item.nome ?? "").trim();
+            if (!nome) return "";
+            const sigla = (item.sigla ?? "").trim();
+            const provincia = (item.provincia?.nome ?? "").trim();
+            if (sigla) return `${nome} (${sigla})`;
+            if (provincia) return `${nome} (${provincia})`;
+            return nome;
+          })
+          .filter((v) => v.length > 0);
+        if (active) setComuniLuogoSuggestions(labels);
+      } catch {
+        if (active) setComuniLuogoSuggestions([]);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredAutoritaSuggestions = useMemo(() => {
+    const q = normalizeSuggestionValue(form.autorita);
+    if (!q) return AUTORITA_SUGGESTIONS.slice(0, 8);
+    const starts = AUTORITA_SUGGESTIONS.filter((item) => normalizeSuggestionValue(item).startsWith(q));
+    const contains = AUTORITA_SUGGESTIONS.filter((item) => {
+      const n = normalizeSuggestionValue(item);
+      return !n.startsWith(q) && n.includes(q);
+    });
+    return [...starts, ...contains].slice(0, 8);
+  }, [form.autorita]);
+
+  const filteredLuogoSuggestions = useMemo(() => {
+    const q = normalizeSuggestionValue(form.luogo);
+    if (q.length < 2) return comuniLuogoSuggestions.slice(0, 10);
+    const starts = comuniLuogoSuggestions.filter((item) => normalizeSuggestionValue(item).startsWith(q));
+    const contains = comuniLuogoSuggestions.filter((item) => {
+      const n = normalizeSuggestionValue(item);
+      return !n.startsWith(q) && n.includes(q);
+    });
+    return [...starts, ...contains].slice(0, 10);
+  }, [form.luogo, comuniLuogoSuggestions]);
 
   const stopResizing = useCallback(() => {
     resizingRef.current = false;
@@ -1319,31 +1405,105 @@ export function EventModal({
                   </div>
                   <div>
                     <Label className="font-bold">AUTORITA&apos;</Label>
-                    <Input
-                      value={form.autorita}
-                      onChange={(e) =>
-                        setForm((f) => {
-                          const next = { ...f, autorita: e.target.value };
-                          return { ...next, title: composePracticeTitle(next) };
-                        })
-                      }
-                      placeholder="Es. Tribunale di Napoli"
-                      disabled={readOnly}
-                    />
+                    <div className="relative">
+                      <Input
+                        value={form.autorita}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = { ...f, autorita: e.target.value };
+                            return { ...next, title: composePracticeTitle(next) };
+                          })
+                        }
+                        onFocus={() => setShowAutoritaSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowAutoritaSuggestions(false), 120)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") setShowAutoritaSuggestions(false);
+                          if (e.key === "Enter" && showAutoritaSuggestions && filteredAutoritaSuggestions.length > 0) {
+                            e.preventDefault();
+                            const picked = filteredAutoritaSuggestions[0];
+                            setForm((f) => {
+                              const next = { ...f, autorita: picked };
+                              return { ...next, title: composePracticeTitle(next) };
+                            });
+                            setShowAutoritaSuggestions(false);
+                          }
+                        }}
+                        placeholder="Es. Tribunale di Napoli"
+                        disabled={readOnly}
+                      />
+                      {!readOnly && showAutoritaSuggestions && filteredAutoritaSuggestions.length > 0 && (
+                        <div className="absolute z-30 mt-1 max-h-48 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg">
+                          {filteredAutoritaSuggestions.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setForm((f) => {
+                                  const next = { ...f, autorita: item };
+                                  return { ...next, title: composePracticeTitle(next) };
+                                });
+                                setShowAutoritaSuggestions(false);
+                              }}
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <Label className="font-bold">LUOGO</Label>
-                    <Input
-                      value={form.luogo}
-                      onChange={(e) =>
-                        setForm((f) => {
-                          const next = { ...f, luogo: e.target.value };
-                          return { ...next, title: composePracticeTitle(next) };
-                        })
-                      }
-                      placeholder="Es. Napoli"
-                      disabled={readOnly}
-                    />
+                    <div className="relative">
+                      <Input
+                        value={form.luogo}
+                        onChange={(e) =>
+                          setForm((f) => {
+                            const next = { ...f, luogo: e.target.value };
+                            return { ...next, title: composePracticeTitle(next) };
+                          })
+                        }
+                        onFocus={() => setShowLuogoSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowLuogoSuggestions(false), 120)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") setShowLuogoSuggestions(false);
+                          if (e.key === "Enter" && showLuogoSuggestions && filteredLuogoSuggestions.length > 0) {
+                            e.preventDefault();
+                            const picked = filteredLuogoSuggestions[0];
+                            setForm((f) => {
+                              const next = { ...f, luogo: picked };
+                              return { ...next, title: composePracticeTitle(next) };
+                            });
+                            setShowLuogoSuggestions(false);
+                          }
+                        }}
+                        placeholder="Es. Napoli"
+                        disabled={readOnly}
+                      />
+                      {!readOnly && showLuogoSuggestions && filteredLuogoSuggestions.length > 0 && (
+                        <div className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg">
+                          {filteredLuogoSuggestions.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setForm((f) => {
+                                  const next = { ...f, luogo: item };
+                                  return { ...next, title: composePracticeTitle(next) };
+                                });
+                                setShowLuogoSuggestions(false);
+                              }}
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div>
