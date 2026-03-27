@@ -1998,6 +1998,7 @@ export function EventModal({
                   eventId={eventId}
                   targetUserId={targetUserId}
                   readOnly={readOnly}
+                  isManualPractice={form.macroType === null}
                   macroArea={form.macroArea}
                   procedimento={form.procedimento}
                   parteProcessuale={form.parteProcessuale}

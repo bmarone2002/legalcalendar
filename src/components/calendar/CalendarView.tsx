@@ -201,6 +201,11 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       subBorder = subBg;
     }
 
+    const seParams = (se.ruleParams ?? {}) as Record<string, unknown>;
+    const seTipo = typeof seParams.tipo === "string" ? seParams.tipo : null;
+    const isRinvioUdienzaSubEvent =
+      se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
+
     out.push({
       id: se.id,
       title: se.title,
@@ -212,6 +217,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       editable: false,
       extendedProps: {
         isSubEvent: true,
+        isRinvioUdienzaSubEvent,
         parentEventId: e.id,
         parentTitle: mainTitle,
         parentTagColor: tagColor,
@@ -523,10 +529,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               events = events.filter((ev) => {
                 const ext = ev.extendedProps as {
                   isSubEvent?: boolean;
+                  isRinvioUdienzaSubEvent?: boolean;
                   type?: string;
                   faseFiltroText?: string;
                 };
-                if (ext.isSubEvent) return false;
+                if (ext.isSubEvent) return ext.isRinvioUdienzaSubEvent === true;
                 if (ext.type === "udienza") return true;
                 const fase = ext.faseFiltroText ?? "";
                 return matchesUdienzaPhrasesInFaseText(fase);

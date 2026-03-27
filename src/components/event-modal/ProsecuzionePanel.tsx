@@ -50,6 +50,7 @@ interface ProsecuzionePanelProps {
   onSubEventsChanged?: () => void;
   targetUserId?: string;
   readOnly?: boolean;
+  isManualPractice?: boolean;
   macroArea?: MacroAreaCode | null;
   procedimento?: ProcedimentoCode | null;
   parteProcessuale?: ParteProcessuale | null;
@@ -233,6 +234,7 @@ export function ProsecuzionePanel({
   onSubEventsChanged,
   targetUserId,
   readOnly = false,
+  isManualPractice = false,
   macroArea,
   procedimento,
   parteProcessuale,
@@ -254,6 +256,7 @@ export function ProsecuzionePanel({
   const [tipoUdienzaCustom, setTipoUdienzaCustom] = useState("");
   const [dataUdienza, setDataUdienza] = useState<Date | null>(null);
   const [note, setNote] = useState("");
+  const [isUdienza, setIsUdienza] = useState(true);
   const [adempimenti, setAdempimenti] = useState<AdempimentoForm[]>([]);
   const [availableEventi, setAvailableEventi] = useState<EventoDisponibile[]>([]);
   const [selectedEventoCode, setSelectedEventoCode] = useState<string>("");
@@ -289,6 +292,7 @@ export function ProsecuzionePanel({
     setTipoUdienzaCustom("");
     setDataUdienza(null);
     setNote("");
+    setIsUdienza(true);
     setAdempimenti([]);
     setSelectedEventoCode("");
     setFaseManuale("");
@@ -340,6 +344,7 @@ export function ProsecuzionePanel({
         const result = await updateRinvio(
           editingRinvioId,
           {
+            isUdienza,
             dataUdienza: normalizedDataUdienza,
             // In UI gestiamo solo la “fase/evento” selezionata, quindi persistiamo
             // la label come tipoUdienzaCustom.
@@ -367,6 +372,7 @@ export function ProsecuzionePanel({
       const result = await createRinvio(
         {
           parentEventId: eventId,
+          isUdienza,
           dataUdienza: normalizedDataUdienza,
           // Manteniamo tipoUdienza = "ALTRO" e usiamo la descrizione personalizzata
           // per mostrare in lista la fase selezionata.
@@ -466,6 +472,7 @@ export function ProsecuzionePanel({
 
     setReminderOffsets(r.reminderOffsets ?? []);
     setLinkedEvents(r.linkedEvents ?? []);
+    setIsUdienza(r.isUdienza ?? true);
 
     // Ricostruzione “fase/evento” dalla label salvata (tipoUdienzaCustom).
     const labelEvento = r.tipoUdienzaCustom ?? "";
@@ -659,6 +666,25 @@ export function ProsecuzionePanel({
               placeholder="Scegli data udienza"
             />
           </div>
+          {isManualPractice && (
+            <div className="rounded-md border border-zinc-200 bg-white p-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="rinvio-is-udienza" className="text-xs text-zinc-700">
+                  E&apos; un&apos;udienza
+                </Label>
+                <input
+                  id="rinvio-is-udienza"
+                  type="checkbox"
+                  checked={isUdienza}
+                  onChange={(e) => setIsUdienza(e.target.checked)}
+                  className="h-4 w-4 accent-[var(--navy)]"
+                />
+              </div>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                Se disattivato, questo rinvio non comparira&apos; nel filtro SOLO UDIENZE.
+              </p>
+            </div>
+          )}
 
           {/* Note */}
           <div>

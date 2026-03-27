@@ -86,6 +86,8 @@ export interface Rinvio {
   id: string;
   parentEventId: string;
   numero: number;
+  /** Se true, il rinvio rappresenta un'udienza e puo' essere incluso nel filtro SOLO UDIENZE. */
+  isUdienza?: boolean;
   dataUdienza: Date;
   tipoUdienza: string;
   tipoUdienzaCustom?: string | null;
@@ -104,6 +106,7 @@ export interface Rinvio {
 
 export interface CreateRinvioInput {
   parentEventId: string;
+  isUdienza?: boolean;
   dataUdienza: Date;
   tipoUdienza: string;
   tipoUdienzaCustom?: string | null;
@@ -124,6 +127,7 @@ export interface CreateRinvioInput {
 }
 
 export interface UpdateRinvioInput {
+  isUdienza?: boolean;
   dataUdienza?: Date;
   tipoUdienza?: string;
   tipoUdienzaCustom?: string | null;

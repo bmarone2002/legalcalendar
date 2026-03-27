@@ -50,11 +50,12 @@ function toRinvio(r: {
   adempimenti: string;
   createdAt: Date;
   updatedAt: Date;
-}, reminderOffsets?: number[], linkedEvents?: LinkedEventSpec[]): Rinvio {
+}, reminderOffsets?: number[], linkedEvents?: LinkedEventSpec[], isUdienza?: boolean): Rinvio {
   return {
     id: r.id,
     parentEventId: r.parentEventId,
     numero: r.numero,
+    isUdienza: isUdienza ?? true,
     dataUdienza: r.dataUdienza,
     tipoUdienza: r.tipoUdienza,
     tipoUdienzaCustom: r.tipoUdienzaCustom,
@@ -123,6 +124,7 @@ async function generateSubEventsForRinvio(
   selectedEventoCode?: string | null,
   reminderOffsetsFromInput?: number[] | null,
   linkedEventsFromInput?: LinkedEventSpec[] | null,
+  isUdienza: boolean = true,
 ): Promise<void> {
   const settings = await getSettings();
   const udienzaLabel = resolveUdienzaLabel(
@@ -139,14 +141,16 @@ async function generateSubEventsForRinvio(
   const batch = [
     {
       parentEventId,
-      title: `Udienza: ${udienzaLabel}`,
+      title: isUdienza ? `Udienza: ${udienzaLabel}` : udienzaLabel,
       kind: "termine",
       dueAt: udienzaDueAt,
       status: "pending",
       priority: 2,
       ruleId: RINVIO_RULE_ID,
-      ruleParams: JSON.stringify({ rinvioId, tipo: "udienza" }),
-      explanation: `Udienza di ${udienzaLabel.toLowerCase()} da rinvio`,
+      ruleParams: JSON.stringify({ rinvioId, tipo: isUdienza ? "udienza" : "fase" }),
+      explanation: isUdienza
+        ? `Udienza di ${udienzaLabel.toLowerCase()} da rinvio`
+        : `Fase procedurale da rinvio: ${udienzaLabel}`,
       createdBy: "automatico",
       locked: false,
     },
@@ -384,7 +388,23 @@ export async function getRinviiByEventId(
     });
 
     const linkedEventsByRinvioId = new Map<string, LinkedEventSpec[]>();
+    const isUdienzaByRinvioId = new Map<string, boolean>();
     for (const s of subEvents) {
+      if (s.ruleParams) {
+        let params: Record<string, unknown> | null = null;
+        try {
+          params = JSON.parse(s.ruleParams) as Record<string, unknown>;
+        } catch {
+          params = null;
+        }
+        if (params) {
+          const rinvioId = params.rinvioId;
+          const tipo = params.tipo;
+          if (typeof rinvioId === "string" && tipo === "udienza") {
+            isUdienzaByRinvioId.set(rinvioId, true);
+          }
+        }
+      }
       if (s.kind !== "attivita") continue;
       if (!s.ruleParams) continue;
       let params: Record<string, unknown> | null = null;
@@ -446,6 +466,7 @@ export async function getRinviiByEventId(
           r,
           reminderOffsetsByRinvioId.get(r.id),
           linkedEventsByRinvioId.get(r.id),
+          isUdienzaByRinvioId.get(r.id) ?? true,
         ),
       ),
     };
@@ -497,6 +518,7 @@ export async function createRinvio(
       data.eventoCode,
       data.reminderOffsets ?? null,
       data.linkedEvents ?? null,
+      data.isUdienza ?? true,
     );
 
     return { success: true, data: toRinvio(rinvio) };
@@ -541,6 +563,7 @@ export async function updateRinvio(
     const needsRegeneration =
       data.adempimenti != null ||
       data.dataUdienza != null ||
+      data.isUdienza !== undefined ||
       data.tipoUdienza != null ||
       data.tipoUdienzaCustom !== undefined ||
       data.reminderOffsets !== undefined ||
@@ -560,6 +583,7 @@ export async function updateRinvio(
         undefined,
         data.reminderOffsets ?? null,
         data.linkedEvents ?? null,
+        data.isUdienza ?? true,
       );
     }
 
