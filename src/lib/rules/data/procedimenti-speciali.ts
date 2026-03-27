@@ -69,8 +69,8 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
     procedimento: "DECRETO_INGIUNTIVO",
-    parteProcessuale: "CONVENUTO", // Intimato
-    eventoLabel: "Notifica opposizione al ricorrente",
+    parteProcessuale: "ATTORE", // Ricorrente
+    eventoLabel: "Scadenza del Termine per l'opposizione",
     eventoCode: "NOTIFICA_OPPOSIZIONE_DI",
     eventoBaseKey: "dataNotificaDecreto",
     direzioneCalcolo: "+",

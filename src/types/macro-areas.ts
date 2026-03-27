@@ -510,9 +510,9 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     },
     {
       code: "NOTIFICA_OPPOSIZIONE_DI",
-      label: "Notifica opposizione al ricorrente",
+      label: "Scadenza del Termine per l'opposizione",
       inputKey: "dataNotificaDecreto",
-      parteProcessuale: "CONVENUTO",
+      parteProcessuale: "ATTORE",
       ordine: 4,
     },
     // RICORRENTE
