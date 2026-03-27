@@ -98,9 +98,18 @@ export default function App() {
 
 function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
   const webViewRef = useRef(null);
-  const { isSignedIn, getToken } = useAuth();
+  const { getToken } = useAuth();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
   const oauthPending = useRef(false);
+
+  const isHttpLikeUrl = useCallback((url) => {
+    return (
+      typeof url === "string" &&
+      (url.startsWith("http://") ||
+        url.startsWith("https://") ||
+        url.startsWith("about:blank"))
+    );
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== "web") {
@@ -111,20 +120,21 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
     }
   }, []);
 
-  // After native Clerk OAuth succeeds, bridge the session into the WebView
-  // by navigating to the exchange endpoint that sets the __session cookie.
-  useEffect(() => {
-    if (isSignedIn && oauthPending.current) {
-      oauthPending.current = false;
-      getToken().then((token) => {
-        if (token) {
-          setCurrentUrl(
-            `${webBaseUrl}/api/mobile/exchange?token=${encodeURIComponent(token)}`
-          );
-        }
-      });
+  const bridgeSessionToWebView = useCallback(async () => {
+    // Clerk can need a short moment after setActive before getToken is ready.
+    // Retry briefly to avoid falling back to the unauthenticated web sign-in.
+    for (let i = 0; i < 8; i += 1) {
+      const token = await getToken();
+      if (token) {
+        setCurrentUrl(
+          `${webBaseUrl}/api/mobile/exchange?token=${encodeURIComponent(token)}`
+        );
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
-  }, [isSignedIn, getToken, webBaseUrl, setCurrentUrl]);
+    return false;
+  }, [getToken, setCurrentUrl, webBaseUrl]);
 
   const handleGoogleOAuth = useCallback(async () => {
     if (oauthPending.current) return;
@@ -139,6 +149,13 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
       });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        const bridged = await bridgeSessionToWebView();
+        if (!bridged) {
+          oauthPending.current = false;
+          setCurrentUrl(`${webBaseUrl}/sign-in`);
+          return;
+        }
+        oauthPending.current = false;
       } else {
         oauthPending.current = false;
       }
@@ -146,17 +163,39 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
       oauthPending.current = false;
       console.warn("Google OAuth error:", err);
     }
-  }, [startOAuthFlow]);
+  }, [bridgeSessionToWebView, setCurrentUrl, startOAuthFlow, webBaseUrl]);
 
   const handleShouldStartLoad = useCallback(
     (request) => {
-      if (request.url.includes("accounts.google.com")) {
+      const nextUrl = request?.url ?? "";
+
+      // Never let WebView open app/deep/custom schemes.
+      // Trying to load them as a webpage causes NSURLErrorDomain -1004 on iOS.
+      if (!isHttpLikeUrl(nextUrl)) {
+        return false;
+      }
+
+      if (nextUrl.includes("accounts.google.com")) {
         handleGoogleOAuth();
         return false;
       }
       return true;
     },
-    [handleGoogleOAuth]
+    [handleGoogleOAuth, isHttpLikeUrl]
+  );
+
+  const handleWebViewError = useCallback(
+    (event) => {
+      const failedUrl = event?.nativeEvent?.url ?? "";
+      const code = event?.nativeEvent?.code;
+
+      // If iOS still reports -1004 on an unexpected non-http callback URL,
+      // force recovery to the web app home instead of the error page.
+      if (code === -1004 || !isHttpLikeUrl(failedUrl)) {
+        setCurrentUrl(webBaseUrl);
+      }
+    },
+    [isHttpLikeUrl, setCurrentUrl, webBaseUrl]
   );
 
   return (
@@ -171,6 +210,7 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
         setSupportMultipleWindows={false}
         startInLoadingState
         onShouldStartLoadWithRequest={handleShouldStartLoad}
+        onError={handleWebViewError}
       />
       <StatusBar style="auto" />
     </SafeAreaView>
