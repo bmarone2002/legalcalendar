@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  Linking,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 import { WebView } from "react-native-webview";
@@ -101,6 +108,10 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
   const { getToken } = useAuth();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
   const oauthPending = useRef(false);
+  const OAUTH_CALLBACK_PREFIXES = useRef([
+    "legalcalendar://oauth-native-callback",
+    "legalcalendar:///oauth-native-callback",
+  ]);
 
   const isHttpLikeUrl = useCallback((url) => {
     return (
@@ -136,6 +147,41 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
     return false;
   }, [getToken, setCurrentUrl, webBaseUrl]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const maybeBridgeFromDeepLink = async (url) => {
+      if (
+        !url ||
+        !OAUTH_CALLBACK_PREFIXES.current.some((prefix) =>
+          url.startsWith(prefix)
+        )
+      ) {
+        return;
+      }
+      // Always try bridging when app is opened via OAuth callback deep link.
+      // This makes login robust even when startOAuthFlow doesn't immediately
+      // return createdSessionId on some iOS redirect sequences.
+      await bridgeSessionToWebView();
+      if (isMounted) {
+        oauthPending.current = false;
+      }
+    };
+
+    const sub = Linking.addEventListener("url", (event) => {
+      void maybeBridgeFromDeepLink(event?.url);
+    });
+
+    void Linking.getInitialURL().then((url) => {
+      void maybeBridgeFromDeepLink(url);
+    });
+
+    return () => {
+      isMounted = false;
+      sub.remove();
+    };
+  }, [bridgeSessionToWebView]);
+
   const handleGoogleOAuth = useCallback(async () => {
     if (oauthPending.current) return;
     try {
@@ -143,6 +189,7 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
       const redirectUrl = makeRedirectUri({
         scheme: "legalcalendar",
         path: "oauth-native-callback",
+        isTripleSlashed: true,
       });
       const { createdSessionId, setActive } = await startOAuthFlow({
         redirectUrl,

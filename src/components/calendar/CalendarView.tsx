@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -32,6 +32,33 @@ import {
 import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { CalendarDays, Gavel, ListChecks, type LucideIcon } from "lucide-react";
+
+/** Focus pannello intelligente (persistito in localStorage). Il calendario resta sempre completo. */
+export type PanelFocus = "udienze" | "adempimenti";
+
+const CALENDAR_MODE_TABS: Array<{
+  id: PanelFocus;
+  shortLabel: string;
+  headline: string;
+  hint: string;
+  Icon: LucideIcon;
+}> = [
+  {
+    id: "udienze",
+    shortLabel: "Udienze",
+    headline: "Solo udienze",
+    hint: "Focus del pannello intelligente: solo udienze.",
+    Icon: Gavel,
+  },
+  {
+    id: "adempimenti",
+    shortLabel: "Adempimenti",
+    headline: "Solo adempimenti collegati",
+    hint: "Focus del pannello intelligente: solo adempimenti collegati.",
+    Icon: ListChecks,
+  },
+];
 
 // Sottoeventi: rosso (pending), verde (done), neutro per promemoria futuri (prima del giorno).
 const SUB_EVENT_COLOR_PENDING = "#C62828";
@@ -205,6 +232,8 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
     const seTipo = typeof seParams.tipo === "string" ? seParams.tipo : null;
     const isRinvioUdienzaSubEvent =
       se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
+    const isAdempimentoCollegatoSubEvent =
+      se.ruleId === "rinvio-udienza" && se.kind === "attivita" && seTipo === "evento-collegato";
 
     out.push({
       id: se.id,
@@ -218,6 +247,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       extendedProps: {
         isSubEvent: true,
         isRinvioUdienzaSubEvent,
+        isAdempimentoCollegatoSubEvent,
         parentEventId: e.id,
         parentTitle: mainTitle,
         parentTagColor: tagColor,
@@ -306,14 +336,191 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     }
     return new Set(all);
   });
-  const [soloUdienze, setSoloUdienze] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("calendar:soloUdienze") === "true";
+
+  const [panelFocus, setPanelFocus] = useState<PanelFocus>(() => {
+    if (typeof window === "undefined") return "udienze";
+    const rawNew = window.localStorage.getItem("calendar:panelFocus");
+    if (rawNew === "udienze" || rawNew === "adempimenti") return rawNew;
+
+    // Backward compatibility:
+    // - vecchio toggle solo udienze -> "udienze"
+    // - vecchia "calendarMode" (includeva "complete") -> mappiamo: complete => "udienze"
+    const legacySoloUdienze = window.localStorage.getItem("calendar:soloUdienze") === "true";
+    if (legacySoloUdienze) return "udienze";
+
+    const legacyMode = window.localStorage.getItem("calendar:calendarMode");
+    if (legacyMode === "udienze" || legacyMode === "adempimenti") return legacyMode;
+    return "udienze";
   });
   const [tagColorLabels, setTagColorLabels] = useState<Record<string, string>>(() => loadTagColorLabels());
   const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
   const [showPending, setShowPending] = useState<boolean>(true);
   const [showDone, setShowDone] = useState<boolean>(false);
+
+  type UpcomingKind = "udienza" | "adempimento";
+  type UpcomingBadgeLabel = "Udienza" | "Ademp.";
+  type UpcomingItem = {
+    id: string;
+    date: Date;
+    dateLabel: string;
+    title: string;
+    subtitle: string;
+    kind: UpcomingKind;
+    badgeLabel: UpcomingBadgeLabel;
+    badgeClass: string;
+    status: "pending" | "done";
+  };
+
+  const upcomingPanelItems = useMemo<UpcomingItem[]>(() => {
+    const horizonDays = 30;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const horizon = new Date(today);
+    horizon.setDate(horizon.getDate() + horizonDays);
+
+    const inRange = (d: Date) => {
+      const dd = new Date(d);
+      dd.setHours(0, 0, 0, 0);
+      return dd.getTime() >= today.getTime() && dd.getTime() <= horizon.getTime();
+    };
+
+    const dateLabel = (d: Date) =>
+      d.toLocaleDateString("it-IT", {
+        day: "numeric",
+        month: "short",
+      });
+
+    const shouldShowByStatus = (status: string | undefined) => {
+      if (status === "done") return showDone;
+      return showPending;
+    };
+
+    const shouldHideByPromemoria = (title: string) => {
+      if (showPromemoriaTitle) return false;
+      return title.toLowerCase().includes("promemoria");
+    };
+
+    const classifyUdienzaMother = (ev: AppEvent) => {
+      if (ev.type === "udienza") return true;
+      return matchesUdienzaPhrasesInFaseText(getFaseDisplayString(ev));
+    };
+
+    const out: UpcomingItem[] = [];
+
+    const addUdienzaMother = (ev: AppEvent) => {
+      if (!classifyUdienzaMother(ev)) return;
+      const motherColorKey = paletteKeyForFilter(ev.color);
+      if (motherColorKey && !visibleTagColors.has(motherColorKey)) return;
+
+      const title = (ev.title ?? "").trim();
+      if (!title) return;
+      if (shouldHideByPromemoria(title)) return;
+
+      const status: "pending" | "done" = ev.status === "done" ? "done" : "pending";
+      if (!shouldShowByStatus(status)) return;
+
+      const startAt = new Date(ev.startAt);
+      if (!inRange(startAt)) return;
+
+      const fase = getFaseDisplayString(ev);
+      out.push({
+        id: `u-m-${ev.id}`,
+        date: startAt,
+        dateLabel: dateLabel(startAt),
+        title,
+        subtitle: fase,
+        kind: "udienza",
+        badgeLabel: "Udienza",
+        badgeClass: "bg-blue-50 text-blue-700 ring-blue-200",
+        status,
+      });
+    };
+
+    const addUdienzaSubEvent = (parent: AppEvent, se: SubEvent) => {
+      const params = (se.ruleParams ?? {}) as Record<string, unknown>;
+      const seTipo = typeof params.tipo === "string" ? params.tipo : null;
+      const isRinvioUdienzaSubEvent = se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
+      if (!isRinvioUdienzaSubEvent) return;
+
+      const parentColorKey = paletteKeyForFilter(parent.color);
+      if (parentColorKey && !visibleTagColors.has(parentColorKey)) return;
+
+      const title = (se.title ?? "").trim();
+      if (!title) return;
+      if (shouldHideByPromemoria(title)) return;
+
+      const status: "pending" | "done" = se.status === "done" ? "done" : "pending";
+      if (!shouldShowByStatus(status)) return;
+
+      if (!inRange(se.dueAt)) return;
+
+      const fase = getFaseDisplayString(parent);
+      out.push({
+        id: `u-se-${se.id}`,
+        date: se.dueAt,
+        dateLabel: dateLabel(se.dueAt),
+        title,
+        subtitle: fase,
+        kind: "udienza",
+        badgeLabel: "Udienza",
+        badgeClass: "bg-blue-50 text-blue-700 ring-blue-200",
+        status,
+      });
+    };
+
+    const addAdempimentoLinkedSubEvent = (parent: AppEvent, se: SubEvent) => {
+      if (se.kind !== "attivita") return;
+      const params = (se.ruleParams ?? {}) as Record<string, unknown>;
+      const seTipo = typeof params.tipo === "string" ? params.tipo : null;
+      const isAdempimentoCollegatoSubEvent =
+        se.ruleId === "rinvio-udienza" && se.kind === "attivita" && seTipo === "evento-collegato";
+      if (!isAdempimentoCollegatoSubEvent) return;
+
+      const parentColorKey = paletteKeyForFilter(parent.color);
+      if (parentColorKey && !visibleTagColors.has(parentColorKey)) return;
+
+      const title = (se.title ?? "").trim();
+      if (!title) return;
+      if (shouldHideByPromemoria(title)) return;
+
+      const status: "pending" | "done" = se.status === "done" ? "done" : "pending";
+      if (!shouldShowByStatus(status)) return;
+
+      if (!inRange(se.dueAt)) return;
+
+      const fase = getFaseDisplayString(parent);
+      out.push({
+        id: `a-se-${se.id}`,
+        date: se.dueAt,
+        dateLabel: dateLabel(se.dueAt),
+        title,
+        subtitle: fase,
+        kind: "adempimento",
+        badgeLabel: "Ademp.",
+        badgeClass: "bg-amber-50 text-amber-700 ring-amber-200",
+        status,
+      });
+    };
+
+    const shouldUseUdienzePanel = panelFocus === "udienze";
+
+    for (const ev of allEvents) {
+      if (shouldUseUdienzePanel) {
+        addUdienzaMother(ev);
+        for (const se of ev.subEvents ?? []) {
+          addUdienzaSubEvent(ev, se);
+        }
+      } else {
+        // Solo adempimenti (opzione A): nessun evento madre, solo sottoeventi collegati.
+        for (const se of ev.subEvents ?? []) {
+          addAdempimentoLinkedSubEvent(ev, se);
+        }
+      }
+    }
+
+    out.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return out.slice(0, 6);
+  }, [allEvents, panelFocus, showPending, showDone, showPromemoriaTitle, visibleTagColors]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -404,7 +611,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       return;
     }
     calendarRef.current?.getApi()?.refetchEvents();
-  }, [visibleTagColors, soloUdienze, showPromemoriaTitle]);
+  }, [visibleTagColors, showPromemoriaTitle]);
 
   const toggleTagColorFilter = useCallback((key: string) => {
     setVisibleTagColors((prev) => {
@@ -449,18 +656,34 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     });
   }, []);
 
-  const handleToggleSoloUdienze = useCallback(() => {
-    setSoloUdienze((prev) => {
-      const next = !prev;
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("calendar:soloUdienze", String(next));
-      }
-      return next;
-    });
+  const handleSetPanelFocus = useCallback((next: PanelFocus) => {
+    setPanelFocus(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("calendar:panelFocus", next);
+    }
   }, []);
 
   const filterColorKeyCount = allCalendarFilterColorKeys().length;
   const visibleTagColorCount = visibleTagColors.size;
+  const isTagFilterActive = visibleTagColors.size !== filterColorKeyCount;
+
+  const orderedVisibleTagKeys = useMemo(() => {
+    const ordered = [...EVENT_TAG_COLORS.map((c) => c.toLowerCase()), COLOR_FILTER_NONE, COLOR_FILTER_OTHER];
+    return ordered.filter((k) => visibleTagColors.has(k));
+  }, [visibleTagColors]);
+
+  const renderTagSwatch = (key: string) => {
+    const lower = key.toLowerCase();
+    if (lower === COLOR_FILTER_NONE.toLowerCase()) {
+      return <span className="h-3.5 w-3.5 rounded-full border border-dashed border-zinc-300 bg-white" title="Senza tag" />;
+    }
+    if (lower === COLOR_FILTER_OTHER.toLowerCase()) {
+      return <span className="h-3.5 w-3.5 rounded-full bg-zinc-200 border border-zinc-300" title="Altri colori" />;
+    }
+    const hex = EVENT_TAG_COLORS.find((c) => c.toLowerCase() === lower) ?? null;
+    if (!hex) return null;
+    return <span className="h-3.5 w-3.5 rounded-full border border-zinc-200" style={{ backgroundColor: hex }} title={hex} />;
+  };
 
   const eventsSource = useCallback(
     (
@@ -523,22 +746,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               if (!key) return true;
               return visibleTagColors.has(key);
             });
-            // Solo udienze: solo evento principale (no promemoria/adempimenti/sottoeventi).
-            // Criterio principale: type=udienza. Fallback legacy: frasi nel campo Fase.
-            if (soloUdienze) {
-              events = events.filter((ev) => {
-                const ext = ev.extendedProps as {
-                  isSubEvent?: boolean;
-                  isRinvioUdienzaSubEvent?: boolean;
-                  type?: string;
-                  faseFiltroText?: string;
-                };
-                if (ext.isSubEvent) return ext.isRinvioUdienzaSubEvent === true;
-                if (ext.type === "udienza") return true;
-                const fase = ext.faseFiltroText ?? "";
-                return matchesUdienzaPhrasesInFaseText(fase);
-              });
-            }
+            // Nota: il calendario resta sempre completo. Il filtro "solo udienze / solo adempimenti"
+            // agisce solo sul pannello intelligente a destra.
             // Titolo con «Promemoria»: se disattivato, nascondi quelle voci
             if (!showPromemoriaTitle) {
               events = events.filter((ev) => {
@@ -582,7 +791,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       showDone,
       targetUserId,
       visibleTagColors,
-      soloUdienze,
       showPromemoriaTitle,
     ]
   );
@@ -1119,7 +1327,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       <div className="flex min-h-0 flex-1 min-w-0 flex-col gap-2 sm:gap-3 calendar-theme">
       <div className="flex flex-col gap-2 sm:gap-3 mb-1 shrink-0">
         {/* Riga 1: Nuovo evento + ricerca + filtri (layout ottimizzato per mobile) */}
-        <div className="flex flex-col gap-2 border-b border-zinc-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Nuovo evento + ricerca */}
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             <div className="flex items-center">
@@ -1192,7 +1400,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               )}
             </div>
           </div>
-          {/* Filtri colore tag, udienze, Promemoria + Stato */}
+          {/* Filtri colore tag, modalità, Promemoria + Stato */}
           <div className="flex flex-wrap items-center gap-3 sm:justify-end">
             <Popover>
               <PopoverTrigger asChild>
@@ -1200,7 +1408,9 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 px-2 text-xs sm:text-sm text-zinc-700 border-zinc-300 bg-white"
+                  className={`h-8 gap-1.5 px-2 text-xs sm:text-sm border-zinc-300 bg-white transition-colors ${
+                    isTagFilterActive ? "text-white bg-[var(--navy)] border-[var(--navy)] hover:bg-[var(--navy-light)]" : "text-zinc-700"
+                  }`}
                 >
                   Colore tag
                   <span className="text-zinc-500 text-[10px] sm:text-xs tabular-nums">
@@ -1304,30 +1514,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 </div>
               </PopoverContent>
             </Popover>
-            <button
-              type="button"
-              onClick={handleToggleSoloUdienze}
-              className="flex items-center gap-2 select-none"
-              title={
-                soloUdienze
-                  ? "Disattiva per mostrare tutti gli eventi"
-                  : "Solo eventi principali (no promemoria/adempimenti): Fase con Prima udienza, Udienza istruttoria, conclusioni, sospensiva, trattazione, o «Udienza»"
-              }
-            >
-              <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">SOLO UDIENZE</span>
-              <span
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors ${
-                  soloUdienze
-                    ? "bg-[var(--navy)] border-[var(--navy)]"
-                    : "bg-zinc-300 border-zinc-400"
-                }`}
-              >
-                <span
-                  className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
-                  style={{ transform: soloUdienze ? "translateX(18px)" : "translateX(2px)" }}
-                />
-              </span>
-            </button>
+
             {/* Toggle promemoria */}
             <button
               type="button"
@@ -1389,6 +1576,93 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             </div>
           </div>
         </div>
+
+        {isTagFilterActive && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-1 rounded-2xl border border-zinc-200 bg-white px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="inline-flex items-center gap-2 rounded-full bg-zinc-50 border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-700 shrink-0">
+                Filtri attivi
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-zinc-700 font-medium">
+                  Colore tag: {visibleTagColorCount}/{filterColorKeyCount}
+                </p>
+                {visibleTagColorCount === 0 && (
+                  <p className="text-[11px] text-zinc-500">
+                    Stai nascondendo tutti gli eventi: usa “Mostra tutti”.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {orderedVisibleTagKeys.slice(0, 5).map((k) => (
+                  <span key={k} className="inline-flex items-center justify-center">
+                    {renderTagSwatch(k)}
+                  </span>
+                ))}
+                {orderedVisibleTagKeys.length > 5 && (
+                  <span className="text-[11px] text-zinc-500 font-medium">+{orderedVisibleTagKeys.length - 5}</span>
+                )}
+              </div>
+              <Button type="button" size="sm" variant="outline" className="h-8 px-3" onClick={selectAllTagColors}>
+                Mostra tutti
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Focus pannello intelligente: selettore centrato (segmented control stile moderno) */}
+        <div
+          className="flex flex-col items-center gap-2 border-b border-zinc-200 pb-3 sm:pb-3.5 pt-0.5"
+          role="region"
+          aria-label="Focus pannello intelligente"
+        >
+          <div className="flex flex-col items-center gap-0.5 text-center px-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              Focus pannello intelligente
+            </span>
+            <span className="text-base font-semibold text-[var(--navy)] sm:text-lg" aria-live="polite">
+              {CALENDAR_MODE_TABS.find((t) => t.id === panelFocus)?.headline}
+            </span>
+            <span className="max-w-lg text-[11px] text-zinc-500 leading-snug sm:text-xs">
+              {CALENDAR_MODE_TABS.find((t) => t.id === panelFocus)?.hint}
+            </span>
+          </div>
+          <div
+            className="flex w-full max-w-xl justify-center px-1"
+            role="tablist"
+            aria-label="Scegli cosa mostrare nel pannello intelligente"
+          >
+            <div className="inline-flex max-w-full overflow-x-auto rounded-full border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-zinc-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] [scrollbar-width:thin]">
+              {CALENDAR_MODE_TABS.map((tab) => {
+                const active = panelFocus === tab.id;
+                const Icon = tab.Icon;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    tabIndex={active ? 0 : -1}
+                    onClick={() => handleSetPanelFocus(tab.id)}
+                    title={`${tab.headline}. ${tab.hint}`}
+                    className={`inline-flex min-w-0 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navy)] focus-visible:ring-offset-2 sm:px-4 sm:py-2.5 sm:text-sm ${
+                      active
+                        ? "bg-[var(--navy)] text-white shadow-md ring-1 ring-black/5"
+                        : "text-zinc-600 hover:bg-white/90 hover:text-zinc-900"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0 opacity-95 sm:h-4 sm:w-4" aria-hidden />
+                    <span className="truncate">{tab.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Riga 2: Oggi + frecce + titolo + viste */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -1450,14 +1724,15 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           </div>
         </div>
       </div>
-      <div
-        ref={calendarContainerRef}
-        className={
-          currentView === "listFromToday"
-            ? "calendar-agenda-scroll-container calendar-month-container flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-x-auto"
-            : "calendar-month-container w-full min-w-0 max-w-full overflow-x-auto"
-        }
-      >
+      <div className="grid gap-6 xl:grid-cols-[1fr,320px] xl:items-start">
+        <div
+          ref={calendarContainerRef}
+          className={
+            currentView === "listFromToday"
+              ? "calendar-agenda-scroll-container calendar-month-container flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-x-auto"
+              : "calendar-month-container w-full min-w-0 max-w-full overflow-x-auto"
+          }
+        >
         {currentView === "listFromToday" && (
           <div className="mb-1 px-1 sm:hidden">
             <p className="text-[11px] text-zinc-500 flex items-center gap-1">
@@ -1536,6 +1811,54 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           slotLabelInterval="01:00:00"
         />
         )}
+        </div>
+
+        {/* Pannello intelligente: prossimi elementi filtrati */}
+        <aside className="hidden xl:block">
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-[var(--navy)] p-5 text-white shadow-sm">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Pannello intelligente</p>
+              <h3 className="mt-2 text-xl font-semibold">
+                {panelFocus === "adempimenti" ? "Prossimi adempimenti" : "Prossime udienze"}
+              </h3>
+              <p className="mt-2 text-sm text-slate-300">
+                {panelFocus === "adempimenti"
+                  ? "Vista strutturale: nessun evento madre, solo adempimenti collegati."
+                  : "La vista filtrata ti aiuta a consultare velocemente i punti chiave."}
+              </p>
+            </div>
+
+            <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+              {upcomingPanelItems.length === 0 ? (
+                <p className="text-sm text-slate-500">Nessun elemento nei prossimi 30 giorni.</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingPanelItems.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-slate-200 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{item.dateLabel}</p>
+                          <p className={`mt-1 text-sm font-semibold text-slate-900 ${item.status === "done" ? "line-through text-slate-400" : ""}`}>
+                            {item.title}
+                          </p>
+                          {item.subtitle && (
+                            <p className="mt-1 text-xs text-slate-500">{item.subtitle}</p>
+                          )}
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${item.badgeClass}`}
+                          aria-label={item.badgeLabel}
+                        >
+                          {item.badgeLabel}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
       </div>
       {modalState && (
         <EventModal
