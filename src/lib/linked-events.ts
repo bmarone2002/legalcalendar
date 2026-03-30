@@ -56,6 +56,7 @@ export function buildLinkedEventCandidates(
       ruleId,
       ruleParams: {
         ...extraRuleParams,
+        /** Marcatore persistito sul SubEvent: pannello «Adempimenti» / eventi collegati in calendario. */
         linkedEvent: true,
         offsetDays: le.offsetDays,
       },

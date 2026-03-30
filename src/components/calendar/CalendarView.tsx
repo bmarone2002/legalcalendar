@@ -121,6 +121,32 @@ type DraftEvent = {
   form: any;
 };
 
+/** Fase (testo UI): contiene «udienza» o «udienze» (il plurale non include «udienza» come sottostringa). */
+/**
+ * True se il nome/testo della fase contiene «udienza» o «udienze» come parola, con qualsiasi
+ * testo attorno (es. «Udienza Rossi», «Mario udienza», «prima udienza»). Confini di parola
+ * per evitare suffissi tipo «udienzario».
+ */
+function faseContieneParolaUdienza(text: string | null | undefined): boolean {
+  if (text == null) return false;
+  const s = String(text).trim();
+  if (!s) return false;
+  return /\b(udienza|udienze)\b/i.test(s);
+}
+
+/**
+ * «Aggiungi adempimento collegato» dalla modale pratica: i sottoeventi generati hanno
+ * `ruleParams.linkedEvent: true` (ruleId `data-driven` o `reminder`, vedi `buildLinkedEventCandidates`).
+ * Flusso rinvio udienza: `tipo: "evento-collegato"` in ruleParams.
+ */
+function isAdempimentoCollegatoLinkedSubEvent(se: SubEvent): boolean {
+  if (se.kind !== "attivita") return false;
+  const p = (se.ruleParams ?? {}) as Record<string, unknown>;
+  if (p.linkedEvent === true || p.linkedEvent === "true") return true;
+  const tipo = typeof p.tipo === "string" ? p.tipo : null;
+  return tipo === "evento-collegato";
+}
+
 function TrashIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -213,8 +239,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
     const seTipo = typeof seParams.tipo === "string" ? seParams.tipo : null;
     const isRinvioUdienzaSubEvent =
       se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
-    const isAdempimentoCollegatoSubEvent =
-      se.ruleId === "rinvio-udienza" && se.kind === "attivita" && seTipo === "evento-collegato";
+    const isAdempimentoCollegatoSubEvent = isAdempimentoCollegatoLinkedSubEvent(se);
 
     out.push({
       id: se.id,
@@ -492,27 +517,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     const dateLabel = (d: Date) =>
       d.toLocaleDateString("it-IT", { day: "numeric", month: "short" }).toUpperCase();
 
-    /** Qualsiasi occorrenza di «udienza» nella fase (anche dentro altre parole). */
-    const faseContainsUdienza = (ev: AppEvent) =>
-      (getFaseDisplayString(ev) ?? "").toLowerCase().includes("udienza");
-
-    const motherInUdienzePanel = (ev: AppEvent) =>
-      ev.type === "udienza" || faseContainsUdienza(ev);
-
-    /** Come in modale «Eventi collegati»; `ruleId` opzionale per dati legacy. */
-    const isEventoCollegatoSubEvent = (se: SubEvent) => {
-      if (se.kind !== "attivita") return false;
-      const params = (se.ruleParams ?? {}) as Record<string, unknown>;
-      const seTipo = typeof params.tipo === "string" ? params.tipo : null;
-      if (seTipo !== "evento-collegato") return false;
-      if (se.ruleId && se.ruleId !== "rinvio-udienza") return false;
-      return true;
-    };
+    /** Nome fase con «udienza»/«udienze» (anche con altro testo prima/dopo); oppure tipo udienza in modale. */
+    const madreNelPannelloUdienze = (ev: AppEvent) =>
+      faseContieneParolaUdienza(getFaseDisplayString(ev)) || ev.type === "udienza";
 
     const out: SmartPanelItem[] = [];
 
     const addUdienzaMother = (ev: AppEvent) => {
-      if (!motherInUdienzePanel(ev)) return;
+      if (!madreNelPannelloUdienze(ev)) return;
       const title = (ev.title ?? "").trim();
       if (!title) return;
       const status: "pending" | "done" = ev.status === "done" ? "done" : "pending";
@@ -532,14 +544,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
     const addUdienzaSubEvent = (parent: AppEvent, se: SubEvent) => {
       if (se.isPlaceholder || !se.dueAt || se.dueAt.getTime() === 0) return;
-      if (isEventoCollegatoSubEvent(se)) return;
+      if (isAdempimentoCollegatoLinkedSubEvent(se)) return;
 
       const params = (se.ruleParams ?? {}) as Record<string, unknown>;
       const seTipo = typeof params.tipo === "string" ? params.tipo : null;
       const isRinvioUdienzaSubEvent =
         se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
 
-      const parentUdienzaCtx = motherInUdienzePanel(parent);
+      const parentUdienzaCtx = madreNelPannelloUdienze(parent);
       if (!isRinvioUdienzaSubEvent && !parentUdienzaCtx) return;
 
       const title = (se.title ?? "").trim();
@@ -560,7 +572,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
     const addEventoCollegato = (parent: AppEvent, se: SubEvent) => {
       if (se.isPlaceholder || !se.dueAt || se.dueAt.getTime() === 0) return;
-      if (!isEventoCollegatoSubEvent(se)) return;
+      if (!isAdempimentoCollegatoLinkedSubEvent(se)) return;
       const title = (se.title ?? "").trim();
       if (!title) return;
       const status: "pending" | "done" = se.status === "done" ? "done" : "pending";
