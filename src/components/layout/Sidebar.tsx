@@ -92,20 +92,20 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="flex min-h-[144px] w-full items-center justify-center overflow-hidden border-b border-[var(--gold)]/30 bg-[var(--navy)] px-3 py-3" style={{ backgroundColor: "var(--navy)" }}>
+      <div className="flex min-h-[108px] w-full items-center justify-center overflow-hidden border-b border-[var(--gold)]/30 bg-[var(--navy)] px-3 py-3" style={{ backgroundColor: "var(--navy)" }}>
         {!logoError ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <div className="flex items-center justify-center">
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-32 w-auto max-w-[440px] object-contain"
+              className="h-24 w-auto max-w-[330px] object-contain"
               onError={() => setLogoError(true)}
             />
           </div>
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded bg-[var(--gold)]/20 text-[var(--gold)]">
-            <CalendarIcon className="h-12 w-12" />
+          <div className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded bg-[var(--gold)]/20 text-[var(--gold)]">
+            <CalendarIcon className="h-9 w-9" />
           </div>
         )}
       </div>

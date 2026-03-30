@@ -11,7 +11,7 @@ export default function GuidaPage() {
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-[6.5rem] w-auto object-contain sm:h-32 lg:h-36"
+              className="h-[4.875rem] w-auto object-contain sm:h-24 lg:h-[6.75rem]"
             />
             <div className="hidden sm:block">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">

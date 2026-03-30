@@ -30,7 +30,7 @@ function LandingPage() {
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-28 w-auto object-contain sm:h-32 lg:h-36"
+              className="h-[5.25rem] w-auto object-contain sm:h-24 lg:h-[6.75rem]"
             />
             <div className="hidden sm:block">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--gold)]">
