@@ -57,8 +57,6 @@ export async function loadParentContext(
     procedimento: parent.procedimento ?? null,
     parteProcessuale: parent.parteProcessuale ?? null,
     eventoCode: (parent as { eventoCode?: string | null }).eventoCode ?? null,
-    actionType: parent.actionType ?? undefined,
-    actionMode: parent.actionMode ?? undefined,
     inputs: inputsParsed,
     createdAt: parent.createdAt,
     updatedAt: parent.updatedAt,
@@ -129,8 +127,6 @@ export interface PreviewSubEventInput {
   procedimento?: string | null;
   parteProcessuale?: string | null;
   eventoCode?: string | null;
-  actionType?: string | null;
-  actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
 }
 
@@ -170,8 +166,6 @@ export async function getSubEventsPreview(
       procedimento: input.procedimento ?? null,
       parteProcessuale: input.parteProcessuale ?? null,
       eventoCode: input.eventoCode ?? null,
-      actionType: input.actionType ?? undefined,
-      actionMode: input.actionMode ?? undefined,
       inputs: input.inputs ?? undefined,
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -148,8 +148,6 @@ exports.Prisma.EventScalarFieldEnum = {
   procedimento: 'procedimento',
   parteProcessuale: 'parteProcessuale',
   eventoCode: 'eventoCode',
-  actionType: 'actionType',
-  actionMode: 'actionMode',
   inputs: 'inputs',
   color: 'color',
   status: 'status',

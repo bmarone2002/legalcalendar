@@ -9,7 +9,7 @@ export type EventType =
 
 export type EventStatus = "pending" | "done";
 
-/** Macro-tipo: ATTO_GIURIDICO attiva actionType/actionMode/inputs */
+/** Macro-tipo: ATTO_GIURIDICO attiva gerarchia macro/procedimento + inputs */
 export type MacroType = "ATTO_GIURIDICO" | null;
 
 export type { MacroAreaCode, ProcedimentoCode, ParteProcessuale } from "./macro-areas";
@@ -31,16 +31,11 @@ export interface Event {
   generateSubEvents: boolean;
   ruleTemplateId: string | null;
   ruleParams: Record<string, unknown> | null;
-  /** Se "ATTO_GIURIDICO": sottocategoria e modalità con inputs per regole */
   macroType?: MacroType;
-  /** Nuova gerarchia a 4 livelli */
   macroArea?: string | null;
   procedimento?: string | null;
   parteProcessuale?: string | null;
   eventoCode?: string | null;
-  /** Legacy: mantenuti per retrocompatibilità */
-  actionType?: string | null;
-  actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
   /** Colore tag (hex): applicato a evento e sottoeventi in calendario */
   color?: string | null;
@@ -87,8 +82,6 @@ export interface CreateEventInput {
   procedimento?: string | null;
   parteProcessuale?: string | null;
   eventoCode?: string | null;
-  actionType?: string | null;
-  actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
   color?: string | null;
   status?: EventStatus;
@@ -111,8 +104,6 @@ export interface UpdateEventInput {
   procedimento?: string | null;
   parteProcessuale?: string | null;
   eventoCode?: string | null;
-  actionType?: string | null;
-  actionMode?: string | null;
   inputs?: Record<string, unknown> | null;
   color?: string | null;
   status?: EventStatus;
@@ -130,9 +121,8 @@ export const RULE_TEMPLATES = [
   { id: "reminder", label: "Promemoria standard" },
   { id: "generic-deadline", label: "Scadenza generica" },
   { id: "checklist", label: "Checklist" },
-  { id: "atto-giuridico", label: "Atto giuridico (termini e promemoria)" },
   {
     id: "data-driven",
-    label: "Atto giuridico – nuove tabelle (macro area / procedimento / parte)",
+    label: "Atto giuridico (macro area / procedimento / parte)",
   },
 ] as const;

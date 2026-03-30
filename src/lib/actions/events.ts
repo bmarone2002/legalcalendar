@@ -39,8 +39,6 @@ function toEvent(r: {
   procedimento?: string | null;
   parteProcessuale?: string | null;
   eventoCode?: string | null;
-  actionType?: string | null;
-  actionMode?: string | null;
   inputs?: string | null;
   color?: string | null;
   status?: string | null;
@@ -82,8 +80,6 @@ function toEvent(r: {
     procedimento: r.procedimento ?? null,
     parteProcessuale: r.parteProcessuale ?? null,
     eventoCode: r.eventoCode ?? null,
-    actionType: r.actionType ?? undefined,
-    actionMode: r.actionMode ?? undefined,
     inputs: parseJsonField(r.inputs ?? null),
     color: r.color ?? null,
     status: (r.status === "done" ? "done" : "pending") as import("@/types").EventStatus,
@@ -112,8 +108,6 @@ const createEventSchema = z.object({
   procedimento: z.string().nullable().optional(),
   parteProcessuale: z.string().nullable().optional(),
   eventoCode: z.string().nullable().optional(),
-  actionType: z.string().nullable().optional(),
-  actionMode: z.string().nullable().optional(),
   inputs: z.record(z.unknown()).nullable().optional(),
   color: z.string().nullable().optional(),
   status: z.enum(["pending", "done"]).optional(),
@@ -193,8 +187,6 @@ export async function createEvent(data: CreateEventInput, targetUserId?: string)
         procedimento: p.procedimento ?? null,
         parteProcessuale: p.parteProcessuale ?? null,
         eventoCode: p.eventoCode ?? null,
-        actionType: p.actionType ?? null,
-        actionMode: p.actionMode ?? null,
         inputs: p.inputs != null ? JSON.stringify(p.inputs) : null,
         color: p.color ?? null,
         status: p.status ?? "pending",
@@ -325,8 +317,6 @@ export async function updateEvent(
         ...(p.procedimento !== undefined && { procedimento: p.procedimento }),
         ...(p.parteProcessuale !== undefined && { parteProcessuale: p.parteProcessuale }),
         ...(p.eventoCode !== undefined && { eventoCode: p.eventoCode }),
-        ...(p.actionType !== undefined && { actionType: p.actionType }),
-        ...(p.actionMode !== undefined && { actionMode: p.actionMode }),
         ...(p.inputs !== undefined && {
           inputs: p.inputs != null ? JSON.stringify(p.inputs) : null,
         }),

@@ -39,8 +39,6 @@ export async function GET() {
         procedimento: e.procedimento,
         parteProcessuale: e.parteProcessuale,
         eventoCode: e.eventoCode,
-        actionType: e.actionType,
-        actionMode: e.actionMode,
         inputs: e.inputs ? (JSON.parse(e.inputs) as Record<string, unknown>) : null,
         color: e.color,
         status: (e.status === "done" ? "done" : "pending") as BackupEvent["status"],

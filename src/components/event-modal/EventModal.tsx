@@ -28,13 +28,10 @@ import {
 } from "@/lib/actions/sub-events";
 import type { EventType, SubEvent } from "@/types";
 import { RULE_TEMPLATES } from "@/types";
-import type { ActionType, ActionMode } from "@/types/atto-giuridico";
-import { ACTION_TYPES, ACTION_MODES, ACTION_TYPE_LABELS, ACTION_MODE_LABELS } from "@/types/atto-giuridico";
-import { AttoGiuridicoPanel } from "./AttoGiuridicoPanel";
 import { MacroAreaPanel } from "./MacroAreaPanel";
 import { ProsecuzionePanel } from "./ProsecuzionePanel";
 import type { MacroAreaCode, ProcedimentoCode, ParteProcessuale } from "@/types/macro-areas";
-import { LEGACY_ACTION_TYPE_MAP, LEGACY_ACTION_MODE_MAP, getMacroAreaForProcedimento, getEventoByCode } from "@/types/macro-areas";
+import { getMacroAreaForProcedimento, getEventoByCode } from "@/types/macro-areas";
 import { DateTimePicker } from "./DateTimePicker";
 import { PopoverContainerContext } from "./popover-container-context";
 import { formatDateTime } from "@/lib/utils";
@@ -86,8 +83,6 @@ type EventFormState = {
   procedimento: ProcedimentoCode | null;
   parteProcessuale: ParteProcessuale | null;
   eventoCode: string | null;
-  actionType: ActionType;
-  actionMode: ActionMode;
   inputs: Record<string, unknown>;
   color: string | null;
   reminderOffsets: number[];
@@ -162,8 +157,6 @@ const defaultEvent = (start?: Date, end?: Date): EventFormState => {
     procedimento: null,
     parteProcessuale: null,
     eventoCode: null,
-    actionType: ACTION_TYPES[0],
-    actionMode: ACTION_MODES[0],
     inputs: {},
     color: null,
     // Nessun promemoria di default: l'utente li aggiunge esplicitamente.
@@ -722,14 +715,15 @@ export function EventModal({
         tags: e.tags ?? [],
         notes: e.notes ?? "",
         generateSubEvents: e.generateSubEvents,
-        ruleTemplateId: e.ruleTemplateId ?? RULE_TEMPLATES[0].id,
+        ruleTemplateId:
+          e.ruleTemplateId === "atto-giuridico"
+            ? "data-driven"
+            : (e.ruleTemplateId ?? RULE_TEMPLATES[0].id),
         macroType: e.macroType ?? null,
         macroArea: (e.macroArea as MacroAreaCode) ?? null,
         procedimento: (e.procedimento as ProcedimentoCode) ?? null,
         parteProcessuale: (e.parteProcessuale as ParteProcessuale) ?? null,
         eventoCode: (e as { eventoCode?: string | null }).eventoCode ?? null,
-        actionType: (e.actionType as ActionType) ?? ACTION_TYPES[0],
-        actionMode: (e.actionMode as ActionMode) ?? ACTION_MODES[0],
         inputs: (e.inputs as Record<string, unknown>) ?? {},
         color: e.color ?? null,
         reminderOffsets: savedOffsets,
@@ -808,13 +802,6 @@ export function EventModal({
                 eventoCode: form.eventoCode,
                 inputs: mergedInputsDataDriven,
               }
-            : form.ruleTemplateId === "atto-giuridico"
-            ? {
-                macroType: "ATTO_GIURIDICO",
-                actionType: form.actionType,
-                actionMode: form.actionMode,
-                inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
-              }
             : {
                 inputs: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
               }),
@@ -880,8 +867,6 @@ export function EventModal({
     form.procedimento,
     form.parteProcessuale,
     form.eventoCode,
-    form.actionType,
-    form.actionMode,
     form.inputs,
     form.reminderOffsets,
     form.linkedEvents,
@@ -985,13 +970,6 @@ export function EventModal({
               eventoCode: form.eventoCode,
               inputs: { ...serializeInputsForServer(form.inputs), macroArea: form.macroArea, procedimento: form.procedimento, parteProcessuale: form.parteProcessuale, reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
             }
-          : form.ruleTemplateId === "atto-giuridico"
-          ? {
-              macroType: "ATTO_GIURIDICO",
-              actionType: form.actionType,
-              actionMode: form.actionMode,
-              inputs: { ...serializeInputsForServer(form.inputs), reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
-            }
           : {
               inputs: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
             }),
@@ -1018,7 +996,7 @@ export function EventModal({
         if (
           result.success &&
           (!result.data || result.data.length === 0) &&
-          (form.ruleTemplateId === "atto-giuridico" || form.ruleTemplateId === "data-driven") &&
+          form.ruleTemplateId === "data-driven" &&
           form.macroType === "ATTO_GIURIDICO"
         ) {
           const isManualEvento =
@@ -1102,8 +1080,6 @@ export function EventModal({
           procedimento: form.procedimento,
           parteProcessuale: form.parteProcessuale,
           eventoCode: form.eventoCode,
-          actionType: form.macroType ? form.actionType : undefined,
-          actionMode: form.macroType ? form.actionMode : undefined,
           inputs: serializeInputsForServer(mergedInputs),
           ruleParams: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
           color: form.color,
@@ -1152,8 +1128,6 @@ export function EventModal({
           procedimento: form.procedimento,
           parteProcessuale: form.parteProcessuale,
           eventoCode: form.eventoCode,
-          actionType: form.macroType ? form.actionType : undefined,
-          actionMode: form.macroType ? form.actionMode : undefined,
           inputs: serializeInputsForServer(mergedInputs),
           ruleParams: { reminderOffsets: form.reminderOffsets, linkedEvents: form.linkedEvents },
           color: form.color,
@@ -1227,8 +1201,6 @@ export function EventModal({
         procedimento: form.procedimento,
         parteProcessuale: form.parteProcessuale,
         eventoCode: form.eventoCode,
-        actionType: form.macroType ? form.actionType : undefined,
-        actionMode: form.macroType ? form.actionMode : undefined,
         inputs: serializeInputsForServer({
           ...((form.inputs as Record<string, unknown> | null) ?? {}),
           practiceIdentity: {
@@ -1541,8 +1513,6 @@ export function EventModal({
                             procedimento: null,
                             parteProcessuale: null,
                             eventoCode: null,
-                            actionType: ACTION_TYPES[0],
-                            actionMode: ACTION_MODES[0],
                             inputs: {},
                           }),
                     }));
@@ -1674,8 +1644,6 @@ export function EventModal({
                               const aiProcedimento = (d as { procedimento?: string }).procedimento as ProcedimentoCode | undefined;
                               const aiParte = (d as { parteProcessuale?: string }).parteProcessuale as ParteProcessuale | undefined;
                               const aiEventoCode = (d as { eventoCode?: string }).eventoCode ?? null;
-                              const legacyMapping = !aiMacroArea && d.actionType ? LEGACY_ACTION_TYPE_MAP[d.actionType] : null;
-                              const legacyParte = !aiParte && d.actionMode ? LEGACY_ACTION_MODE_MAP[d.actionMode] : null;
                               setForm((f) => ({
                                 ...(() => {
                                   const nextParti = parsedIdentityFromTitle.parti || f.parti;
@@ -1700,13 +1668,11 @@ export function EventModal({
                                 description: d.description ?? f.description,
                                 type: (d.type as EventType) ?? f.type,
                                 notes: d.notes ?? f.notes,
-                                ...(d.actionType && { actionType: d.actionType as ActionType }),
-                                ...(d.actionMode && { actionMode: d.actionMode as ActionMode }),
-                                ...(aiMacroArea ? { macroArea: aiMacroArea } : legacyMapping ? { macroArea: legacyMapping.macroArea } : {}),
-                                ...(aiProcedimento ? { procedimento: aiProcedimento } : legacyMapping ? { procedimento: legacyMapping.procedimento } : {}),
-                                ...(aiParte ? { parteProcessuale: aiParte } : legacyParte ? { parteProcessuale: legacyParte } : {}),
+                                ...(aiMacroArea ? { macroArea: aiMacroArea } : {}),
+                                ...(aiProcedimento ? { procedimento: aiProcedimento } : {}),
+                                ...(aiParte ? { parteProcessuale: aiParte } : {}),
                                 ...(aiEventoCode && { eventoCode: aiEventoCode }),
-                                ...((aiMacroArea || legacyMapping) && { ruleTemplateId: "data-driven" }),
+                                ...(aiMacroArea && { ruleTemplateId: "data-driven" }),
                                 // Mantiene i campi data visibili nel pannello ma evita valori residui da precedenti analisi.
                                 // Se l'AI non trova date, inputs resta semplicemente vuoto e l'utente può compilare manualmente.
                                 inputs: mergedInputs,
@@ -1811,57 +1777,6 @@ export function EventModal({
                     }
                     onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
                   />
-
-                  {/* Legacy: pannello vecchio (visibile solo se evento caricato con vecchio actionType senza macroArea) */}
-                  {mode === "edit" && !form.macroArea && form.actionType && (
-                    <>
-                      <div className="pt-2 border-t border-zinc-200">
-                        <p className="text-xs text-amber-600 mb-2">Evento creato con la struttura precedente. Seleziona una Macro Area sopra per migrarlo.</p>
-                        <Label>Sotto-categoria (legacy)</Label>
-                        <Select
-                          value={form.actionType}
-                          onValueChange={(v) => setForm((f) => ({ ...f, actionType: v as ActionType }))}
-                        >
-                          <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-                            <SelectValue placeholder="Seleziona sotto-categoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ACTION_TYPES.map((t) => (
-                              <SelectItem key={t} value={t}>
-                                {ACTION_TYPE_LABELS[t]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Modalità (legacy)</Label>
-                        <Select
-                          value={form.actionMode}
-                          onValueChange={(v) => setForm((f) => ({ ...f, actionMode: v as ActionMode }))}
-                        >
-                          <SelectTrigger className="bg-white dark:bg-white border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
-                            <SelectValue placeholder="Seleziona modalità" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ACTION_MODES.map((m) => (
-                              <SelectItem key={m} value={m}>
-                                {ACTION_MODE_LABELS[m]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="pt-1">
-                        <AttoGiuridicoPanel
-                          actionType={form.actionType}
-                          actionMode={form.actionMode}
-                          inputs={form.inputs}
-                          onInputsChange={(inputs) => setForm((f) => ({ ...f, inputs }))}
-                        />
-                      </div>
-                    </>
-                  )}
                 </>
               )}
 

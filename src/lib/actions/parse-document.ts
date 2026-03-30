@@ -29,9 +29,6 @@ const parsedDocumentSchema = z.object({
   procedimento: z.custom<ProcedimentoCode>().optional(),
   parteProcessuale: z.custom<ParteProcessuale>().optional(),
   eventoCode: z.string().optional(),
-  // Campi legacy: accetta qualsiasi stringa, per evitare che valori leggermente diversi blocchino tutto
-  actionType: z.string().optional(),
-  actionMode: z.string().optional(),
   inputs: z.record(z.unknown()).optional().default({}),
   notes: z.string().optional().default(""),
 });
@@ -92,8 +89,6 @@ Restituisci SOLO un JSON valido, senza markdown né testo prima/dopo, con queste
 - procedimento: uno dei codici procedimento presenti nel JSON fornito per la macroArea scelta
 - parteProcessuale: "ATTORE" | "CONVENUTO" | "COMUNE"
 - eventoCode: uno dei codici evento (fase) presenti nel JSON fornito per il procedimento e la parte processuale scelti; se davvero incerto, puoi lasciarlo vuoto, ma in generale DEVI scegliere l'opzione più probabile
-- actionType: (legacy) "CITAZIONE" | "RICORSO_OPPOSIZIONE" | "RICORSO_TRIBUTARIO" | "APPELLO_CIVILE" | "APPELLO_TRIBUTARIO" | "RICORSO_CASSAZIONE" (compila solo se riconosci chiaramente la tipologia classica; altrimenti puoi lasciarlo vuoto)
-- actionMode: (legacy) "COSTITUZIONE" | "DA_NOTIFICARE" (compila solo se coerente; altrimenti puoi lasciarlo vuoto)
 - inputs: OGGETTO con TUTTE le date estratte e gli eventuali parametri numerici, usando le chiavi esatte previste dal gestionale quando riconoscibili dal contesto, in particolare:
   - dataPrimaNotificaCitazione, dataPrimaUdienza, dataNotifica, dataNotificaCitazione, dataUdienzaComparizione, dataUdienzaRiferimentoMemorie,
     dataNotificaDecretoIngiuntivo, dataNotificaRicorso, dataNotificaSentenza, dataPubblicazioneSentenza, dataNotificaAttoImpugnato,
@@ -345,8 +340,6 @@ function mergeEventResults(results: ParsedDocumentResult[]): ParsedDocumentResul
     procedimento: results.find((r) => r.procedimento)?.procedimento,
     parteProcessuale: results.find((r) => r.parteProcessuale)?.parteProcessuale,
     eventoCode: firstNonEmptyString(...results.map((r) => r.eventoCode)),
-    actionType: firstNonEmptyString(...results.map((r) => r.actionType)),
-    actionMode: firstNonEmptyString(...results.map((r) => r.actionMode)),
     inputs: mergedInputs,
     notes: uniqueNotes.join(" | "),
   };
@@ -497,8 +490,6 @@ ${textToSend.slice(0, SINGLE_PASS_TEXT_LIMIT)}`;
         procedimento: parsed.procedimento ?? undefined,
         parteProcessuale: parsed.parteProcessuale ?? undefined,
         eventoCode: parsed.eventoCode ?? undefined,
-        actionType: parsed.actionType ?? undefined,
-        actionMode: parsed.actionMode ?? undefined,
         inputs: sanitizedInputs,
         notes: parsed.notes ?? "",
       });
@@ -553,8 +544,6 @@ ${chunk}`;
         procedimento: parsed.procedimento ?? undefined,
         parteProcessuale: parsed.parteProcessuale ?? undefined,
         eventoCode: parsed.eventoCode ?? undefined,
-        actionType: parsed.actionType ?? undefined,
-        actionMode: parsed.actionMode ?? undefined,
         inputs: sanitizedInputs,
         notes: parsed.notes ?? "",
       });

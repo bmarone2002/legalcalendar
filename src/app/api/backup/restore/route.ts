@@ -77,7 +77,10 @@ export async function POST(req: Request) {
             caseId: eventData.caseId,
             notes: eventData.notes,
             generateSubEvents: eventData.generateSubEvents ?? false,
-            ruleTemplateId: eventData.ruleTemplateId,
+            ruleTemplateId:
+              eventData.ruleTemplateId === "atto-giuridico"
+                ? "data-driven"
+                : eventData.ruleTemplateId,
             ruleParams:
               eventData.ruleParams != null
                 ? JSON.stringify(eventData.ruleParams)
@@ -87,8 +90,6 @@ export async function POST(req: Request) {
             procedimento: (eventData as { procedimento?: string | null }).procedimento ?? null,
             parteProcessuale: (eventData as { parteProcessuale?: string | null }).parteProcessuale ?? null,
             eventoCode: (eventData as { eventoCode?: string | null }).eventoCode ?? null,
-            actionType: eventData.actionType ?? null,
-            actionMode: eventData.actionMode ?? null,
             inputs:
               eventData.inputs != null ? JSON.stringify(eventData.inputs) : null,
             color: eventData.color ?? null,
