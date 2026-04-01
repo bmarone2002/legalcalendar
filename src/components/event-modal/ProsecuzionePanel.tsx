@@ -642,7 +642,7 @@ export function ProsecuzionePanel({
                 <SelectTrigger className="bg-white text-sm">
                   <SelectValue placeholder="Seleziona evento/fase..." />
                 </SelectTrigger>
-                <SelectContent className="max-h-none">
+                <SelectContent>
                   <SelectItem value="__empty" disabled>
                     Seleziona evento/fase...
                   </SelectItem>

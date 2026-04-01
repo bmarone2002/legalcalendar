@@ -280,7 +280,7 @@ export function MacroAreaPanel({
           <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
             <SelectValue placeholder="Seleziona macro area" />
           </SelectTrigger>
-          <SelectContent className="max-h-none">
+          <SelectContent>
             {UI_MACRO_AREAS.map((ma) => (
               <SelectItem key={ma} value={ma}>
                 {UI_MACRO_AREA_LABELS[ma]}
@@ -303,7 +303,7 @@ export function MacroAreaPanel({
           <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
             <SelectValue placeholder="Seleziona procedimento" />
           </SelectTrigger>
-          <SelectContent className="p-2 max-h-[320px] overflow-y-auto">
+          <SelectContent className="p-2 max-h-[min(20rem,var(--radix-select-content-available-height,100dvh))]">
             <div className="sticky top-0 bg-white z-10 pb-2">
               <Input
                 value={procedimentoQuery}
@@ -345,7 +345,7 @@ export function MacroAreaPanel({
             <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
               <SelectValue placeholder="Seleziona parte" />
             </SelectTrigger>
-            <SelectContent className="max-h-none">
+            <SelectContent>
               {selectableParti.map((p) => (
                 <SelectItem key={p} value={p}>
                   {partiLabels?.[p] ?? p}
@@ -390,7 +390,7 @@ export function MacroAreaPanel({
               <SelectTrigger className="bg-white border-zinc-200 text-zinc-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none">
                 <SelectValue placeholder="*Fase non individuata (seleziona)*" />
               </SelectTrigger>
-              <SelectContent className="max-h-none">
+              <SelectContent>
                 {eventiDisponibili.map((ev) => (
                   <SelectItem key={ev.code} value={ev.code}>
                     {ev.label}
