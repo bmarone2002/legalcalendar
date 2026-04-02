@@ -195,6 +195,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   const titleWithoutNumber = rawTitle.replace(/^\d+\s*[-–.)]?\s*/, "").trimStart();
   const mainTitleCore = titleWithoutNumber.length > 0 ? titleWithoutNumber : rawTitle;
   const mainTitle = mainTitleCore;
+  const practiceTitleFull = (e.title ?? "").trim();
   const out: Array<Record<string, unknown>> = [
     {
       id: e.id,
@@ -212,6 +213,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
         filterColorKey,
         parentTagColor: tagColor,
         faseFiltroText,
+        practiceTitleFull,
       },
     },
   ];
@@ -273,6 +275,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
         faseFiltroText,
         kind: se.kind,
         status: se.status,
+        practiceTitleFull,
       },
     });
   });
@@ -1120,6 +1123,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const renderEventContent = useCallback((arg: EventContentArg) => {
     const isSub = arg.event.extendedProps.isSubEvent as boolean | undefined;
     const parentTitle = arg.event.extendedProps.parentTitle as string | undefined;
+    const practiceTitleFull = (arg.event.extendedProps.practiceTitleFull as string | undefined)?.trim();
     const kind = arg.event.extendedProps.kind as string | undefined;
     const isListView = (arg.view.type === "list" || arg.view.type === "listWeek" || arg.view.type === "listDay" || arg.view.type === "listMonth" || arg.view.type === "listFromToday");
 
@@ -1134,9 +1138,12 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       const todayList = new Date();
       todayList.setHours(0, 0, 0, 0);
       const isFutureReminder = isReminder && evDay != null && evDay > todayList;
+      const practiceLabel = practiceTitleFull || parentTitle;
+      const subTitleShown = (arg.event.title || "").trim();
+      const showPracticeLabel = Boolean(practiceLabel && practiceLabel !== subTitleShown);
       return (
         <div
-          className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1"
+          className="fc-event-main-frame flex flex-wrap items-center gap-x-2 gap-y-1 rounded border-l-4 pl-1"
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
           {canEdit && !isFutureReminder ? (
@@ -1208,15 +1215,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               }
             />
           )}
-          <span className="fc-list-event-title flex-1 truncate" style={{ color: "#171717" }}>{arg.event.title}</span>
-          {kind && (
-            <span className="text-calendar-muted text-xs shrink-0">{kind}</span>
-          )}
-          {parentTitle && (
-            <span className="text-calendar-muted text-xs truncate max-w-[45vw]" title={parentTitle}>
-              ← {parentTitle}
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2">
+            <span className="fc-list-event-title min-w-0 truncate sm:max-w-[min(100%,28rem)]" style={{ color: "#171717" }}>
+              {arg.event.title}
             </span>
-          )}
+            {kind && (
+              <span className="text-calendar-muted text-xs shrink-0">{kind}</span>
+            )}
+            {showPracticeLabel ? (
+              <span
+                className="text-calendar-muted w-full basis-full truncate text-xs sm:w-auto sm:max-w-[min(42vw,12rem)] sm:basis-auto sm:text-right"
+                title={practiceLabel}
+              >
+                {practiceLabel}
+              </span>
+            ) : null}
+          </div>
           {canEdit && (
             <button
               type="button"
@@ -1226,7 +1240,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               onClick={async (e) => {
                 e.stopPropagation();
                 const id = arg.event.id as string;
-                const parentTitleSafe = parentTitle || "questa pratica";
+                const parentTitleSafe = practiceTitleFull || parentTitle || "questa pratica";
                 const titleSafe = arg.event.title || "questo promemoria";
                 const confirmed = window.confirm(
                   `Stai per eliminare il promemoria “${titleSafe}” collegato alla pratica “${parentTitleSafe}”. Vuoi continuare?`
@@ -1284,9 +1298,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     if (isListView) {
       const evStatus = arg.event.extendedProps.status as string | undefined;
       const isDoneEv = evStatus === "done";
-        const titleSafe = arg.event.title || "questa pratica";
+      const eventTitleShown = (arg.event.title || "").trim();
+      const showPracticeAside = Boolean(practiceTitleFull && practiceTitleFull !== eventTitleShown);
+      const titleSafe = practiceTitleFull || eventTitleShown || "questa pratica";
       return (
-        <div className="fc-event-main-frame flex items-center gap-2">
+        <div className="fc-event-main-frame flex flex-wrap items-center gap-x-2 gap-y-1">
           {isDoneEv && (
             <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 shrink-0">
               <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3">
@@ -1294,12 +1310,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               </svg>
             </span>
           )}
-          <span
-            className={`fc-list-event-title flex-1 truncate font-medium ${isDoneEv ? "line-through text-zinc-400" : ""}`}
-            style={{ color: isDoneEv ? undefined : "#171717" }}
-          >
-            {arg.event.title}
-          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2">
+            <span
+              className={`fc-list-event-title min-w-0 truncate font-medium sm:max-w-[min(100%,28rem)] ${isDoneEv ? "line-through text-zinc-400" : ""}`}
+              style={{ color: isDoneEv ? undefined : "#171717" }}
+            >
+              {arg.event.title}
+            </span>
+            {showPracticeAside ? (
+              <span
+                className="text-calendar-muted w-full basis-full truncate text-xs sm:w-auto sm:max-w-[min(42vw,12rem)] sm:basis-auto sm:text-right"
+                title={practiceTitleFull}
+              >
+                {practiceTitleFull}
+              </span>
+            ) : null}
+          </div>
           {canEdit && (
             <button
               type="button"

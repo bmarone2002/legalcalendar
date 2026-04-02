@@ -87,8 +87,8 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cerca nella pratica…"
-              aria-label="Cerca pratiche"
+              placeholder="Cerca la pratica"
+              aria-label="Cerca la pratica"
               className="h-11 min-h-[44px] border-zinc-200 bg-white pl-10 pr-10 text-base text-zinc-900 placeholder:text-zinc-400 focus-visible:border-[var(--navy)] focus-visible:ring-[var(--navy)] sm:h-10 sm:min-h-0 sm:text-sm"
             />
             {hasQuery && (
@@ -104,7 +104,7 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 sm:flex-col sm:items-end sm:justify-center">
             <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-semibold tabular-nums text-zinc-700 sm:py-1">
-              {filtered.length} pratica{filtered.length === 1 ? "" : "he"}
+              {filtered.length} {filtered.length === 1 ? "pratica" : "pratiche"}
             </span>
             {practices.length !== filtered.length && (
               <span className="text-[11px] text-zinc-400 sm:text-right">su {practices.length} totali</span>
