@@ -430,7 +430,7 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       label: "Costituzione appellato",
       inputKey: "dataNotificaAppelloTrib",
       parteProcessuale: "CONVENUTO",
-      ordine: 4,
+      ordine: 5,
     },
 
     // COMUNE (eventi condivisi)
@@ -1683,15 +1683,15 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 5,
     },
     {
-      code: "UDIENZA_CASS",
-      label: "Udienza",
+      code: "MEMORIE_378",
+      label: "Memorie ex art. 378",
       inputKey: "dataUdienzaCass",
       parteProcessuale: "COMUNE",
       ordine: 6,
     },
     {
-      code: "MEMORIE_378",
-      label: "Memorie ex art. 378",
+      code: "UDIENZA_CASS",
+      label: "Udienza",
       inputKey: "dataUdienzaCass",
       parteProcessuale: "COMUNE",
       ordine: 7,
@@ -1714,15 +1714,15 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       ordine: 2,
     },
     {
-      code: "UDIENZA_CASS",
-      label: "Udienza",
+      code: "MEMORIE_378",
+      label: "Memorie ex art. 378",
       inputKey: "dataUdienzaCass",
       parteProcessuale: "COMUNE",
       ordine: 3,
     },
     {
-      code: "MEMORIE_378",
-      label: "Memorie ex art. 378",
+      code: "UDIENZA_CASS",
+      label: "Udienza",
       inputKey: "dataUdienzaCass",
       parteProcessuale: "COMUNE",
       ordine: 4,

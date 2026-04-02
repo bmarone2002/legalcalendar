@@ -241,6 +241,30 @@ function pickReferenceInputKey(
 }
 
 /**
+ * UI / anagrafica evento → riga regole effettiva.
+ * - Preferisce `eventoCode` sulla riga (tabelle Excel): evita collisioni di `ordine` tra parti diverse
+ *   (es. Esecuzioni: stesso ordine per COMUNE e CONVENUTO).
+ * - Alcune voci UI corrispondono a più righe tecniche: qui si fissa il riferimento principale.
+ */
+const EVENTO_CODE_TO_RULE_EVENTO_CODE: Record<string, string> = {
+  NOTIFICA_RICORSO_DECRETO_APPELLO_LAVORO:
+    "NOTIFICA_RICORSO_DECRETO_APPELLO_LAVORO_10GG",
+};
+
+function resolveStartRuleForPhase(
+  allRules: EventRule[],
+  eventoCode: string,
+  evOrdine: number,
+): EventRule | undefined {
+  const mapped = EVENTO_CODE_TO_RULE_EVENTO_CODE[eventoCode];
+  return (
+    allRules.find((r) => r.eventoCode === eventoCode) ??
+    (mapped ? allRules.find((r) => r.eventoCode === mapped) : undefined) ??
+    allRules.find((r) => r.ordine === evOrdine)
+  );
+}
+
+/**
  * Valuta le righe della tabella per la creazione pratica:
  * - La fase selezionata dall'utente: si crea come "attività" alla data manuale inserita (nessun calcolo a ritroso, es. -120 gg).
  * - Solo le righe successive direttamente calcolabili dalla stessa data: es. da "Notifica citazione" + data → solo "Iscrizione a ruolo" (+10 gg).
@@ -257,9 +281,10 @@ function evaluateMultiRowFromEventoCode(
   const ev = getEventoByCode(procedimento, eventoCode);
   if (!ev) return [];
 
-  const startOrdine = ev.ordine;
-  const selectedEventoInputKey = ev.inputKey;
   const allRules = getEventRulesFor(macroArea, procedimento, parteProcessuale);
+  const phaseRule = resolveStartRuleForPhase(allRules, eventoCode, ev.ordine);
+  const startOrdine = phaseRule?.ordine ?? ev.ordine;
+  const selectedEventoInputKey = ev.inputKey;
   const rulesFromPhase = allRules.filter((r) => r.ordine >= startOrdine);
   if (rulesFromPhase.length === 0) return [];
 
@@ -279,7 +304,13 @@ function evaluateMultiRowFromEventoCode(
   );
 
   for (const rule of rulesFromPhase) {
-    if (rule.ordine === startOrdine) {
+    const isStartRow =
+      (phaseRule != null &&
+        phaseRule.eventoCode != null &&
+        rule.eventoCode === phaseRule.eventoCode) ||
+      (phaseRule?.eventoCode == null && rule.ordine === startOrdine);
+
+    if (isStartRow) {
       // Fase selezionata con formula (es. Memorie 1,2,3): calcola con processRule, non attività alla data utente.
       const hasFormula =
         rule.direzioneCalcolo != null && rule.numero != null && rule.unita != null;
@@ -462,9 +493,8 @@ export function computePhase1MainPreview(params: {
     };
   }
 
-  const startOrdine = ev.ordine;
   const selectedEventoInputKey = ev.inputKey;
-  const startRule = allRules.find((r) => r.ordine === startOrdine);
+  const startRule = resolveStartRuleForPhase(allRules, eventoCode, ev.ordine);
   if (!startRule) return { dueAt: null, explanation: "" };
 
   const baseKeyUsed = startRule.eventoBaseKey ?? selectedEventoInputKey;
