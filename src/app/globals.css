@@ -66,6 +66,18 @@ body {
 .calendar-theme .fc .fc-list .fc-list-day-side-text {
   color: #ffffff;
 }
+/*
+ * Agenda: righe evento successive hanno paint order sopra la riga giorno; il pallino
+ * `.fc-list-event-dot` restava visibile sopra l’header sticky. z-index + sfondo sul th sticky.
+ * FullCalendar usa `background: var(--fc-page-bg-color)` sul th — senza override resta bianco ai bordi.
+ */
+.calendar-theme .fc .fc-list-sticky .fc-list-day > * {
+  z-index: 2;
+  background: var(--navy) !important;
+}
+.calendar-theme .fc .fc-list-sticky .fc-list-day.fc-day-today > * {
+  background: #102035 !important;
+}
 .calendar-theme .fc .fc-list-event:hover td { background: var(--calendar-brown-pale); }
 .calendar-theme .fc .fc-list-event-dot {
   width: 12px !important;
