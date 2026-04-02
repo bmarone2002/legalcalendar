@@ -29,6 +29,7 @@ import {
   COLOR_FILTER_OTHER,
 } from "@/constants/event-tag-colors";
 import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
+import { matchesUdienzaPanelPhaseLabel } from "@/lib/udienza-panel-phases";
 import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
@@ -137,42 +138,12 @@ type DraftEvent = {
 };
 
 /**
- * True se il nome/testo della fase contiene «udienza» o «udienze» come parola (es. «Prima udienza» o
- * codice `PRIMA_UDIENZA`). Prima della prova, `_` → spazio: in JS `\b` considera `_` come lettera, quindi
- * senza questo passaggio non c’è confine tra `_` e `udienza` e il match fallisce.
+ * Pannello Udienze: termini/attività con titolo in whitelist (tabella / rinvio Prosecuzione con fase elencata);
+ * niente promemoria. I rinvii usano «Udienza: …» (con alias sui tipi Prosecuzione dove serve).
  */
-function faseContieneParolaUdienza(text: string | null | undefined): boolean {
-  if (text == null) return false;
-  const s = String(text).trim();
-  if (!s) return false;
-  const normalized = s.replace(/_/g, " ");
-  return /\b(udienza|udienze)\b/i.test(normalized);
-}
-
-/**
- * Toglie i blocchi tra parentesi tonde (ripetutamente): spesso sono la formula del calcolo
- * (es. «40 gg prima udienza»), non il nome della fase — altrimenti «udienza» matcha a torto.
- */
-function titoloSenzaParentesiFormula(text: string | null | undefined): string {
-  if (text == null) return "";
-  let s = String(text).trim();
-  let prev = "";
-  while (s !== prev) {
-    prev = s;
-    s = s.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
-  }
-  return s;
-}
-
-/** Pannello Udienze: sottoevento rilevante se il titolo (fuori parentesi di calcolo) contiene «udienza», o è rinvio udienza. */
 function sottoeventoPannelloUdienze(se: SubEvent): boolean {
   if (se.kind === "promemoria") return false;
-  const params = (se.ruleParams ?? {}) as Record<string, unknown>;
-  const seTipo = typeof params.tipo === "string" ? params.tipo : null;
-  const isRinvioUdienza =
-    se.ruleId === "rinvio-udienza" && se.kind === "termine" && seTipo === "udienza";
-  if (isRinvioUdienza) return true;
-  return faseContieneParolaUdienza(titoloSenzaParentesiFormula(se.title));
+  return matchesUdienzaPanelPhaseLabel(se.title);
 }
 
 /**
@@ -590,9 +561,9 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     const dateLabel = (d: Date) =>
       d.toLocaleDateString("it-IT", { day: "numeric", month: "short" }).toUpperCase();
 
-    /** Nome fase con «udienza»/«udienze» (anche con altro testo prima/dopo); oppure tipo udienza in modale. */
+    /** Fase in whitelist oppure pratica manuale con «È un'udienza» in modale. */
     const madreNelPannelloUdienze = (ev: AppEvent) =>
-      faseContieneParolaUdienza(getFaseDisplayString(ev)) || ev.type === "udienza";
+      matchesUdienzaPanelPhaseLabel(getFaseDisplayString(ev)) || ev.type === "udienza";
 
     const out: SmartPanelItem[] = [];
 
@@ -1882,9 +1853,10 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             >
               {smartPanelItems.length === 0 ? (
                 <p className="py-6 text-center text-sm text-slate-500">
-                  Nessuna voce in questo resoconto. Il pannello elenca le udienze rilevate (fase o tipo) e gli adempimenti
-                  collegati alle pratiche, senza i filtri colore/promemoria/stato del calendario. Se è vuoto, non ci sono
-                  voci che rientrano nei criteri oppure i dati non sono ancora stati ricaricati.
+                  Nessuna voce in questo resoconto. Compaiono le pratiche con fase nell’elenco udienze, quelle manuali
+                  contrassegnate come «È un&apos;udienza», e i rinvii in Prosecuzione coerenti con quelle fasi (titolo
+                  «Udienza: …»). Gli adempimenti collegati restano nell’altra scheda; il resoconto ignora filtri
+                  colore/stato del calendario.
                 </p>
               ) : (
                 <ul className="space-y-3">
