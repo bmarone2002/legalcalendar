@@ -33,7 +33,7 @@ import { matchesUdienzaPanelPhaseLabel } from "@/lib/udienza-panel-phases";
 import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Gavel, ListChecks, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gavel, ListChecks, Plus, Search, type LucideIcon } from "lucide-react";
 
 /** Focus del resoconto sotto calendario/agenda (non filtra la vista principale). */
 type SmartPanelFocus = "udienze" | "adempimenti";
@@ -324,6 +324,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const [initialView, setInitialView] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<string>("dayGridMonth");
   const [viewTitle, setViewTitle] = useState<string>("");
+  /** Sottotitolo sotto il titolo periodo (es. «Vista agenda»). */
+  const [viewTitleSubtitle, setViewTitleSubtitle] = useState<string | null>(null);
   const [modalState, setModalState] = useState<
     | { mode: "create"; start?: Date; end?: Date; draftId?: string | null; initialDraftForm?: any }
     | { mode: "edit"; eventId: string; highlightSubEventId?: string }
@@ -436,7 +438,17 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const handleDatesSet = useCallback(
     (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
       setCurrentView(arg.view.type);
-      setViewTitle(arg.view.title);
+      if (arg.view.type === "listFromToday") {
+        const api = calendarRef.current?.getApi();
+        const anchor = api?.getDate() ?? arg.start;
+        const raw = anchor.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+        const capitalized = raw.charAt(0).toUpperCase() + raw.slice(1);
+        setViewTitle(capitalized);
+        setViewTitleSubtitle("Vista agenda · elenco cronologico");
+      } else {
+        setViewTitle(arg.view.title);
+        setViewTitleSubtitle(null);
+      }
       if (typeof window !== "undefined") {
         window.localStorage.setItem("calendar:lastView", arg.view.type);
       }
@@ -1358,44 +1370,46 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
   return (
       <div className="flex min-h-0 flex-1 min-w-0 flex-col gap-2 sm:gap-3 calendar-theme">
-      <div className="flex flex-col gap-2 sm:gap-3 mb-1 shrink-0">
-        {/* Riga 1: Nuovo evento + ricerca + filtri (layout ottimizzato per mobile) */}
-        <div className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Nuovo evento + ricerca */}
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <div className="flex items-center">
+      <div className="mb-1 shrink-0 rounded-2xl border border-zinc-200/90 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-3.5">
+        {/* Riga 1: azioni principali + blocco filtri unificato */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex shrink-0 items-center">
               {canEdit && (
                 <Button
                   type="button"
                   size="sm"
-                  className="h-9 rounded-md px-4 text-sm font-medium bg-[var(--navy)] text-white hover:bg-[var(--navy-light)] border-0 shadow-sm transition-colors"
+                  className="h-9 gap-2 rounded-lg px-4 text-sm font-medium bg-[var(--navy)] text-white hover:bg-[var(--navy-light)] border-0 shadow-sm transition-colors"
                   onClick={() => {
                     const slot = findNextAvailableSlot(new Date(), allEvents);
                     setModalState({ mode: "create", start: slot.start, end: slot.end });
                   }}
                 >
-                  <span className="mr-1">Nuova pratica</span>
-                  <span className="text-xs">▾</span>
+                  <Plus className="h-4 w-4 shrink-0 opacity-95" aria-hidden />
+                  Nuova pratica
                 </Button>
               )}
             </div>
-            {/* Ricerca (a destra del bottone su mobile, come campo full-width) */}
-            <div className="relative w-full sm:w-auto sm:min-w-[200px]">
+            <div className="relative min-w-0 flex-1 sm:max-w-md lg:max-w-xl">
+              <Search
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+                aria-hidden
+              />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={searchListNav.handleKeyDown}
                 placeholder="Cerca per titolo o promemoria…"
-                className={`h-8 w-full sm:w-64 rounded-md border bg-white px-2 pr-7 text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[var(--navy)] focus:border-[var(--navy)] ${
-                  isSearchActive ? "border-[var(--navy)] ring-1 ring-[var(--navy)]" : "border-zinc-300"
+                className={`h-9 w-full rounded-lg border bg-white pl-8 pr-8 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[var(--navy)] focus:border-[var(--navy)] ${
+                  isSearchActive ? "border-[var(--navy)] ring-1 ring-[var(--navy)]" : "border-zinc-200"
                 }`}
               />
               {(isSearchActive || searchQuery.length > 0) && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
                   title="Annulla ricerca"
                   aria-label="Annulla ricerca"
                 >
@@ -1443,20 +1457,19 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               )}
             </div>
           </div>
-          {/* Filtri colore tag, modalità, Promemoria + Stato */}
-          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50/90 p-1.5 sm:gap-2 lg:shrink-0">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`h-8 gap-1.5 px-2 text-xs sm:text-sm border-zinc-300 bg-white transition-colors ${
+                  className={`h-8 gap-1.5 border-zinc-200 bg-white px-2.5 text-xs shadow-sm sm:text-sm transition-colors ${
                     isTagFilterActive ? "text-white bg-[var(--navy)] border-[var(--navy)] hover:bg-[var(--navy-light)]" : "text-zinc-700"
                   }`}
                 >
                   Colore tag
-                  <span className="text-zinc-500 text-[10px] sm:text-xs tabular-nums">
+                  <span className={`tabular-nums text-[10px] sm:text-xs ${isTagFilterActive ? "text-white/80" : "text-zinc-500"}`}>
                     ({visibleTagColorCount}/{filterColorKeyCount})
                   </span>
                 </Button>
@@ -1558,23 +1571,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               </PopoverContent>
             </Popover>
 
-            {/* Toggle promemoria */}
             <button
               type="button"
               onClick={handleToggleShowPromemoriaTitle}
-              className="flex items-center gap-2 select-none"
+              className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 py-1 shadow-sm select-none sm:px-2.5"
               title={
                 showPromemoriaTitle
                   ? "Disattiva per nascondere eventi/sottoeventi che nel titolo contengono «Promemoria»"
                   : "Attiva per mostrare anche quelle voci con «Promemoria» nel titolo"
               }
             >
-              <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">Promemoria</span>
+              <span className="text-xs font-medium text-zinc-600 whitespace-nowrap sm:text-sm">Promemoria</span>
               <span
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors ${
                   showPromemoriaTitle
                     ? "bg-[var(--navy)] border-[var(--navy)]"
-                    : "bg-zinc-300 border-zinc-400"
+                    : "bg-zinc-200 border-zinc-300"
                 }`}
               >
                 <span
@@ -1583,45 +1595,50 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 />
               </span>
             </button>
-            {/* Filtro stato eventi */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm text-zinc-600 whitespace-nowrap">Stato</span>
+            <div
+              className="flex w-full items-center gap-0.5 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm sm:w-auto"
+              role="group"
+              aria-label="Filtra per stato completamento"
+            >
+              <span className="hidden pl-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400 sm:inline">
+                Stato
+              </span>
               <button
                 type="button"
                 onClick={() => setShowPending((v) => !v)}
-                className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1 text-[11px] sm:text-xs text-zinc-700 hover:bg-zinc-50"
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium sm:flex-initial sm:text-xs ${
+                  showPending ? "bg-red-50 text-red-900 ring-1 ring-red-200/80" : "text-zinc-600 hover:bg-zinc-50"
+                }`}
               >
                 <Checkbox
                   checked={showPending}
                   onCheckedChange={(v) => setShowPending(Boolean(v))}
                   className="h-3.5 w-3.5 pointer-events-none"
                 />
-                <span className="inline-flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
-                  <span>Da fare</span>
-                </span>
+                <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
+                <span>Da fare</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowDone((v) => !v)}
-                className="flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1 text-[11px] sm:text-xs text-zinc-700 hover:bg-zinc-50"
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium sm:flex-initial sm:text-xs ${
+                  showDone ? "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/80" : "text-zinc-600 hover:bg-zinc-50"
+                }`}
               >
                 <Checkbox
                   checked={showDone}
                   onCheckedChange={(v) => setShowDone(Boolean(v))}
                   className="h-3.5 w-3.5 pointer-events-none"
                 />
-                <span className="inline-flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span>Completati</span>
-                </span>
+                <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                <span>Completati</span>
               </button>
             </div>
           </div>
         </div>
 
         {isTagFilterActive && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-1 rounded-2xl border border-zinc-200 bg-white px-4 py-2 shadow-sm">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2 sm:px-4">
             <div className="flex items-center gap-3 min-w-0">
               <span className="inline-flex items-center gap-2 rounded-full bg-zinc-50 border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-700 shrink-0">
                 Filtri attivi
@@ -1656,42 +1673,44 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           </div>
         )}
 
-        {/* Riga 2: Oggi + frecce + titolo + viste */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 sm:gap-3">
+          <div className="order-2 flex shrink-0 items-center gap-1.5 sm:order-1">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md border border-zinc-300 bg-white px-3 text-xs sm:text-sm font-normal text-zinc-700 h-8 hover:bg-zinc-50 hover:border-[var(--navy)]/30 transition-colors"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 shadow-sm hover:border-[var(--navy)]/35 hover:bg-zinc-50 transition-colors"
               onClick={handleToday}
             >
               Oggi
             </button>
-            <div className="flex overflow-hidden rounded-md border border-zinc-300 bg-white">
+            <div className="flex overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
               <button
                 type="button"
-                className="h-8 w-8 text-sm text-zinc-700 hover:bg-zinc-50"
+                className="flex h-9 w-9 items-center justify-center text-zinc-600 hover:bg-zinc-50"
                 onClick={handlePrev}
                 aria-label="Periodo precedente"
               >
-                ‹
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                className="h-8 w-8 text-sm text-zinc-700 hover:bg-zinc-50 border-l border-zinc-200"
+                className="flex h-9 w-9 items-center justify-center border-l border-zinc-200 text-zinc-600 hover:bg-zinc-50"
                 onClick={handleNext}
                 aria-label="Periodo successivo"
               >
-                ›
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm sm:text-base font-semibold text-[var(--navy)]">
+          <div className="order-1 flex w-full min-w-0 flex-col items-center justify-center text-center sm:order-2 sm:flex-1 sm:w-auto">
+            <div className="text-base font-semibold leading-tight text-[var(--navy)] sm:text-lg">
               {viewTitle}
             </div>
+            {viewTitleSubtitle ? (
+              <p className="mt-0.5 max-w-md text-[11px] font-medium text-zinc-500 sm:text-xs">{viewTitleSubtitle}</p>
+            ) : null}
           </div>
-          <div className="flex items-center gap-2 justify-end">
-            <div className="flex items-center gap-0.5 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm">
+          <div className="order-3 ml-auto flex shrink-0 justify-end sm:ml-0">
+            <div className="inline-flex items-center gap-0.5 rounded-xl border border-zinc-200 bg-zinc-50/80 p-1 shadow-sm">
               {[
                 { id: "timeGridDay", label: "Giorno" },
                 { id: "timeGridWeek", label: "Settimana" },
@@ -1703,10 +1722,10 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`h-8 px-3 text-xs sm:text-sm rounded-md font-medium transition-colors ${
+                  className={`h-8 px-2.5 text-xs font-medium rounded-lg transition-colors sm:px-3 sm:text-sm ${
                     currentView === view.id
-                      ? "bg-[var(--navy)] text-white border-[var(--navy)] hover:bg-[var(--navy-light)] hover:text-white"
-                      : "bg-transparent text-zinc-700 border-transparent hover:bg-zinc-100 hover:border-zinc-200"
+                      ? "bg-[var(--navy)] text-white border-[var(--navy)] shadow-sm hover:bg-[var(--navy-light)] hover:text-white"
+                      : "border-transparent bg-white/80 text-zinc-700 hover:bg-white hover:border-zinc-200"
                   }`}
                   onClick={() => handleChangeView(view.id)}
                 >
