@@ -38,6 +38,7 @@ import { formatDateTime } from "@/lib/utils";
 import type { LinkedEventSpec } from "@/lib/linked-events";
 import { EVENT_TAG_COLORS } from "@/constants/event-tag-colors";
 import { getFaseDisplayFromFields } from "@/lib/event-fase";
+import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 
 type ModalMode = "create" | "edit";
 
@@ -642,6 +643,59 @@ export function EventModal({
     });
     return [...starts, ...contains].slice(0, 10);
   }, [form.luogo, comuniLuogoSuggestions]);
+
+  const autoritaListRef = useRef<HTMLDivElement>(null);
+  const luogoListRef = useRef<HTMLDivElement>(null);
+  const autoritaSuggestionsOpen =
+    !readOnly && showAutoritaSuggestions && filteredAutoritaSuggestions.length > 0;
+  const luogoSuggestionsOpen =
+    !readOnly && showLuogoSuggestions && filteredLuogoSuggestions.length > 0;
+  const autoritaResetKey = filteredAutoritaSuggestions.join("\u0001");
+  const luogoResetKey = filteredLuogoSuggestions.join("\u0001");
+
+  const confirmAutoritaSuggestion = useCallback(
+    (i: number) => {
+      const picked = filteredAutoritaSuggestions[i];
+      if (picked == null) return;
+      setForm((f) => {
+        const next = { ...f, autorita: picked };
+        return { ...next, title: composePracticeTitle(next) };
+      });
+      setShowAutoritaSuggestions(false);
+    },
+    [filteredAutoritaSuggestions]
+  );
+
+  const confirmLuogoSuggestion = useCallback(
+    (i: number) => {
+      const picked = filteredLuogoSuggestions[i];
+      if (picked == null) return;
+      setForm((f) => {
+        const next = { ...f, luogo: picked };
+        return { ...next, title: composePracticeTitle(next) };
+      });
+      setShowLuogoSuggestions(false);
+    },
+    [filteredLuogoSuggestions]
+  );
+
+  const autoritaListNav = useListboxArrowKeys({
+    open: autoritaSuggestionsOpen,
+    itemCount: filteredAutoritaSuggestions.length,
+    resetKey: autoritaResetKey,
+    listRef: autoritaListRef,
+    onConfirmIndex: confirmAutoritaSuggestion,
+    onEscape: () => setShowAutoritaSuggestions(false),
+  });
+
+  const luogoListNav = useListboxArrowKeys({
+    open: luogoSuggestionsOpen,
+    itemCount: filteredLuogoSuggestions.length,
+    resetKey: luogoResetKey,
+    listRef: luogoListRef,
+    onConfirmIndex: confirmLuogoSuggestion,
+    onEscape: () => setShowLuogoSuggestions(false),
+  });
 
   const stopResizing = useCallback(() => {
     resizingRef.current = false;
@@ -1388,28 +1442,26 @@ export function EventModal({
                         }
                         onFocus={() => setShowAutoritaSuggestions(true)}
                         onBlur={() => setTimeout(() => setShowAutoritaSuggestions(false), 120)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") setShowAutoritaSuggestions(false);
-                          if (e.key === "Enter" && showAutoritaSuggestions && filteredAutoritaSuggestions.length > 0) {
-                            e.preventDefault();
-                            const picked = filteredAutoritaSuggestions[0];
-                            setForm((f) => {
-                              const next = { ...f, autorita: picked };
-                              return { ...next, title: composePracticeTitle(next) };
-                            });
-                            setShowAutoritaSuggestions(false);
-                          }
-                        }}
+                        onKeyDown={autoritaListNav.handleKeyDown}
                         placeholder="Es. Tribunale di Napoli"
                         disabled={readOnly}
                       />
                       {!readOnly && showAutoritaSuggestions && filteredAutoritaSuggestions.length > 0 && (
-                        <div className="absolute z-30 mt-1 max-h-48 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg">
-                          {filteredAutoritaSuggestions.map((item) => (
+                        <div
+                          ref={autoritaListRef}
+                          role="listbox"
+                          className="absolute z-30 mt-1 max-h-48 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg"
+                        >
+                          {filteredAutoritaSuggestions.map((item, index) => (
                             <button
                               key={item}
                               type="button"
-                              className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50"
+                              role="option"
+                              data-suggestion-index={index}
+                              aria-selected={autoritaListNav.activeIndex === index}
+                              className={`w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50 ${
+                                autoritaListNav.activeIndex === index ? "bg-zinc-100" : ""
+                              }`}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 setForm((f) => {
@@ -1439,28 +1491,26 @@ export function EventModal({
                         }
                         onFocus={() => setShowLuogoSuggestions(true)}
                         onBlur={() => setTimeout(() => setShowLuogoSuggestions(false), 120)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") setShowLuogoSuggestions(false);
-                          if (e.key === "Enter" && showLuogoSuggestions && filteredLuogoSuggestions.length > 0) {
-                            e.preventDefault();
-                            const picked = filteredLuogoSuggestions[0];
-                            setForm((f) => {
-                              const next = { ...f, luogo: picked };
-                              return { ...next, title: composePracticeTitle(next) };
-                            });
-                            setShowLuogoSuggestions(false);
-                          }
-                        }}
+                        onKeyDown={luogoListNav.handleKeyDown}
                         placeholder="Es. Napoli"
                         disabled={readOnly}
                       />
                       {!readOnly && showLuogoSuggestions && filteredLuogoSuggestions.length > 0 && (
-                        <div className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg">
-                          {filteredLuogoSuggestions.map((item) => (
+                        <div
+                          ref={luogoListRef}
+                          role="listbox"
+                          className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-md border border-zinc-200 bg-white shadow-lg"
+                        >
+                          {filteredLuogoSuggestions.map((item, index) => (
                             <button
                               key={item}
                               type="button"
-                              className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50"
+                              role="option"
+                              data-suggestion-index={index}
+                              aria-selected={luogoListNav.activeIndex === index}
+                              className={`w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-50 ${
+                                luogoListNav.activeIndex === index ? "bg-zinc-100" : ""
+                              }`}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 setForm((f) => {

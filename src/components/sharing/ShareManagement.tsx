@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import {
 } from "@/lib/actions/sharing";
 import type { ShareInfo } from "@/lib/actions/sharing";
 import type { SharePermission } from "@/generated/prisma";
+import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 
 export function ShareManagement() {
   const [shares, setShares] = useState<ShareInfo[]>([]);
@@ -56,6 +57,27 @@ export function ShareManagement() {
     }, 300);
     return () => clearTimeout(timer);
   }, [email]);
+
+  const emailSuggestListRef = useRef<HTMLDivElement>(null);
+  const emailSuggestionResetKey = useMemo(
+    () => suggestions.map((u) => u.id).join(","),
+    [suggestions]
+  );
+  const confirmEmailSuggestion = useCallback((index: number) => {
+    const u = suggestions[index];
+    if (u?.email) {
+      setEmail(u.email);
+      setSuggestions([]);
+    }
+  }, [suggestions]);
+  const emailSuggestNav = useListboxArrowKeys({
+    open: suggestions.length > 0,
+    itemCount: suggestions.length,
+    resetKey: emailSuggestionResetKey,
+    listRef: emailSuggestListRef,
+    onConfirmIndex: confirmEmailSuggestion,
+    onEscape: () => setSuggestions([]),
+  });
 
   const handleShare = async () => {
     if (!email.trim()) return;
@@ -114,24 +136,31 @@ export function ShareManagement() {
               placeholder="Inserisci l'email dell'utente..."
               className="mt-1 bg-white text-zinc-800 placeholder-zinc-400 border border-zinc-300 focus-visible:ring-[var(--navy)] focus-visible:border-[var(--navy)]"
               onKeyDown={(e) => {
+                emailSuggestNav.handleKeyDown(e);
+                if (e.defaultPrevented) return;
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  if (suggestions.length > 0 && suggestions[0].email) {
-                    setEmail(suggestions[0].email);
-                    setSuggestions([]);
-                  } else {
-                    handleShare();
-                  }
+                  handleShare();
                 }
               }}
             />
             {suggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-md border border-zinc-200 bg-white shadow-lg max-h-40 overflow-auto">
-                {suggestions.map((u) => (
+              <div
+                ref={emailSuggestListRef}
+                role="listbox"
+                aria-label="Utenti trovati"
+                className="absolute z-10 mt-1 w-full rounded-md border border-zinc-200 bg-white shadow-lg max-h-40 overflow-auto"
+              >
+                {suggestions.map((u, index) => (
                   <button
                     key={u.id}
                     type="button"
-                    className="flex w-full px-3 py-2 text-sm text-left hover:bg-zinc-50"
+                    role="option"
+                    data-suggestion-index={index}
+                    aria-selected={emailSuggestNav.activeIndex === index}
+                    className={`flex w-full px-3 py-2 text-sm text-left hover:bg-zinc-50 ${
+                      emailSuggestNav.activeIndex === index ? "bg-zinc-100" : ""
+                    }`}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       setEmail(u.email ?? "");

@@ -29,6 +29,7 @@ import {
   COLOR_FILTER_OTHER,
 } from "@/constants/event-tag-colors";
 import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
+import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Gavel, ListChecks, type LucideIcon } from "lucide-react";
@@ -841,6 +842,27 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     []
   );
 
+  const searchListRef = useRef<HTMLDivElement>(null);
+  const searchSuggestionResetKey = useMemo(
+    () => searchSuggestions.map((s) => `${s.eventId}:${s.label}`).join("|"),
+    [searchSuggestions]
+  );
+  const confirmSearchSuggestion = useCallback(
+    (index: number) => {
+      const s = searchSuggestions[index];
+      if (s) applySuggestionSelection(s.eventId, s.label);
+    },
+    [searchSuggestions, applySuggestionSelection]
+  );
+  const searchListNav = useListboxArrowKeys({
+    open: searchSuggestions.length > 0,
+    itemCount: searchSuggestions.length,
+    resetKey: searchSuggestionResetKey,
+    listRef: searchListRef,
+    onConfirmIndex: confirmSearchSuggestion,
+    onEscape: () => setSearchSuggestions([]),
+  });
+
   const handleSearchChange = useCallback(
     (value: string) => {
       const query = value;
@@ -906,19 +928,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       setSearchSuggestions(suggestions);
     },
     [allEvents]
-  );
-
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (searchSuggestions.length > 0) {
-          const first = searchSuggestions[0];
-          applySuggestionSelection(first.eventId, first.label);
-        }
-      }
-    },
-    [searchSuggestions, applySuggestionSelection]
   );
 
   const handleSuggestionClick = useCallback(
@@ -1405,7 +1414,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
+                onKeyDown={searchListNav.handleKeyDown}
                 placeholder="Cerca per titolo o promemoria…"
                 className={`h-8 w-full sm:w-64 rounded-md border bg-white px-2 pr-7 text-xs sm:text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[var(--navy)] focus:border-[var(--navy)] ${
                   isSearchActive ? "border-[var(--navy)] ring-1 ring-[var(--navy)]" : "border-zinc-300"
@@ -1425,12 +1434,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 </button>
               )}
               {searchSuggestions.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full sm:w-72 rounded-lg border border-zinc-200 bg-white shadow-md max-h-60 overflow-auto text-xs sm:text-sm">
-                  {searchSuggestions.map((s) => (
+                <div
+                  ref={searchListRef}
+                  role="listbox"
+                  aria-label="Suggerimenti ricerca"
+                  className="absolute z-20 mt-1 w-full sm:w-72 rounded-lg border border-zinc-200 bg-white shadow-md max-h-60 overflow-auto text-xs sm:text-sm"
+                >
+                  {searchSuggestions.map((s, index) => (
                     <button
                       key={`${s.eventId}-${s.label}-${s.matchType}`}
                       type="button"
-                      className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-[var(--surface)] transition-colors"
+                      role="option"
+                      data-suggestion-index={index}
+                      aria-selected={searchListNav.activeIndex === index}
+                      className={`flex w-full flex-col items-start px-3 py-2 text-left transition-colors hover:bg-[var(--surface)] ${
+                        searchListNav.activeIndex === index ? "bg-[var(--surface)]" : ""
+                      }`}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         handleSuggestionClick(s);
