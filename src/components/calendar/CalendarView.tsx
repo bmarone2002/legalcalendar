@@ -327,6 +327,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const calendarContainerRef = useRef<HTMLDivElement | null>(null);
   const smartPanelScrollRef = useRef<HTMLDivElement | null>(null);
   const listEventRowElsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const newPracticeDeepLinkHandledRef = useRef(false);
   const skipFilterEffectRef = useRef(true);
   const [initialView, setInitialView] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<string>("dayGridMonth");
@@ -399,6 +400,23 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     if (!deepLinkEventId) return;
     setModalState({ mode: "edit", eventId: deepLinkEventId });
   }, []);
+
+  useEffect(() => {
+    if (!canEdit || typeof window === "undefined") return;
+    if (newPracticeDeepLinkHandledRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("eventId")) return;
+    const raw = params.get("newPractice");
+    const wantNew = raw === "1" || raw?.toLowerCase() === "true";
+    if (!wantNew) return;
+    newPracticeDeepLinkHandledRef.current = true;
+    const slot = findNextAvailableSlot(new Date(), allEvents);
+    setModalState({ mode: "create", start: slot.start, end: slot.end });
+    params.delete("newPractice");
+    const q = params.toString();
+    const next = `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", next);
+  }, [canEdit, allEvents]);
 
   /**
    * Vista Agenda: porta in vista il primo giorno con eventi da oggi in poi (`data-date` sulle righe list).

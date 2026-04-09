@@ -10,6 +10,7 @@ import {
   ChevronRight,
   FolderOpen,
   Landmark,
+  Plus,
   Search,
   X,
 } from "lucide-react";
@@ -77,8 +78,15 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
         </div>
       </header>
 
-      {practices.length > 0 && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <Link
+          href="/?newPractice=1"
+          className="inline-flex h-11 min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border-0 bg-[var(--navy)] px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--navy-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navy)] focus-visible:ring-offset-2 sm:h-9 sm:min-h-0"
+        >
+          <Plus className="h-4 w-4 shrink-0 opacity-95" aria-hidden />
+          Nuova pratica
+        </Link>
+        {practices.length > 0 && (
           <div className="relative min-w-0 flex-1">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
@@ -102,6 +110,8 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
               </button>
             )}
           </div>
+        )}
+        {practices.length > 0 && (
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 sm:flex-col sm:items-end sm:justify-center">
             <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-semibold tabular-nums text-zinc-700 sm:py-1">
               {filtered.length} {filtered.length === 1 ? "pratica" : "pratiche"}
@@ -110,8 +120,8 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
               <span className="text-[11px] text-zinc-400 sm:text-right">su {practices.length} totali</span>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {practices.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50/90 to-white px-5 py-12 text-center sm:px-8">
@@ -120,7 +130,7 @@ export function PraticheView({ practices }: { practices: PracticeSummary[] }) {
           </div>
           <p className="mt-4 text-sm font-medium text-zinc-800">Nessuna pratica in elenco</p>
           <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-zinc-500">
-            Le pratiche compaiono qui quando crei eventi principali nel calendario. Apri l&apos;agenda e aggiungi una nuova pratica per iniziare.
+            Le pratiche compaiono qui quando crei eventi principali nel calendario. Usa «Nuova pratica» sopra per aprire l&apos;agenda con la scheda di creazione.
           </p>
         </div>
       ) : filtered.length === 0 ? (
