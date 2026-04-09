@@ -102,6 +102,33 @@ export function isInFerialeSuspension(
   return mmdd >= startMmDd && mmdd <= endMmDd;
 }
 
+/**
+ * Sposta la data di `numberOfDays` passi lungo la direzione indicata: ogni passo è un giorno
+ * di calendario, ma i giorni nel periodo di sospensione feriale (settings) non consumano il contatore.
+ * Allineato al modello "i termini non corrono in feriale" per il conteggio degli N giorni.
+ */
+export function shiftCalendarDaysExcludingFeriale(
+  base: Date,
+  numberOfDays: number,
+  direction: TermDirection,
+  settings: AppSettings
+): Date {
+  if (numberOfDays === 0) return new Date(base);
+  const step = direction === "forward" ? 1 : -1;
+  let d = new Date(base);
+  let remaining = Math.abs(numberOfDays);
+  const start = settings.ferialeSuspensionStart ?? "08-01";
+  const end = settings.ferialeSuspensionEnd ?? "08-31";
+
+  while (remaining > 0) {
+    d = addDays(d, step);
+    if (!isInFerialeSuspension(d, start, end)) {
+      remaining--;
+    }
+  }
+  return d;
+}
+
 export function isNonBusinessDay(date: Date, settings: AppSettings): boolean {
   return isHoliday(date, settings) || isWeekend(date);
 }

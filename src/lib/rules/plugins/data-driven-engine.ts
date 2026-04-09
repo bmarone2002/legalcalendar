@@ -16,6 +16,7 @@ import {
   adjustFinalDeadline,
   applyDeadlineTime,
   assignTimeSlots,
+  shiftCalendarDaysExcludingFeriale,
 } from "@/lib/date-utils";
 import type {
   MacroAreaCode,
@@ -90,11 +91,18 @@ function processRule(
     rule.numero != null &&
     rule.unita != null
   ) {
-    let dueDate = computeDate(baseDate, rule.direzioneCalcolo, rule.numero, rule.unita);
+    const direction: "forward" | "backward" =
+      rule.direzioneCalcolo === "+" ? "forward" : "backward";
+    let dueDate =
+      rule.unita === "giorni" &&
+      rule.isSospensioneFeriale &&
+      rule.numero != null &&
+      rule.direzioneCalcolo
+        ? shiftCalendarDaysExcludingFeriale(baseDate, rule.numero, direction, settings)
+        : computeDate(baseDate, rule.direzioneCalcolo, rule.numero, rule.unita);
 
     // Applica art. 155 solo per termini "a giorni" (nel resto dei casi lasciamo
     // invariata la data calcolata).
-    const direction: "forward" | "backward" = rule.direzioneCalcolo === "+" ? "forward" : "backward";
     if (rule.unita === "giorni") {
       dueDate = adjustFinalDeadline(dueDate, direction, settings);
     }
@@ -521,8 +529,11 @@ export function computePhase1MainPreview(params: {
   const direzione = startRule.direzioneCalcolo as "+" | "-";
   const numero = startRule.numero as number;
   const unita = startRule.unita as "giorni" | "mesi" | "anno";
-  let dueDate = computeDate(baseDate, direzione, numero, unita);
   const direction: "forward" | "backward" = direzione === "+" ? "forward" : "backward";
+  let dueDate =
+    unita === "giorni" && startRule.isSospensioneFeriale
+      ? shiftCalendarDaysExcludingFeriale(baseDate, numero, direction, settings)
+      : computeDate(baseDate, direzione, numero, unita);
   if (startRule.unita === "giorni") {
     dueDate = adjustFinalDeadline(dueDate, direction, settings);
   }
