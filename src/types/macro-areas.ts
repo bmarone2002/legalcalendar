@@ -105,7 +105,7 @@ export const PROCEDIMENTO_LABELS: Record<ProcedimentoCode, string> = {
   RICORSO_RITO_SEMPLIFICATO: "Ricorso (rito semplificato) – post Riforma Cartabia",
   APPELLO_CIVILE: "Appello civile – post Riforma Cartabia",
   // Procedimenti speciali
-  DECRETO_INGIUNTIVO: "Decreto ingiuntivo",
+  DECRETO_INGIUNTIVO: "Decreto ingiuntivo – post Riforma Cartabia",
   ATP: "Accertamento tecnico preventivo",
   // Esecuzioni
   PIGNORAMENTO_MOBILIARE: "Pignoramento mobiliare",
@@ -573,7 +573,6 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     },
   ],
   DECRETO_INGIUNTIVO: [
-    // RICORRENTE
     {
       code: "DEPOSITO_RICORSO_DI",
       label: "Deposito ricorso",
@@ -588,7 +587,6 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       parteProcessuale: "ATTORE",
       ordine: 2,
     },
-    // INTIMATO
     {
       code: "TERMINE_OPPOSIZIONE_DI",
       label: "Termine opposizione",
@@ -603,7 +601,6 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       parteProcessuale: "ATTORE",
       ordine: 4,
     },
-    // RICORRENTE
     {
       code: "ESECUTIVITA_DECRETO_DI",
       label: "Esecutività decreto per mancata opposizione",
@@ -611,13 +608,82 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
       parteProcessuale: "ATTORE",
       ordine: 5,
     },
-    // COMUNE
     {
-      code: "PONTE_OPPOSIZIONE_DI",
-      label: "Il giudizio di opposizione continua come Procedimento citazione civile",
-      inputKey: "dataNotificaOpposizione",
-      parteProcessuale: "COMUNE",
+      code: "ISCRIZIONE_RUOLO_OPPO_DI",
+      label: "Iscrizione a ruolo",
+      inputKey: "dataNotificaOpposizioneAlRicorrenteDI",
+      parteProcessuale: "CONVENUTO",
       ordine: 6,
+    },
+    {
+      code: "COSTITUZIONE_CONVENUTO_OPPO_DI",
+      label: "Costituzione convenuto",
+      inputKey: "dataPrimaUdienzaOpposizioneDI",
+      parteProcessuale: "CONVENUTO",
+      ordine: 7,
+    },
+    {
+      code: "PRIMA_UDIENZA_OPPO_DI",
+      label: "Prima udienza",
+      inputKey: "dataPrimaUdienzaOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 8,
+    },
+    {
+      code: "UDIENZA_ISTRUTTORIA_OPPO_DI",
+      label: "Udienza istruttoria",
+      inputKey: "dataUdienzaIstruttoriaOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 9,
+    },
+    {
+      code: "UDIENZA_CONCLUSIONI_OPPO_DI",
+      label: "Udienza conclusioni",
+      inputKey: "dataUdienzaConclusioniOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 10,
+    },
+    {
+      code: "NOTE_PRECISAZIONE_OPPO_DI",
+      label: "Note precisazione conclusioni",
+      inputKey: "dataProvvedimentoNotePrecisazioneOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 11,
+    },
+    {
+      code: "COMPARSA_CONCLUSIONALE_OPPO_DI",
+      label: "Comparsa conclusionale",
+      inputKey: "dataProvvedimentoAssegnazioneTerminiOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 12,
+    },
+    {
+      code: "MEMORIA_REPLICA_OPPO_DI",
+      label: "Memoria di replica",
+      inputKey: "dataProvvedimentoAssegnazioneTerminiOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 13,
+    },
+    {
+      code: "UDIENZA_DISCUSSIONE_OPPO_DI",
+      label: "Udienza discussione",
+      inputKey: "dataUdienzaDiscussioneOpposizioneDI",
+      parteProcessuale: "COMUNE",
+      ordine: 14,
+    },
+    {
+      code: "SENTENZA_OPPO_DI",
+      label: "Sentenza (per calcolare termini Appello)",
+      inputKey: "dataPubblicazioneSentenzaDI",
+      parteProcessuale: "COMUNE",
+      ordine: 15,
+    },
+    {
+      code: "NOTIFICA_SENTENZA_OPPO_DI",
+      label: "Notifica sentenza (per calcolare termini Appello)",
+      inputKey: "dataNotificaSentenzaDI",
+      parteProcessuale: "COMUNE",
+      ordine: 16,
     },
   ],
   ATP: [

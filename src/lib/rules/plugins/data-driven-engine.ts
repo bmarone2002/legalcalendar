@@ -470,6 +470,19 @@ const INPUT_KEY_LABELS: Record<string, string> = {
   dataComunicazioneDecretoFissazioneUdienzaAppelloLavoro: "data comunicazione decreto fissazione udienza",
   dataUdienzaAppelloLavoro: "data udienza appello lavoro",
   dataPrimaUdienzaRicorso: "data prima udienza ricorso",
+  dataDepositoRicorsoDI: "data deposito ricorso (decreto ingiuntivo)",
+  dataNotificaOpposizioneAlRicorrenteDI: "data notifica opposizione al ricorrente",
+  dataPrimaUdienzaOpposizioneDI: "data prima udienza (opposizione a decreto ingiuntivo)",
+  dataUdienzaIstruttoriaOpposizioneDI: "data udienza istruttoria (opposizione)",
+  dataUdienzaConclusioniOpposizioneDI: "data udienza conclusioni (opposizione)",
+  dataProvvedimentoNotePrecisazioneOpposizioneDI:
+    "provvedimento giudice / data udienza conclusioni (note precisazione, opposizione DI)",
+  dataProvvedimentoAssegnazioneTerminiOpposizioneDI:
+    "provvedimento giudice / data assegnazione termini (opposizione DI)",
+  dataUdienzaDiscussioneOpposizioneDI: "data udienza di discussione (opposizione)",
+  dataPubblicazioneSentenzaDI: "data pubblicazione sentenza (opposizione DI)",
+  dataNotificaSentenzaDI: "data notifica sentenza (opposizione DI)",
+  dataScadenzaTermineOpposizione: "data scadenza termine opposizione",
 };
 
 function labelForInputKey(key: string): string {
