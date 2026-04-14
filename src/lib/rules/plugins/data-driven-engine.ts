@@ -457,6 +457,10 @@ export const dataDrivenRule: RuleDefinition = {
 /** Etichette leggibili per chiavi input usate nelle formule (riepilogo modale). */
 const INPUT_KEY_LABELS: Record<string, string> = {
   dataUdienzaComparizione: "data udienza di comparizione",
+  dataProvvedimentoNotePrecisazioneCitazione:
+    "provvedimento giudice / data udienza conclusioni (note precisazione)",
+  dataProvvedimentoAssegnazioneTerminiCitazione:
+    "provvedimento giudice / data assegnazione termini (comparsa e replica)",
   dataPrimaUdienza: "data prima udienza",
   dataPrimaNotificaCitazione: "data prima notifica citazione",
   dataNotifica: "data notifica",

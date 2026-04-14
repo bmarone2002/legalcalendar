@@ -253,16 +253,11 @@ export function MacroAreaPanel({
     procedimento === "APPELLO_LAVORO" &&
     eventoCode === "NOTIFICA_RICORSO_DECRETO_APPELLO_LAVORO";
 
-  /** Convenuto – Costituzione convenuto: due date (udienza comparizione per -70 gg, data prima udienza per Prima udienza e Memorie). */
-  const isCostituzioneConvenutoConDueDate =
-    procedimento === "CITAZIONE_CIVILE" &&
-    parteProcessuale === "CONVENUTO" &&
-    eventoCode === "COSTITUZIONE_CONVENUTO";
-
-  /** Iscrizione a ruolo, slittamento e Memorie 1,2,3: basta Data prima udienza, che da sola calcola tutte le date. */
+  /** Iscrizione a ruolo, costituzione convenuto, prima udienza e Memorie 1,2,3: basta Data prima udienza (anche per -70 gg costituzione, art. 166). */
   const soloDataPrimaUdienza =
     procedimento === "CITAZIONE_CIVILE" &&
     (eventoCode === "ISCRIZIONE_RUOLO" ||
+      eventoCode === "COSTITUZIONE_CONVENUTO" ||
       eventoCode === "SLITTAMENTO_UDIENZA" ||
       eventoCode === "MEMORIA_171TER_1" ||
       eventoCode === "MEMORIA_171TER_2" ||
@@ -440,46 +435,15 @@ export function MacroAreaPanel({
           />
           <p className="text-xs text-zinc-500 mt-1">
             Data ancora della pratica (prima udienza o eventuale slittamento): da questa si calcolano i termini a
-            ritroso delle Memorie 171-ter n.1, n.2, n.3.
+            ritroso delle Memorie 171-ter n.1, n.2, n.3 e, per il convenuto, la scadenza di Costituzione convenuto (70
+            giorni prima, art. 166 c.p.c.).
           </p>
-        </div>
-      )}
-      {selectedEvento && isCostituzioneConvenutoConDueDate && (
-        <div className="pt-2 border-t border-zinc-200 space-y-4">
-          <div>
-            <Label className="text-sm font-semibold text-zinc-700">
-              Data udienza di comparizione
-            </Label>
-            <DatePickerWithOptionalTime
-              value={strInput(inputs, "dataUdienzaComparizione")}
-              onChange={handleDateChange("dataUdienzaComparizione")}
-              placeholder="Inserisci data udienza di comparizione"
-            />
-            <p className="text-xs text-zinc-500 mt-1">
-              Usata per creare l&apos;evento Costituzione convenuto (70 giorni prima di questa data, art. 166 c.p.c.).
-            </p>
-          </div>
-          <div>
-            <Label className="text-sm font-semibold text-zinc-700">
-              Data prima udienza
-            </Label>
-            <DatePickerWithOptionalTime
-              value={strInput(inputs, "dataPrimaUdienza")}
-              onChange={handleDateChange("dataPrimaUdienza")}
-              placeholder="Inserisci data prima udienza"
-            />
-            <p className="text-xs text-zinc-500 mt-1">
-              Usata per l&apos;evento Prima udienza e per il calcolo delle Memorie 171-ter n.1,
-              n.2, n.3.
-            </p>
-          </div>
         </div>
       )}
       {selectedEvento &&
         !isNotificaCitazioneConDueDate &&
         !isNotificaRicorsoDecretoAppelloLavoroConDueDate &&
-        !soloDataPrimaUdienza &&
-        !isCostituzioneConvenutoConDueDate && (
+        !soloDataPrimaUdienza && (
         <div className="pt-2 border-t border-zinc-200 space-y-4">
           <div>
             <Label className="text-sm font-semibold text-zinc-700">

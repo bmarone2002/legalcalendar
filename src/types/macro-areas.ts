@@ -280,7 +280,7 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     { code: "ISCRIZIONE_RUOLO", label: "Iscrizione a ruolo/Costituzione attore", inputKey: "dataPrimaNotificaCitazione", parteProcessuale: "ATTORE", ordine: 2 },
 
     // CONVENUTO: due date (comparizione per -70 gg; prima udienza per udienza+memorie)
-    { code: "COSTITUZIONE_CONVENUTO", label: "Costituzione convenuto", inputKey: "dataUdienzaComparizione", parteProcessuale: "CONVENUTO", ordine: 3 },
+    { code: "COSTITUZIONE_CONVENUTO", label: "Costituzione convenuto", inputKey: "dataPrimaUdienza", parteProcessuale: "CONVENUTO", ordine: 3 },
 
     // COMUNE (eventi condivisi tra le parti)
     { code: "SLITTAMENTO_UDIENZA", label: "Prima udienza", inputKey: "dataPrimaUdienza", parteProcessuale: "COMUNE", ordine: 4 },
@@ -293,9 +293,27 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
     // Eventi successivi manuali / da parametrizzare
     { code: "UDIENZA_ISTRUTTORIA", label: "Udienza istruttoria", inputKey: "dataUdienzaIstruttoria", parteProcessuale: "COMUNE", ordine: 8 },
     { code: "UDIENZA_CONCLUSIONI", label: "Udienza conclusioni", inputKey: "dataUdienzaConclusioni", parteProcessuale: "COMUNE", ordine: 9 },
-    { code: "NOTE_PRECISAZIONE_CONCLUSIONI", label: "Note precisazione conclusioni", inputKey: "dataNotePrecisazioneConclusioni", parteProcessuale: "COMUNE", ordine: 10 },
-    { code: "COMPARSA_CONCLUSIONALE", label: "Comparsa conclusionale", inputKey: "dataComparsaConclusionale", parteProcessuale: "COMUNE", ordine: 11 },
-    { code: "MEMORIA_REPLICA", label: "Memoria di replica", inputKey: "dataMemoriaReplica", parteProcessuale: "COMUNE", ordine: 12 },
+    {
+      code: "NOTE_PRECISAZIONE_CONCLUSIONI",
+      label: "Note precisazione conclusioni",
+      inputKey: "dataProvvedimentoNotePrecisazioneCitazione",
+      parteProcessuale: "COMUNE",
+      ordine: 10,
+    },
+    {
+      code: "COMPARSA_CONCLUSIONALE",
+      label: "Comparsa conclusionale",
+      inputKey: "dataProvvedimentoAssegnazioneTerminiCitazione",
+      parteProcessuale: "COMUNE",
+      ordine: 11,
+    },
+    {
+      code: "MEMORIA_REPLICA",
+      label: "Memoria di replica",
+      inputKey: "dataProvvedimentoAssegnazioneTerminiCitazione",
+      parteProcessuale: "COMUNE",
+      ordine: 12,
+    },
     { code: "SENTENZA", label: "Sentenza (per calcolare termini Appello)", inputKey: "dataPubblicazioneSentenza", parteProcessuale: "COMUNE", ordine: 13 },
     { code: "NOTIFICA_SENTENZA", label: "Notifica sentenza (per calcolare termini Appello)", inputKey: "dataNotificaSentenza", parteProcessuale: "COMUNE", ordine: 14 },
   ],
