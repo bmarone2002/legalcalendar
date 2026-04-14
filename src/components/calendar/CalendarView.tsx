@@ -1314,7 +1314,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           : "text-red-500";
       return (
         <div
-          className="fc-event-main-frame flex items-center gap-1 rounded border-l-2 pl-1"
+          className="fc-event-main-frame flex items-start gap-1 rounded border-l-2 pl-1"
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
           {parentTagColor && (
@@ -1326,7 +1326,9 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             />
           )}
           <span className={`${arrowColorClass} shrink-0 text-[10px] leading-none opacity-90`} aria-hidden title="Promemoria">↳</span>
-          <span className="truncate min-w-0 flex-1 text-[inherit]" style={{ color: "#171717" }}>{arg.event.title}</span>
+          <span className="truncate min-w-0 flex-1 self-start text-[inherit] leading-tight" style={{ color: "#171717" }}>
+            {arg.event.title}
+          </span>
         </div>
       );
     }
@@ -1420,6 +1422,22 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             />
           )}
           <span className={`truncate ${isDoneEv ? "line-through text-zinc-400" : ""}`} style={{ color: isDoneEv ? undefined : "#171717" }}>
+            {arg.event.title}
+          </span>
+        </div>
+      );
+    }
+    // Evento madre in vista Giorno/Settimana: privilegia l'inizio del titolo quando i box sono stretti.
+    if (!isSub && arg.view.type.startsWith("timeGrid")) {
+      const evStatus = arg.event.extendedProps.status as string | undefined;
+      const isDoneEv = evStatus === "done";
+      return (
+        <div className="fc-event-main-frame flex w-full items-start justify-start">
+          <span
+            className={`min-w-0 w-full truncate text-left leading-tight ${isDoneEv ? "line-through text-zinc-400" : ""}`}
+            style={{ color: isDoneEv ? undefined : "#171717" }}
+            title={arg.event.title}
+          >
             {arg.event.title}
           </span>
         </div>
