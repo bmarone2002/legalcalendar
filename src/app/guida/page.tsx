@@ -41,12 +41,11 @@ export default function GuidaPage() {
             Tutto quello che puoi fare con <span className="text-[var(--gold)]">Agenda Legale</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-zinc-700 sm:text-base">
-            Questa guida ti accompagna nell&apos;uso del calendario, delle pratiche, dei promemoria,
-            del calcolo dei termini, dei backup e dell&apos;
-            <span className="font-medium">estrazione automatica delle informazioni con l&apos;AI</span>.
-            L&apos;algoritmo di Agenda Legale contiene già molte delle procedure tipiche del lavoro
-            dell&apos;avvocato, così devi solo inserire i dati essenziali e personalizzare le fasi
-            in base al tuo studio.
+            Questa guida ti accompagna passo dopo passo nell&apos;uso della piattaforma:{" "}
+            <span className="font-medium">prima crei la pratica</span>, poi la fai evolvere nelle
+            sue fasi con eventi, udienze, scadenze e promemoria. Trovi anche la logica di
+            prosecuzione, i filtri operativi e le best practice per usare il calendario in modo
+            chiaro e continuo.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
             <SignedIn>
@@ -68,6 +67,12 @@ export default function GuidaPage() {
               </SignInButton>
             </SignedOut>
             <Link
+              href="#iniziare"
+              className="text-[var(--navy)] underline-offset-4 hover:underline"
+            >
+              Percorso consigliato per iniziare
+            </Link>
+            <Link
               href="#calendario"
               className="text-[var(--navy)] underline-offset-4 hover:underline"
             >
@@ -80,6 +85,50 @@ export default function GuidaPage() {
               Scopri come fare il backup
             </Link>
           </div>
+        </section>
+
+        {/* Sezione avvio rapido */}
+        <section id="iniziare" className="mb-10 scroll-mt-20">
+          <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
+            Come iniziare in 4 passaggi
+          </h2>
+          <div className="rounded-xl border border-[var(--gold)]/35 bg-[var(--gold)]/10 p-4 text-sm text-zinc-800">
+            <p className="font-semibold text-[var(--navy)]">Regola base di Agenda Legale</p>
+            <p className="mt-1 text-xs sm:text-sm">
+              Prima crei la <span className="font-medium">pratica</span>, poi la sviluppi nelle sue{" "}
+              <span className="font-medium">fasi</span> attraverso eventi collegati.
+            </p>
+          </div>
+          <ol className="mt-4 grid gap-4 text-sm text-zinc-700 md:grid-cols-4">
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Step 1
+              </p>
+              <p className="font-medium text-[var(--navy)]">Crea la pratica</p>
+              <p className="mt-1 text-xs">Apri la pratica con i dati principali del fascicolo.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Step 2
+              </p>
+              <p className="font-medium text-[var(--navy)]">Inserisci la prima fase</p>
+              <p className="mt-1 text-xs">Aggiungi il primo evento rilevante: udienza, notifica o scadenza.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Step 3
+              </p>
+              <p className="font-medium text-[var(--navy)]">Attiva promemoria e filtri</p>
+              <p className="mt-1 text-xs">Lavora in vista operativa su ciò che è da fare.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--gold)]">
+                Step 4
+              </p>
+              <p className="font-medium text-[var(--navy)]">Prosegui nelle fasi successive</p>
+              <p className="mt-1 text-xs">Usa la prosecuzione per avanzare la pratica senza perdere storico.</p>
+            </li>
+          </ol>
         </section>
 
         {/* Sezione 0 – Estrazione automatica con AI */}
@@ -123,6 +172,38 @@ export default function GuidaPage() {
           </ul>
         </section>
 
+        {/* Sezione 0bis – Pratica e fasi */}
+        <section id="pratica-fasi" className="mb-10 scroll-mt-20">
+          <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
+            0bis. Pratica, fasi ed eventi: come leggere la logica del sistema
+          </h2>
+          <p className="mb-4 text-sm text-zinc-700">
+            In Agenda Legale ogni elemento è collegato: la pratica è il contenitore, le fasi
+            descrivono l&apos;evoluzione della causa e gli eventi rappresentano le attività con data
+            certa (udienze, notifiche, depositi, termini, adempimenti).
+          </p>
+          <div className="grid gap-4 md:grid-cols-3 text-sm text-zinc-700">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Pratica = fascicolo</p>
+              <p className="mt-1 text-xs">
+                Contiene le informazioni generali del caso e la cronologia completa delle attività.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Fase = momento procedurale</p>
+              <p className="mt-1 text-xs">
+                Identifica il punto del procedimento (es. introduzione, istruttoria, conclusioni).
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Evento = azione calendarizzabile</p>
+              <p className="mt-1 text-xs">
+                È ciò che appare in agenda con data, orario, promemoria e stato operativo.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Sezione 1 – Calendario */}
         <section id="calendario" className="mb-10 scroll-mt-20">
           <h2 className="mb-1 text-xl font-semibold text-[var(--navy)]">
@@ -135,13 +216,14 @@ export default function GuidaPage() {
             Dal menu laterale clicca su <span className="font-medium">Calendario</span>. Qui trovi
             tutte le udienze, gli appuntamenti e le scadenze del tuo studio con viste{" "}
             <span className="font-medium">Giorno, Settimana, Mese e Agenda</span>. Puoi cambiare
-            rapidamente vista e periodo, filtrare i promemoria per stato e tenere sempre sotto
+            rapidamente vista e periodo, filtrare per stato operativo e tenere sempre sotto
             controllo cosa ti aspetta.
           </p>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-zinc-700 sm:text-sm">
             <li>Usa il selettore in alto a destra per passare da Giorno, Settimana, Mese, Agenda.</li>
             <li>Clicca su un giorno o su &quot;Nuovo evento&quot; per aggiungere un impegno.</li>
-            <li>Attiva i filtri a destra per vedere solo i promemoria &quot;Da fare&quot; o &quot;Completati&quot;.</li>
+            <li>Attiva i filtri per vedere solo elementi &quot;Da fare&quot; o solo &quot;Completati&quot;.</li>
+            <li>Disattiva i filtri per tornare alla visione completa dello storico.</li>
           </ul>
         </section>
 
@@ -154,7 +236,8 @@ export default function GuidaPage() {
             Per inserire un nuovo impegno, clicca su{" "}
             <span className="font-medium">Nuovo evento</span> o fai doppio clic su un giorno/ora
             nella vista desiderata. Si apre una scheda in cui puoi indicare tipo di evento,
-            descrizione, collegamento alla pratica, data, orario e promemoria.
+            descrizione, collegamento alla pratica, data, orario e promemoria. Il collegamento alla
+            pratica è fondamentale per mantenere la sequenza delle fasi nel tempo.
           </p>
           <ol className="grid gap-4 text-sm text-zinc-700 md:grid-cols-3">
             <li className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -173,8 +256,8 @@ export default function GuidaPage() {
               </p>
               <p className="font-medium text-[var(--navy)]">Compila i dettagli legali</p>
               <p className="mt-1 text-xs text-zinc-700">
-                Indica causa, cliente, sezione e ogni informazione utile a riconoscere l&apos;evento
-                anche a distanza di tempo.
+                Seleziona la pratica corretta e aggiungi ogni informazione utile a riconoscere
+                l&apos;evento anche a distanza di tempo.
               </p>
             </li>
             <li className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -184,28 +267,35 @@ export default function GuidaPage() {
               <p className="font-medium text-[var(--navy)]">Imposta data, orario e promemoria</p>
               <p className="mt-1 text-xs text-zinc-700">
                 Scegli quando si terrà l&apos;udienza o la scadenza e imposta uno o più promemoria
-                per non dimenticarla.
+                per non dimenticarla. Salva e verifica subito lo stato operativo dell&apos;elemento.
               </p>
             </li>
           </ol>
         </section>
 
-        {/* Sezione 3 – Promemoria */}
+        {/* Sezione 3 – Stato operativo */}
         <section id="promemoria" className="mb-10 scroll-mt-20">
           <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
-            3. Gestione dei promemoria: Da fare, in scadenza e Completati
+            3. Stato operativo: Da fare, in scadenza, Completati
           </h2>
           <p className="mb-3 text-sm text-zinc-700">
             Ogni evento può avere uno o più <span className="font-medium">promemoria</span>. Dal
             calendario puoi filtrare rapidamente cosa è ancora da svolgere e cosa è già stato
-            gestito, così non perdi tempo a scorrere l&apos;agenda.
+            gestito, così lavori prima sulla priorità e poi sullo storico.
           </p>
-          <ul className="mb-3 grid gap-3 text-sm text-zinc-700 md:grid-cols-2">
+          <ul className="mb-3 grid gap-3 text-sm text-zinc-700 md:grid-cols-3">
             <li className="rounded-xl border border-zinc-200 bg-white p-4">
               <p className="font-medium text-[var(--navy)]">Promemoria &quot;Da fare&quot;</p>
               <p className="mt-1 text-xs text-zinc-700">
                 Mostrano tutte le attività che richiedono ancora una tua azione. Usa questo filtro
                 per pianificare la giornata e vedere cosa è rimasto aperto.
+              </p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Promemoria &quot;In scadenza&quot;</p>
+              <p className="mt-1 text-xs text-zinc-700">
+                Evidenziano gli elementi più urgenti. Sono utili per priorizzare attività con
+                termini ravvicinati.
               </p>
             </li>
             <li className="rounded-xl border border-zinc-200 bg-white p-4">
@@ -216,11 +306,44 @@ export default function GuidaPage() {
               </p>
             </li>
           </ul>
-          <p className="text-xs text-zinc-700">
-            Usa i filtri e le viste dedicate in alto a destra nel calendario per passare
-            velocemente tra promemoria da fare, in scadenza e completati, in modo da avere sempre
-            chiaro su cosa concentrarti.
+          <p className="text-xs text-zinc-700 sm:text-sm">
+            Legenda pratica: <span className="font-medium">Da fare = operativo</span>,{" "}
+            <span className="font-medium">Completato = storico</span>. Se togli i filtri, torni alla
+            vista completa di tutto il calendario.
           </p>
+        </section>
+
+        {/* Sezione 3bis – Tipi evento */}
+        <section id="tipi-evento" className="mb-10 scroll-mt-20">
+          <h2 className="mb-3 text-xl font-semibold text-[var(--navy)]">
+            3bis. Udienze, scadenze, notifiche e depositi: differenze operative
+          </h2>
+          <div className="grid gap-3 text-sm text-zinc-700 md:grid-cols-2">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Udienza</p>
+              <p className="mt-1 text-xs">
+                Evento calendarizzato legato all&apos;attività in aula o in trattazione.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Scadenza</p>
+              <p className="mt-1 text-xs">
+                Termine entro cui completare un adempimento (es. deposito, memoria, iscrizione).
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Notifica</p>
+              <p className="mt-1 text-xs">
+                Attività con data certa che può generare effetti su termini successivi.
+              </p>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">Deposito</p>
+              <p className="mt-1 text-xs">
+                Attività processuale con tracciamento di data e completamento nel fascicolo.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* Sezione 4 – Calcolo dei termini */}
@@ -296,6 +419,14 @@ export default function GuidaPage() {
               </p>
             </div>
           </div>
+          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-4 text-xs text-zinc-700 sm:text-sm">
+            <p className="font-medium text-[var(--navy)]">Esempio rapido di prosecuzione</p>
+            <p className="mt-1">
+              Hai creato la pratica e la prima udienza. Dopo il rinvio, non apri una nuova pratica:
+              avvii la prosecuzione dalla fase corrente, inserisci la nuova data e mantieni collegati
+              storico, promemoria e scadenze successive.
+            </p>
+          </div>
         </section>
 
         {/* Sezione 5 – Backup */}
@@ -338,6 +469,39 @@ export default function GuidaPage() {
           </div>
         </section>
 
+        {/* Workflow completo */}
+        <section id="workflow" className="mb-12 scroll-mt-20">
+          <h2 className="mb-4 text-xl font-semibold text-[var(--navy)]">
+            Workflow completo: dalla pratica al completamento
+          </h2>
+          <ol className="grid gap-3 text-sm text-zinc-700 md:grid-cols-2">
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">1. Apri la pratica</p>
+              <p className="mt-1 text-xs">Inserisci i riferimenti essenziali del fascicolo.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">2. Crea il primo evento</p>
+              <p className="mt-1 text-xs">Definisci tipo, data, ora e promemoria.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">3. Lavora con il filtro Da fare</p>
+              <p className="mt-1 text-xs">Gestisci le attività aperte in ordine di priorità.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">4. Segna come completato</p>
+              <p className="mt-1 text-xs">Conservi lo storico senza confondere le attività correnti.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">5. Avanza con prosecuzione</p>
+              <p className="mt-1 text-xs">Crea la fase successiva restando nella stessa pratica.</p>
+            </li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="font-medium text-[var(--navy)]">6. Esegui backup periodico</p>
+              <p className="mt-1 text-xs">Proteggi il patrimonio dati con copie locali aggiornate.</p>
+            </li>
+          </ol>
+        </section>
+
         {/* FAQ */}
         <section id="faq" className="mb-12 scroll-mt-20">
           <h2 className="mb-4 text-xl font-semibold text-[var(--navy)]">
@@ -345,8 +509,20 @@ export default function GuidaPage() {
           </h2>
           <div className="space-y-3">
             <FaqItem
+              question="Qual è l'ordine corretto di lavoro in Agenda Legale?"
+              answer="L'ordine consigliato è: crea la pratica, inserisci il primo evento, gestisci i promemoria da fare, segna completato ciò che hai svolto, poi usa la prosecuzione per le fasi successive."
+            />
+            <FaqItem
+              question="Qual è la differenza tra 'Da fare' e 'Completati'?"
+              answer="'Da fare' mostra attività ancora operative. 'Completati' mostra attività già svolte e archiviate nello storico. Disattivando i filtri vedi l'insieme completo."
+            />
+            <FaqItem
               question="Non vedo più un evento che avevo inserito, cosa posso fare?"
               answer="Verifica innanzitutto di essere nel periodo corretto (mese/settimana/giorno) e di non avere filtri attivi sui promemoria. Se hai più calendari condivisi, controlla che sia selezionato quello giusto."
+            />
+            <FaqItem
+              question="Come devo usare la prosecuzione?"
+              answer="Usala quando la pratica passa alla fase successiva (rinvio, nuovo grado, fase esecutiva). Parti da un evento/fase esistente e fai avanzare la stessa pratica, mantenendo lo storico unificato."
             />
             <FaqItem
               question="Posso usare Agenda Legale da più dispositivi?"
