@@ -131,6 +131,10 @@ function formatLocalYmd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function capitalizeFirst(value: string): string {
+  return value.length > 0 ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+}
+
 function dayStartLocalTs(d: Date): number {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
@@ -482,12 +486,9 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     (arg: { start: Date; end: Date; view: { type: string; title: string } }) => {
       setCurrentView(arg.view.type);
       if (arg.view.type === "listFromToday") {
-        const api = calendarRef.current?.getApi();
-        const anchor = api?.getDate() ?? arg.start;
-        const raw = anchor.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
-        const capitalized = raw.charAt(0).toUpperCase() + raw.slice(1);
-        setViewTitle(capitalized);
-        setViewTitleSubtitle("Vista agenda · elenco cronologico");
+        const today = new Date();
+        setViewTitle(String(today.getFullYear()));
+        setViewTitleSubtitle(null);
       } else {
         setViewTitle(arg.view.title);
         setViewTitleSubtitle(null);

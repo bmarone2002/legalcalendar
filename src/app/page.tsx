@@ -19,40 +19,58 @@ export default function Home() {
   );
 }
 
+/* ────────────────────────────────────────────────────────────────── */
+/*  Landing page (pre-login)                                        */
+/* ────────────────────────────────────────────────────────────────── */
+
 function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--surface)]">
-      {/* Top nav */}
-      <header className="border-b border-[var(--gold)]/20 bg-[var(--navy)]">
+      {/* ── Navbar ─────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b border-[var(--gold)]/20 bg-[var(--navy)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
-              className="h-[5.25rem] w-auto object-contain sm:h-24 lg:h-[6.75rem]"
+              className="h-16 w-auto object-contain sm:h-20 lg:h-24"
+              style={{ mixBlendMode: "lighten" }}
             />
             <div className="hidden sm:block">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--gold)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
                 Agenda Legale
               </p>
-              <p className="text-xs text-zinc-100/90">
-                Organizza il tuo studio in modo intelligente
+              <p className="text-[11px] text-zinc-300">
+                Software per studi legali
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/guida"
-              className="hidden text-xs font-medium text-zinc-100/80 underline-offset-4 hover:text-white hover:underline sm:inline"
+              className="hidden text-xs font-medium text-zinc-200/80 transition-colors hover:text-white sm:inline"
+            >
+              Guida
+            </Link>
+            <Link
+              href="#funzionalita"
+              className="hidden text-xs font-medium text-zinc-200/80 transition-colors hover:text-white md:inline"
+            >
+              Funzionalità
+            </Link>
+            <Link
+              href="#come-funziona"
+              className="hidden text-xs font-medium text-zinc-200/80 transition-colors hover:text-white md:inline"
             >
               Come funziona
             </Link>
+            <span className="mx-1 hidden h-4 w-px bg-zinc-500/40 sm:inline-block" />
             <SignInButton mode="modal">
               <button
                 type="button"
-                className="rounded-md border border-[var(--gold)] px-3 py-1.5 text-xs font-medium text-[var(--gold)] hover:bg-[var(--gold)]/10 sm:text-sm"
+                className="rounded-lg border border-[var(--gold)]/60 px-3.5 py-1.5 text-xs font-medium text-[var(--gold)] transition-colors hover:bg-[var(--gold)]/10 sm:text-sm"
               >
                 Accedi
               </button>
@@ -60,304 +78,477 @@ function LandingPage() {
             <SignUpButton mode="redirect">
               <button
                 type="button"
-                className="hidden rounded-md bg-[var(--gold)] px-3 py-1.5 text-xs font-semibold text-[var(--navy)] shadow-sm hover:bg-[var(--gold-light)] sm:inline-block sm:text-sm"
+                className="hidden rounded-lg bg-[var(--gold)] px-4 py-1.5 text-xs font-semibold text-[var(--navy)] shadow-sm transition-colors hover:bg-[var(--gold-light)] sm:inline-block sm:text-sm"
               >
-                Registrati
+                Prova gratis
               </button>
             </SignUpButton>
-          </div>
+          </nav>
         </div>
       </header>
 
-      {/* Hero */}
       <main>
-        <section className="border-b border-zinc-200 bg-gradient-to-b from-[#f5f0e6] via-[#f8f4ec] to-[var(--surface)]">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:flex-row lg:items-center lg:py-18">
-            {/* Text column */}
-            <div className="max-w-xl text-left text-[var(--navy)]">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold)]">
-                Software per studi legali
-              </p>
-              <h1 className="mb-4 text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
-                Il tuo studio legale,{" "}
-                <span className="text-[var(--gold)]">organizzato in un&apos;unica schermata</span>.
-              </h1>
-              <p className="mb-6 text-sm text-zinc-700 sm:text-base">
-                Con <span className="font-medium">Agenda Legale</span> crei nuove pratiche, le segui
-                in tutte le loro fasi e non perdi mai una scadenza. L&apos;AI estrae i dati dai
-                documenti, ti suggerisce i passaggi da seguire, compila per te e calcola
-                automaticamente i termini, mentre il calendario resta condivisibile e sempre al
-                sicuro grazie ai backup scaricabili.
-              </p>
-              <div className="mb-6 grid gap-3 text-sm sm:grid-cols-2">
-                <FeatureBullet title="Estrazione automatica con AI">
-                  Carica i tuoi atti e lascia che l&apos;intelligenza artificiale estragga in
-                  autonomia date, termini e dati di pratica da inserire in agenda.
-                </FeatureBullet>
-                <FeatureBullet title="Pratiche e fasi di lavoro">
-                  Inserisci pratiche e segui tutte le loro fasi nel tempo, con procedure già
-                  predisposte per gli avvocati e possibilità di personalizzare ogni passaggio.
-                </FeatureBullet>
-                <FeatureBullet title="Gestione promemoria chiara">
-                  Promemoria per udienze, scadenze e appuntamenti con viste dedicate per elementi da
-                  fare, in scadenza e completati.
-                </FeatureBullet>
-                <FeatureBullet title="Calcolo automatico dei termini">
-                  Calcolo automatico delle scadenze in base ai principali termini processuali, con
-                  regole già pronte per le procedure più frequenti.
-                </FeatureBullet>
-                <FeatureBullet title="Calendario condivisibile e backup">
-                  Condividi il calendario con chi vuoi e scarica periodicamente un backup completo
-                  per conservare una copia aggiornata anche in locale.
-                </FeatureBullet>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <SignUpButton mode="redirect">
-                  <button
-                    type="button"
-                    className="rounded-md bg-[var(--gold)] px-5 py-2.5 text-sm font-semibold text-[var(--navy)] shadow-md shadow-black/10 hover:bg-[var(--gold-light)]"
-                  >
-                    Prova Agenda Legale gratis per 30 giorni
-                  </button>
-                </SignUpButton>
-                <SignInButton mode="redirect">
-                  <button
-                    type="button"
-                    className="rounded-md border border-[var(--navy)]/15 px-4 py-2 text-sm font-medium text-[var(--navy)] hover:bg-[var(--navy)] hover:text-white"
-                  >
-                    Ho già un account
-                  </button>
-                </SignInButton>
-                <Link
-                  href="/guida"
-                  className="text-xs font-medium text-[var(--gold)] underline-offset-4 hover:underline"
-                >
-                  Guarda una panoramica veloce
-                </Link>
-              </div>
-              <p className="mt-3 text-xs text-zinc-600 sm:text-sm">
-                Provalo gratuitamente per 30 giorni. Poi, un unico piano chiaro a partire da{" "}
-                <span className="font-semibold">€ 10 al mese</span>, senza vincoli, molto meno dei
-                tradizionali software da studio.
-              </p>
-            </div>
+        {/* ── Hero ──────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#f5f0e6] via-[#f8f4ec] to-[var(--surface)]">
+          {/* Decorative blobs */}
+          <div className="pointer-events-none absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full bg-[var(--gold)]/[0.07] blur-3xl" />
+          <div className="pointer-events-none absolute -left-32 bottom-20 h-[400px] w-[400px] rounded-full bg-[var(--navy)]/[0.04] blur-3xl" />
+          <div className="pointer-events-none absolute right-1/4 top-1/3 h-[200px] w-[200px] rounded-full bg-[var(--gold)]/[0.04] blur-2xl" />
 
-            {/* Calendar preview / card column */}
-            <div className="flex flex-1 items-center justify-center">
-              <div className="relative w-full max-w-xl rounded-2xl border border-[var(--gold)]/30 bg-[var(--surface-card)]/95 p-4 shadow-2xl shadow-black/10">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[var(--navy)] text-[var(--gold)] shadow">
-                      <span className="text-lg font-semibold">✓</span>
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--navy)]">
-                        Vista Calendario
-                      </p>
-                      <p className="text-xs text-zinc-600">
-                        Tutti i tuoi impegni in un&apos;unica schermata
-                      </p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-[var(--gold)]/15 px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--gold)]">
-                    Studio Legale
-                  </span>
+          <div className="mx-auto max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pt-16 lg:pt-20">
+            {/* Top row: text + screenshot */}
+            <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-12">
+              {/* Text column */}
+              <div className="max-w-xl shrink-0 text-left text-[var(--navy)] lg:max-w-lg">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/30 bg-white/80 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--gold)] shadow-sm backdrop-blur-sm">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
+                  Prova gratuita 30 giorni &middot; Nessun vincolo
+                </span>
+
+                <h1 className="mt-5 text-[2rem] font-bold leading-[1.12] tracking-tight sm:text-[2.75rem] lg:text-[3.25rem]">
+                  Gestisci pratiche, udienze e scadenze{" "}
+                  <span className="text-[var(--gold)]">senza più caos operativo</span>.
+                </h1>
+
+                <p className="mt-5 max-w-md text-[15px] leading-relaxed text-zinc-600 sm:text-base">
+                  Con <span className="font-semibold text-[var(--navy)]">Agenda Legale</span>{" "}
+                  trasformi attività sparse in un flusso unico: apri la pratica, gestisci le fasi,
+                  calcoli i termini e controlli tutto da un calendario pensato per il tuo studio.
+                </p>
+
+                {/* CTA */}
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <SignUpButton mode="redirect">
+                    <button
+                      type="button"
+                      className="rounded-lg bg-[var(--gold)] px-6 py-3 text-sm font-bold text-[var(--navy)] shadow-lg shadow-[var(--gold)]/25 transition-all hover:scale-[1.02] hover:bg-[var(--gold-light)] hover:shadow-xl sm:text-base"
+                    >
+                      Attiva prova gratuita
+                    </button>
+                  </SignUpButton>
+                  <SignInButton mode="redirect">
+                    <button
+                      type="button"
+                      className="rounded-lg border border-[var(--navy)]/15 bg-white px-5 py-3 text-sm font-medium text-[var(--navy)] transition-colors hover:bg-[var(--navy)] hover:text-white"
+                    >
+                      Ho già un account
+                    </button>
+                  </SignInButton>
                 </div>
-                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/screenshot-calendario.png"
-                    alt="Calendario di Agenda Legale"
-                    className="h-auto w-full object-cover"
-                  />
-                </div>
-                <p className="mt-3 text-xs text-zinc-600">
-                  Vista Mese, Settimana, Giorno e Agenda con colori e filtri personalizzati per
-                  udienze, scadenze e appuntamenti.
+
+                <p className="mt-3 text-xs text-zinc-500">
+                  Attivazione immediata &middot; Piano da{" "}
+                  <span className="font-semibold text-zinc-700">€ 10/mese</span> &middot; Nessun
+                  lock-in
                 </p>
               </div>
+
+              {/* Screenshot column – grande con card flottanti */}
+              <div className="relative flex flex-1 items-center justify-center lg:justify-end">
+                <div className="relative w-full max-w-xl lg:max-w-[580px]">
+                  {/* Glow */}
+                  <div className="absolute -inset-5 rounded-3xl bg-gradient-to-br from-[var(--gold)]/20 via-transparent to-[var(--navy)]/10 blur-2xl" />
+
+                  {/* Main screenshot */}
+                  <div className="relative overflow-hidden rounded-2xl border border-zinc-200/60 shadow-2xl shadow-black/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/screenshot-calendario.png"
+                      alt="Calendario di Agenda Legale"
+                      className="h-auto w-full"
+                    />
+                  </div>
+
+                  {/* Floating card: top-right */}
+                  <div className="absolute -right-3 -top-3 z-10 rounded-xl border border-zinc-200/80 bg-white px-3.5 py-2.5 shadow-lg sm:-right-6 sm:-top-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--gold)]">Oggi</p>
+                    <p className="mt-0.5 text-sm font-bold text-[var(--navy)]">3 udienze</p>
+                    <p className="text-[10px] text-zinc-500">2 scadenze in arrivo</p>
+                  </div>
+
+                  {/* Floating card: bottom-left */}
+                  <div className="absolute -bottom-3 -left-3 z-10 flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white px-3.5 py-2.5 shadow-lg sm:-bottom-5 sm:-left-6">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold text-[var(--navy)]">Completata</p>
+                      <p className="text-[10px] text-zinc-500">Memoria 171-ter depositata</p>
+                    </div>
+                  </div>
+
+                  {/* Floating card: bottom-right – AI */}
+                  <div className="absolute -bottom-2 -right-2 z-10 hidden rounded-xl border border-zinc-200/80 bg-white px-3 py-2 shadow-lg sm:-bottom-4 sm:right-12 sm:block">
+                    <div className="flex items-center gap-1.5">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--gold)]/15 text-xs">🤖</span>
+                      <p className="text-[10px] font-semibold text-[var(--navy)]">AI ha estratto 4 date</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Benefit strip – sotto hero, più sostanziose */}
+            <div className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-4 sm:gap-4">
+              <HeroBenefit
+                icon={<span className="text-amber-600">⏱</span>}
+                title="Meno tempo perso"
+                desc="Dall'atto all'evento in pochi clic"
+              />
+              <HeroBenefit
+                icon={<span className="text-emerald-600">✓</span>}
+                title="Meno errori"
+                desc="Termini calcolati automaticamente"
+              />
+              <HeroBenefit
+                icon={<span className="text-sky-600">🔒</span>}
+                title="Più controllo"
+                desc="Filtri operativi e storico completo"
+              />
+              <HeroBenefit
+                icon={<span className="text-violet-600">🤖</span>}
+                title="AI integrata"
+                desc="Estrae date e dati dai tuoi atti"
+              />
             </div>
           </div>
         </section>
 
-        {/* Funzionalità principali */}
-        <section className="border-b border-zinc-200 bg-[var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-semibold text-[var(--navy)]">
-                Scopri tutte le funzioni di Agenda Legale
-              </h2>
-              <p className="mt-2 text-sm text-zinc-600">
-                Pensata per gli studi legali che vogliono avere pratiche, calendario, promemoria e
-                termini in un unico strumento, senza fogli e agende sparse.
-              </p>
-            </div>
+        {/* ── Stats bar – numeri per credibilità ─────────────────── */}
+        <section className="relative z-10 border-b border-zinc-200 bg-[var(--navy)]">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-px sm:grid-cols-4">
+            <StatItem value="50+" label="Termini processuali gestiti" />
+            <StatItem value="∞" label="Pratiche inseribili" />
+            <StatItem value="4" label="Viste calendario" />
+            <StatItem value="100%" label="Dati esportabili" />
+          </div>
+        </section>
 
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {/* ── Freccia scroll hint ────────────────────────────────── */}
+        <div className="flex justify-center bg-[var(--surface)] pb-2 pt-6 sm:pt-8">
+          <div className="flex flex-col items-center gap-1 text-zinc-400">
+            <span className="text-[10px] font-medium uppercase tracking-widest">Scopri di più</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="animate-bounce">
+              <path d="M10 4v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* ── Funzionalità ──────────────────────────────────────── */}
+        <section id="funzionalita" className="scroll-mt-20 border-b border-zinc-200 bg-[var(--surface)]">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+            <SectionHeader
+              label="Funzionalità"
+              title="Una piattaforma unica per il lavoro legale quotidiano"
+              subtitle="Dalla pratica alla scadenza, tutto in un unico ambiente ordinato e misurabile."
+            />
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
-                title="Pratiche e fasi procedurali"
-                description="Inserisci pratiche e segui le fasi preimpostate pensate per gli avvocati, personalizzando i passaggi in base al tuo modo di lavorare."
+                icon="📋"
+                title="Pratiche e fasi"
+                description="Crea la pratica, sviluppala nelle sue fasi e mantieni lo storico completo di ogni causa."
               />
               <FeatureCard
-                title="Gestione Promemoria"
-                description="Imposta promemoria per non perdere mai più una scadenza e visualizza in modo distinto cosa è da fare, cosa è in scadenza e cosa hai già completato."
+                icon="🔔"
+                title="Promemoria operativi"
+                description="Imposta promemoria e usa i filtri Da fare / Completati per gestire le priorità."
               />
               <FeatureCard
-                title="Calcolo dei termini"
-                description="Inserisci la data di riferimento e lascia che Agenda Legale calcoli per te i termini processuali più utilizzati, con regole già pronte."
+                icon="⚖️"
+                title="Calcolo termini"
+                description="Inserisci la data di riferimento e ottieni automaticamente le scadenze processuali."
               />
               <FeatureCard
+                icon="💾"
                 title="Backup sempre tuo"
-                description="Scarica in pochi clic una copia completa del tuo calendario legale per conservarla nei tuoi archivi interni e mantenere sempre il controllo sui dati."
+                description="Scarica una copia JSON completa dei tuoi dati e conservala nei tuoi sistemi."
+              />
+            </div>
+
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <FeatureCard
+                icon="🤖"
+                title="Estrazione AI"
+                description="Carica l'atto e l'AI estrae date, termini e parti processuali per te."
+              />
+              <FeatureCard
+                icon="🔄"
+                title="Prosecuzione"
+                description="Fai avanzare la pratica alla fase successiva senza perdere lo storico."
+              />
+              <FeatureCard
+                icon="👥"
+                title="Condivisione"
+                description="Condividi il calendario con colleghi e collaboratori in tempo reale."
+              />
+              <FeatureCard
+                icon="📅"
+                title="Viste multiple"
+                description="Giorno, Settimana, Mese, Agenda: scegli la vista giusta per il momento."
               />
             </div>
           </div>
         </section>
 
-        {/* Come funziona in pratica */}
+        {/* ── Valore concreto ───────────────────────────────────── */}
         <section className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-semibold text-[var(--navy)]">
-                Come funziona nella pratica quotidiana
-              </h2>
-              <p className="mt-2 text-sm text-zinc-600">
-                In pochi passaggi passi dal caos di email e fogli a un calendario legale ordinato e
-                condivisibile.
-              </p>
-            </div>
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <SectionHeader
+              label="Valore"
+              title="Perché gli studi scelgono Agenda Legale"
+              subtitle="Non è solo un calendario: è il sistema operativo del tuo studio."
+            />
 
-            <ol className="grid gap-5 md:grid-cols-4">
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              <ValueCard
+                accent="bg-amber-500"
+                title="Riduci attività amministrative"
+                description="Meno tempo in copia-incolla, più tempo su strategia e lavoro a valore per i clienti."
+              />
+              <ValueCard
+                accent="bg-emerald-500"
+                title="Aumenti affidabilità interna"
+                description="Processi più ordinati, meno dimenticanze e migliore coordinamento del team di studio."
+              />
+              <ValueCard
+                accent="bg-sky-500"
+                title="Migliori percezione del cliente"
+                description="Scadenze presidiate e operatività puntuale aumentano la fiducia nello studio."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Come funziona ──────────────────────────────────────── */}
+        <section id="come-funziona" className="scroll-mt-20 border-b border-zinc-200 bg-[var(--surface)]">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <SectionHeader
+              label="Come funziona"
+              title="Dal primo accesso alla gestione quotidiana"
+              subtitle="In 4 passaggi passi dal caos a un flusso ordinato e condivisibile."
+            />
+
+            <ol className="mt-12 grid gap-6 md:grid-cols-4">
               <StepCard
                 step="1"
                 title="Crea il tuo account"
-                description="Accedi o registrati e imposta lo studio legale, così ogni evento è collegato al tuo profilo."
+                description="Registrati e inizia subito, senza configurazioni complesse."
               />
               <StepCard
                 step="2"
-                title="Inserisci impegni e cause"
-                description="Aggiungi udienze, appuntamenti, termini processuali e note in modo strutturato."
+                title="Apri la pratica"
+                description="Inserisci i dati del fascicolo e collega il primo evento."
               />
               <StepCard
                 step="3"
-                title="Ricevi promemoria mirati"
-                description="Decidi quando ricevere i promemoria e controlla in un colpo d’occhio cosa è ancora da fare."
+                title="Lavora con i filtri"
+                description="Usa Da fare, In scadenza e Completati per gestire le priorità."
               />
               <StepCard
                 step="4"
-                title="Scarica il backup"
-                description="Ogni tanto scarica il backup completo e archivialo nei tuoi sistemi interni per massima sicurezza."
+                title="Avanza e archivia"
+                description="Prosegui nelle fasi successive e scarica backup periodici."
               />
             </ol>
           </div>
         </section>
 
-        {/* Per chi è */}
-        <section className="bg-[var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-semibold text-[var(--navy)]">
-                Pensata per chi vive il diritto ogni giorno
-              </h2>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3">
+        {/* ── Per chi è ──────────────────────────────────────────── */}
+        <section className="border-b border-zinc-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <SectionHeader
+              label="Per chi è"
+              title="Pensata per chi vive il diritto ogni giorno"
+            />
+
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
               <AudienceCard
+                icon="🏛️"
                 title="Studi legali"
-                description="Coordina il lavoro di più professionisti, condividendo lo stesso calendario di studio."
+                description="Coordina il lavoro di più professionisti condividendo lo stesso calendario di studio."
               />
               <AudienceCard
+                icon="🏢"
                 title="Uffici legali interni"
                 description="Monitora scadenze e contenziosi aziendali con una vista unica e ordinata."
               />
               <AudienceCard
+                icon="💼"
                 title="Professionisti autonomi"
-                description="Tieni sotto controllo udienze, appuntamenti e termini senza dover incrociare più strumenti."
+                description="Tieni sotto controllo udienze, appuntamenti e termini senza incrociare più strumenti."
               />
             </div>
           </div>
         </section>
 
-        {/* CTA finale */}
-        <section className="border-t border-[var(--gold)]/20 bg-[var(--navy)]">
-          <div className="mx-auto max-w-6xl px-4 py-10 text-center sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-semibold text-white">
-              Inizia a usare Agenda Legale oggi stesso
-            </h2>
-            <p className="mt-2 text-sm text-zinc-100/80">
-              Bastano pochi minuti per creare l&apos;account e inserire i primi impegni. Il tuo
-              calendario legale ti aspetta.
+        {/* ── Obiezioni tipiche ──────────────────────────────────── */}
+        <section className="border-b border-zinc-200 bg-[var(--surface)]">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <SectionHeader
+              label="Domande"
+              title="Domande tipiche prima di iniziare"
+            />
+
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              <FaqMini
+                question="Serve installare qualcosa?"
+                answer="No. Agenda Legale è web-based: accedi da browser su qualsiasi dispositivo e inizi subito."
+              />
+              <FaqMini
+                question="I miei dati restano sotto controllo?"
+                answer="Sì. Puoi esportare backup completi e mantenere copie locali nei tuoi archivi."
+              />
+              <FaqMini
+                question="È adatto anche a studi piccoli?"
+                answer="Assolutamente. Il flusso è semplice e scalabile, dal singolo professionista al team."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA finale ──────────────────────────────────────────── */}
+        <section className="bg-[var(--navy)]">
+          <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold)]">
+              Inizia oggi
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl">
+              Porta ordine, velocità e controllo nel tuo studio
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-zinc-300 sm:text-base">
+              Crea l&apos;account in pochi minuti, prova la piattaforma per 30 giorni e verifica
+              subito il valore sul tuo lavoro quotidiano.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
               <SignUpButton mode="redirect">
                 <button
                   type="button"
-                  className="rounded-md bg-[var(--gold)] px-6 py-2.5 text-sm font-semibold text-[var(--navy)] shadow-md hover:bg-[var(--gold-light)]"
+                  className="rounded-lg bg-[var(--gold)] px-8 py-3.5 text-sm font-bold text-[var(--navy)] shadow-lg shadow-[var(--gold)]/20 transition-all hover:scale-[1.02] hover:bg-[var(--gold-light)] hover:shadow-xl sm:text-base"
                 >
-                  Registrati ora
+                  Inizia la prova gratuita
                 </button>
               </SignUpButton>
               <Link
                 href="/guida"
-                className="text-sm font-medium text-[var(--gold)] underline-offset-4 hover:underline"
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-500/30 px-6 py-3.5 text-sm font-medium text-zinc-200 transition-colors hover:border-[var(--gold)] hover:text-white"
               >
-                Scopri come funziona nel dettaglio
+                Scopri come funziona
+                <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
           </div>
         </section>
+
+        {/* ── Footer ──────────────────────────────────────────── */}
+        <footer className="border-t border-zinc-200 bg-[var(--surface)]">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-zinc-500 sm:px-6">
+            <p>&copy; {new Date().getFullYear()} Agenda Legale</p>
+            <div className="flex gap-4">
+              <Link href="/guida" className="hover:text-[var(--navy)]">Guida</Link>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );
 }
 
-function FeatureBullet(props: { title: string; children: React.ReactNode }) {
-  const { title, children } = props;
+/* ────────────────────────────────────────────────────────────────── */
+/*  Componenti riutilizzabili                                       */
+/* ────────────────────────────────────────────────────────────────── */
+
+function SectionHeader(props: { label?: string; title: string; subtitle?: string }) {
   return (
-    <div className="flex gap-3 rounded-lg bg-white/90 p-3 shadow-sm">
-      <div className="mt-1 h-6 w-6 shrink-0 rounded-full border border-[var(--gold)]/70 bg-[var(--gold)]/15 text-center text-[13px] font-semibold text-[var(--gold)]">
-        ·
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-[var(--navy)]">{title}</p>
-        <p className="mt-1 text-xs text-zinc-700">{children}</p>
-      </div>
+    <div className="text-center">
+      {props.label && (
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--gold)]">
+          {props.label}
+        </p>
+      )}
+      <h2 className="text-2xl font-bold text-[var(--navy)] sm:text-3xl">
+        {props.title}
+      </h2>
+      {props.subtitle && (
+        <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-600 sm:text-base">
+          {props.subtitle}
+        </p>
+      )}
     </div>
   );
 }
 
-function FeatureCard(props: { title: string; description: string }) {
-  const { title, description } = props;
+
+function FeatureCard(props: { icon: string; title: string; description: string }) {
   return (
-    <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-[var(--gold)]/15 text-[var(--gold)]">
-        <span className="text-lg">★</span>
-      </div>
-      <h3 className="text-sm font-semibold text-[var(--navy)]">{title}</h3>
-      <p className="mt-2 text-sm text-zinc-600">{description}</p>
+    <div className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+      <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--gold)]/10 text-xl" aria-hidden="true">
+        {props.icon}
+      </span>
+      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
     </div>
   );
 }
 
 function StepCard(props: { step: string; title: string; description: string }) {
-  const { step, title, description } = props;
   return (
-    <li className="relative flex h-full flex-col rounded-xl border border-zinc-200 bg-[var(--surface-card)] p-5">
-      <div className="absolute -top-3 left-4 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--navy)] text-xs font-semibold text-[var(--gold)] shadow">
-        {step}
+    <li className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 pt-8 shadow-sm">
+      <div className="absolute -top-4 left-5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--navy)] text-sm font-bold text-[var(--gold)] shadow-md">
+        {props.step}
       </div>
-      <h3 className="mt-2 text-sm font-semibold text-[var(--navy)]">{title}</h3>
-      <p className="mt-2 text-sm text-zinc-600">{description}</p>
+      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
     </li>
   );
 }
 
-function AudienceCard(props: { title: string; description: string }) {
-  const { title, description } = props;
+function ValueCard(props: { accent: string; title: string; description: string }) {
   return (
-    <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-[var(--navy)]">{title}</h3>
-      <p className="mt-2 text-sm text-zinc-600">{description}</p>
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={`absolute left-0 top-0 h-full w-1 ${props.accent}`} />
+      <p className="pl-3 text-sm font-bold text-[var(--navy)]">{props.title}</p>
+      <p className="mt-2 pl-3 text-sm leading-relaxed text-zinc-600">{props.description}</p>
     </div>
   );
 }
 
+function AudienceCard(props: { icon: string; title: string; description: string }) {
+  return (
+    <div className="flex h-full flex-col items-center rounded-2xl border border-zinc-200 bg-[var(--surface)] p-7 text-center shadow-sm transition-shadow hover:shadow-md">
+      <span className="mb-4 text-3xl" aria-hidden="true">{props.icon}</span>
+      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
+    </div>
+  );
+}
+
+function FaqMini(props: { question: string; answer: string }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <p className="text-sm font-bold text-[var(--navy)]">{props.question}</p>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.answer}</p>
+    </div>
+  );
+}
+
+function HeroBenefit(props: { icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3.5 shadow-sm backdrop-blur-sm">
+      <div className="mb-1.5 flex items-center gap-2">
+        <span className="text-base" aria-hidden="true">{props.icon}</span>
+        <p className="text-xs font-bold text-[var(--navy)] sm:text-sm">{props.title}</p>
+      </div>
+      <p className="text-[11px] leading-snug text-zinc-500 sm:text-xs">{props.desc}</p>
+    </div>
+  );
+}
+
+function StatItem(props: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-4 py-5 text-center sm:py-6">
+      <p className="text-2xl font-bold text-[var(--gold)] sm:text-3xl">{props.value}</p>
+      <p className="mt-1 text-[11px] leading-tight text-zinc-300 sm:text-xs">{props.label}</p>
+    </div>
+  );
+}
