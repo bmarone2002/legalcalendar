@@ -159,6 +159,30 @@ body {
 .calendar-theme .fc-event .fc-event-main-frame { overflow: hidden; display: flex; align-items: center; min-height: 0; }
 .calendar-theme .fc-event .fc-event-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calendar-theme .fc-event .fc-event-title-container { overflow: hidden; min-width: 0; }
+.calendar-theme .fc .fc-timegrid-event .fc-event-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.calendar-theme .fc .fc-timegrid-event .fc-event-main-frame {
+  width: 100%;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
+.calendar-theme .fc .fc-timegrid-event .fc-event-time,
+.calendar-theme .fc .fc-timegrid-event .fc-event-title {
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Con tanti eventi affiancati, mostra solo il titolo per dare più contesto utile. */
+.calendar-theme .fc .fc-timegrid-event.fc-event-short .fc-event-time {
+  display: none;
+}
 .calendar-theme .fc-daygrid-event { overflow: hidden; }
 .calendar-theme .fc-daygrid-event-harness { overflow: hidden; }
 .calendar-theme .fc-daygrid-day-events { overflow: hidden; }
