@@ -133,9 +133,9 @@ function MobileShell({ webBaseUrl, currentUrl, setCurrentUrl }) {
         if (webViewRef.current) {
           webViewRef.current.injectJavaScript(script);
         } else {
-          setCurrentUrl(
-            `${webBaseUrl}/api/mobile/exchange?token=${encodeURIComponent(token)}`
-          );
+          // WebView not ready yet — retry on next iteration
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          continue;
         }
         return true;
       }

@@ -2,6 +2,7 @@
 
 import OpenAI from "openai";
 import { z } from "zod";
+import { getOrCreateDbUser } from "@/lib/db/user";
 import {
   MACRO_AREAS,
   PROCEDIMENTI_PER_MACRO_AREA,
@@ -366,7 +367,15 @@ function mergeRinvioResults(results: ParsedRinvioResult[]): ParsedRinvioResult {
   };
 }
 
-export async function parseDocumentForEvent(formData: FormData): Promise<ParseDocumentActionResult> {
+type ExtractedContent = {
+  textToSend: string;
+  imagePart: { type: "image_url"; image_url: { url: string } } | null;
+};
+
+async function extractContentFromUpload(
+  formData: FormData,
+  imagePromptFallback: string,
+): Promise<{ success: true; data: ExtractedContent; openai: OpenAI } | { success: false; error: string }> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey?.trim()) {
     return { success: false, error: "OPENAI_API_KEY non configurata. Aggiungila in .env.local." };
@@ -401,24 +410,27 @@ export async function parseDocumentForEvent(formData: FormData): Promise<ParseDo
       }
       textToSend = normalizeAndFilterText(textToSend);
     } catch (e) {
-      return {
-        success: false,
-        error: e instanceof Error ? e.message : "Errore durante la lettura del PDF.",
-      };
+      return { success: false, error: e instanceof Error ? e.message : "Errore durante la lettura del PDF." };
     }
   } else if (isImage) {
     const base64 = buffer.toString("base64");
     const dataUrl = `data:${mime};base64,${base64}`;
     imagePart = { type: "image_url", image_url: { url: dataUrl } };
-    textToSend = "Estrai i dati dal seguente documento legale (immagine).";
+    textToSend = imagePromptFallback;
   } else {
-    return {
-      success: false,
-      error: "Formato non supportato. Usa un PDF o un'immagine (JPEG, PNG, WebP).",
-    };
+    return { success: false, error: "Formato non supportato. Usa un PDF o un'immagine (JPEG, PNG, WebP)." };
   }
 
-  const openai = new OpenAI({ apiKey });
+  return { success: true, data: { textToSend, imagePart }, openai: new OpenAI({ apiKey }) };
+}
+
+export async function parseDocumentForEvent(formData: FormData): Promise<ParseDocumentActionResult> {
+  await getOrCreateDbUser();
+
+  const extracted = await extractContentFromUpload(formData, "Estrai i dati dal seguente documento legale (immagine).");
+  if (!extracted.success) return extracted;
+  const { textToSend, imagePart } = extracted.data;
+  const openai = extracted.openai;
   // Contesto strutturato per l'AI: macro aree, procedimenti, parti processuali, fasi/eventi e relative inputKey.
   const eventiPerProcedimentoForAi: Record<
     ProcedimentoCode,
@@ -563,58 +575,15 @@ ${chunk}`;
 }
 
 export async function parseDocumentForRinvio(formData: FormData): Promise<ParseDocumentForRinvioResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey?.trim()) {
-    return { success: false, error: "OPENAI_API_KEY non configurata. Aggiungila in .env.local." };
-  }
+  await getOrCreateDbUser();
 
-  const file = formData.get("file");
-  if (!isUploadLikeFile(file)) {
-    return { success: false, error: "Nessun file allegato." };
-  }
-
-  let buffer: Buffer;
-  let mime = "";
-  let isPdf = false;
-  let isImage = false;
-  try {
-    buffer = Buffer.from(await file.arrayBuffer());
-    mime = file.type?.toLowerCase() ?? "";
-    isPdf = mime === "application/pdf" || file.name?.toLowerCase().endsWith(".pdf");
-    isImage = /^image\/(jpeg|png|gif|webp)$/.test(mime);
-  } catch (e) {
-    return { success: false, error: getUnknownErrorMessage(e, "Errore nella lettura del file allegato.") };
-  }
-
-  let textToSend: string;
-  let imagePart: { type: "image_url"; image_url: { url: string } } | null = null;
-
-  if (isPdf) {
-    try {
-      textToSend = await extractTextFromPdf(buffer);
-      if (!textToSend || textToSend === "(Nessun testo estratto dal PDF)") {
-        return { success: false, error: "Impossibile estrarre testo dal PDF. Prova con un PDF con testo selezionabile (non solo scansione)." };
-      }
-      textToSend = normalizeAndFilterText(textToSend);
-    } catch (e) {
-      return {
-        success: false,
-        error: e instanceof Error ? e.message : "Errore durante la lettura del PDF.",
-      };
-    }
-  } else if (isImage) {
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${mime};base64,${base64}`;
-    imagePart = { type: "image_url", image_url: { url: dataUrl } };
-    textToSend = "Estrai data di rinvio e adempimenti con termini dal seguente verbale o comunicazione (immagine).";
-  } else {
-    return {
-      success: false,
-      error: "Formato non supportato. Usa un PDF o un'immagine (JPEG, PNG, WebP).",
-    };
-  }
-
-  const openai = new OpenAI({ apiKey });
+  const extracted = await extractContentFromUpload(
+    formData,
+    "Estrai data di rinvio e adempimenti con termini dal seguente verbale o comunicazione (immagine).",
+  );
+  if (!extracted.success) return extracted;
+  const { textToSend, imagePart } = extracted.data;
+  const openai = extracted.openai;
 
   try {
     if (imagePart || textToSend.length <= SINGLE_PASS_TEXT_LIMIT) {

@@ -15,6 +15,54 @@ import type {
   EventMountArg,
   EventChangeArg,
 } from "@fullcalendar/core";
+
+const FC_PLUGINS = [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin];
+
+const FC_BUTTON_TEXT = {
+  today: "Oggi",
+  month: "Mese",
+  week: "Settimana",
+  list: "Agenda",
+} as const;
+
+const FC_SLOT_LABEL_FORMAT = {
+  hour: "2-digit" as const,
+  minute: "2-digit" as const,
+  omitZeroMinute: true,
+  hour12: false,
+};
+
+const FC_VIEWS = {
+  timeGridWeek: {
+    dayHeaderContent: (arg: { date: Date }) => {
+      const d = arg.date;
+      const dayNum = String(d.getDate()).padStart(2, "0");
+      const dayName = d.toLocaleDateString("it-IT", { weekday: "short" });
+      return {
+        html: `<span class="fc-day-num">${dayNum}</span> <span class="fc-day-name">${dayName}</span>`,
+      };
+    },
+  },
+  listFromToday: {
+    type: "list" as const,
+    duration: { years: 8 },
+    visibleRange: (currentDate: Date) => {
+      const start = new Date(currentDate);
+      start.setFullYear(start.getFullYear() - 3);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(currentDate);
+      end.setFullYear(end.getFullYear() + 3);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    },
+    buttonText: "Agenda",
+  },
+};
+
+function fcEventClassNames(arg: { event: { extendedProps: Record<string, unknown> } }) {
+  return (arg.event.extendedProps.isSubEvent as boolean) ? ["fc-event-sub"] : ["fc-event-madre"];
+}
+import { useCalendarTagFilters } from "@/hooks/useCalendarTagFilters";
 import { getEvents, updateEvent, deleteEvent } from "@/lib/actions/events";
 import { regenerateSubEvents, updateSubEvent, deleteSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, SubEvent } from "@/types";
@@ -102,29 +150,6 @@ function blendWithWhite(hex: string, whiteAmount: number): string {
   return `#${rr.toString(16).padStart(2, "0")}${gg.toString(16).padStart(2, "0")}${bb.toString(16).padStart(2, "0")}`;
 }
 
-const STORAGE_TAG_COLOR_LABELS = "calendar:tagColorLabels";
-
-function loadTagColorLabels(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STORAGE_TAG_COLOR_LABELS);
-    if (!raw) return {};
-    const o = JSON.parse(raw) as Record<string, unknown>;
-    if (!o || typeof o !== "object") return {};
-    const out: Record<string, string> = {};
-    for (const [k, v] of Object.entries(o)) {
-      if (typeof v === "string" && v.trim() !== "") out[k] = v;
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-function persistTagColorLabels(next: Record<string, string>) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_TAG_COLOR_LABELS, JSON.stringify(next));
-}
 
 type SearchSuggestion = {
   eventId: string;
@@ -351,20 +376,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     if (v === "false") return false;
     return true;
   });
-  const [visibleTagColors, setVisibleTagColors] = useState<Set<string>>(() => {
-    const all = allCalendarFilterColorKeys();
-    if (typeof window === "undefined") return new Set(all);
-    try {
-      const raw = window.localStorage.getItem("calendar:visibleTagColors");
-      if (raw) {
-        const arr = JSON.parse(raw) as string[];
-        if (Array.isArray(arr) && arr.length > 0) return new Set(arr);
-      }
-    } catch {
-      /* ignore */
-    }
-    return new Set(all);
-  });
+  const {
+    visibleTagColors,
+    tagColorLabels,
+    toggleTagColorFilter,
+    selectAllTagColors,
+    deselectAllTagColors,
+    updateTagColorLabel,
+  } = useCalendarTagFilters();
 
   const [panelFocus, setPanelFocus] = useState<SmartPanelFocus>(() => {
     if (typeof window === "undefined") return "udienze";
@@ -375,7 +394,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     if (window.localStorage.getItem("calendar:soloUdienze") === "true") return "udienze";
     return "udienze";
   });
-  const [tagColorLabels, setTagColorLabels] = useState<Record<string, string>>(() => loadTagColorLabels());
   const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
   const [showPending, setShowPending] = useState<boolean>(true);
   const [showDone, setShowDone] = useState<boolean>(false);
@@ -525,48 +543,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     calendarRef.current?.getApi()?.refetchEvents();
   }, [visibleTagColors, showPromemoriaTitle]);
 
-  const toggleTagColorFilter = useCallback((key: string) => {
-    setVisibleTagColors((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([...next]));
-      }
-      return next;
-    });
-  }, []);
-
-  const updateTagColorLabel = useCallback((key: string, value: string) => {
-    setTagColorLabels((prev) => {
-      const next = { ...prev };
-      const trimmed = value.trim();
-      if (trimmed === "") delete next[key];
-      else next[key] = trimmed;
-      persistTagColorLabels(next);
-      return next;
-    });
-  }, []);
-
-  const selectAllTagColors = useCallback(() => {
-    setVisibleTagColors(() => {
-      const next = new Set(allCalendarFilterColorKeys());
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([...next]));
-      }
-      return next;
-    });
-  }, []);
-
-  const deselectAllTagColors = useCallback(() => {
-    setVisibleTagColors(() => {
-      const next = new Set<string>();
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("calendar:visibleTagColors", JSON.stringify([]));
-      }
-      return next;
-    });
-  }, []);
 
   const handleSetPanelFocus = useCallback((next: SmartPanelFocus) => {
     setPanelFocus(next);
@@ -1834,55 +1810,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
         {initialView && (
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+          plugins={FC_PLUGINS}
           initialView={initialView}
           headerToolbar={false}
-          buttonText={{
-            today: "Oggi",
-            month: "Mese",
-            week: "Settimana",
-            list: "Agenda",
-          }}
+          buttonText={FC_BUTTON_TEXT}
           locale={itLocale}
           allDaySlot={false}
-          slotLabelFormat={{
-            hour: "2-digit",
-            minute: "2-digit",
-            omitZeroMinute: true,
-            hour12: false,
-          }}
-          views={{
-            timeGridWeek: {
-              dayHeaderContent: (arg: { date: Date }) => {
-                const d = arg.date;
-                const dayNum = String(d.getDate()).padStart(2, "0");
-                const dayName = d.toLocaleDateString("it-IT", { weekday: "short" });
-                return {
-                  html: `<span class="fc-day-num">${dayNum}</span> <span class="fc-day-name">${dayName}</span>`,
-                };
-              },
-            },
-            listFromToday: {
-              type: "list",
-              duration: { years: 8 },
-              /**
-               * Intervallo da `currentDate` (mese del calendario), non da «oggi» reale: se la data
-               * interna è anni indietro, spariscono anche eventi tra pochi giorni nel mondo reale.
-               * Mitigazione: all’apertura Agenda si chiama `gotoDate(oggi)` in `handleChangeView`.
-               * ±3 anni e fine giornata a destra (in FC `end` è spesso esclusivo a mezzanotte).
-               */
-              visibleRange: (currentDate: Date) => {
-                const start = new Date(currentDate);
-                start.setFullYear(start.getFullYear() - 3);
-                start.setHours(0, 0, 0, 0);
-                const end = new Date(currentDate);
-                end.setFullYear(end.getFullYear() + 3);
-                end.setHours(23, 59, 59, 999);
-                return { start, end };
-              },
-              buttonText: "Agenda",
-            },
-          }}
+          slotLabelFormat={FC_SLOT_LABEL_FORMAT}
+          views={FC_VIEWS}
           events={eventsSource}
           editable={canEdit}
           selectable={canEdit}
@@ -1898,7 +1833,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           eventDidMount={handleEventDidMount}
           eventWillUnmount={handleEventWillUnmount}
           eventChange={handleEventChange}
-          eventClassNames={(arg) => (arg.event.extendedProps.isSubEvent as boolean) ? ["fc-event-sub"] : ["fc-event-madre"]}
+          eventClassNames={fcEventClassNames}
           height={currentView === "listFromToday" ? "100%" : "auto"}
           expandRows={false}
           slotMinTime="00:00:00"

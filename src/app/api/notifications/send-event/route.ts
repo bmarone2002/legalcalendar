@@ -30,6 +30,7 @@ export async function POST(req: Request) {
 
     const candidatePrefs = await prisma.eventNotificationPreference.findMany({
       where: {
+        userId: user.id,
         enabled: true,
         OR: [
           { eventType: null },

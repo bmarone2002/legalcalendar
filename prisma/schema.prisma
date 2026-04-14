@@ -60,6 +60,8 @@ model Event {
   @@index([startAt])
   @@index([endAt])
   @@index([userId, startAt])
+  @@index([userId, macroType])
+  @@index([userId, type])
   @@index([orgId, startAt])
 }
 
@@ -139,6 +141,7 @@ model EventNotificationPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, enabled])
 }
 
 enum SharePermission {

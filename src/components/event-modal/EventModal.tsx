@@ -22,7 +22,6 @@ import {
   regenerateSubEvents,
   getSubEventsPreview,
   getPhase1MainPreview,
-  updateSubEvent,
   createSubEventsFromPreview,
   deleteSubEvent,
 } from "@/lib/actions/sub-events";
@@ -767,8 +766,17 @@ export function EventModal({
 
   const loadEvent = useCallback(async (id: string) => {
     setLoading(true);
+    setError(null);
     const result = await getEventById(id, targetUserId);
     setLoading(false);
+    if (!result.success) {
+      setError(normalizeDisplayError(result.error) || "Errore caricamento evento");
+      return;
+    }
+    if (!result.data) {
+      setError("Evento non trovato");
+      return;
+    }
     if (result.success && result.data) {
       const e = result.data;
       const savedRuleParams = (e.ruleParams as Record<string, unknown> | null | undefined) ?? {};
@@ -1190,7 +1198,7 @@ export function EventModal({
           status: form.status,
         }, targetUserId);
         if (!result.success) {
-          setError(result.error);
+          setError(normalizeDisplayError(result.error));
           return;
         }
         savedNewEventId = result.data?.id;
@@ -1734,7 +1742,7 @@ export function EventModal({
                               }));
                               setError(null);
                             } else if (!result.success) {
-                              setError(result.error ?? "Impossibile analizzare il documento.");
+                              setError(normalizeDisplayError(result.error) || "Impossibile analizzare il documento.");
                             }
                           } catch (err) {
                             setError(normalizeDisplayError(err) || "Errore durante l'analisi del documento.");

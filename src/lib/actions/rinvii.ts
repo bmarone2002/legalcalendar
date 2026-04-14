@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { prisma } from "../db";
 import { getSettings } from "../settings";
 import { adjustFinalDeadline, applyDeadlineTime } from "@/lib/date-utils";
@@ -13,7 +14,7 @@ import type {
   LinkedEventSpec,
 } from "@/types/rinvio";
 import { computeLinkedEventDueAt } from "@/lib/linked-events";
-import { TIPO_UDIENZA_LABELS, DEFAULT_GIORNI_ALERT_UDIENZA } from "@/types/rinvio";
+import { TIPO_UDIENZA_LABELS, TIPI_UDIENZA } from "@/types/rinvio";
 import type { ActionResult } from "./events";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 import { runRulesForEvent } from "../rules/engine";
@@ -22,6 +23,43 @@ import { getEventoByCode } from "@/types/macro-areas";
 import type { ProcedimentoCode } from "@/types/macro-areas";
 
 const RINVIO_RULE_ID = "rinvio-udienza";
+
+const adempimentoSchema = z.object({
+  id: z.string().min(1),
+  titolo: z.string().min(1, "Titolo adempimento obbligatorio"),
+  scadenza: z.string().min(1, "Scadenza adempimento obbligatoria"),
+  giorniAlert: z.number().int().min(0),
+  note: z.string().optional(),
+});
+
+const linkedEventSpecSchema = z.object({
+  title: z.string().min(1),
+  offsetDays: z.number().int(),
+});
+
+const createRinvioSchema = z.object({
+  parentEventId: z.string().min(1),
+  isUdienza: z.boolean().optional(),
+  dataUdienza: z.coerce.date(),
+  tipoUdienza: z.string().min(1, "Tipo udienza obbligatorio"),
+  tipoUdienzaCustom: z.string().nullable().optional(),
+  note: z.string().nullable().optional(),
+  adempimenti: z.array(adempimentoSchema),
+  eventoCode: z.string().nullable().optional(),
+  reminderOffsets: z.array(z.number().int().min(0)).optional(),
+  linkedEvents: z.array(linkedEventSpecSchema).optional(),
+});
+
+const updateRinvioSchema = z.object({
+  isUdienza: z.boolean().optional(),
+  dataUdienza: z.coerce.date().optional(),
+  tipoUdienza: z.string().min(1).optional(),
+  tipoUdienzaCustom: z.string().nullable().optional(),
+  note: z.string().nullable().optional(),
+  adempimenti: z.array(adempimentoSchema).optional(),
+  reminderOffsets: z.array(z.number().int().min(0)).optional(),
+  linkedEvents: z.array(linkedEventSpecSchema).optional(),
+});
 
 function toDateOnlyString(d: Date): string {
   const y = d.getFullYear();
@@ -482,6 +520,11 @@ export async function createRinvio(
   data: CreateRinvioInput,
   targetUserId?: string
 ): Promise<ActionResult<Rinvio>> {
+  const parsed = createRinvioSchema.safeParse(data);
+  if (!parsed.success) {
+    const msg = parsed.error.errors.map((e) => e.message).filter(Boolean).join(". ") || "Dati rinvio non validi";
+    return { success: false, error: msg };
+  }
   try {
     const ownerId = await getEventOwner(data.parentEventId);
     if (!ownerId) return { success: false, error: "Evento non trovato" };
@@ -535,6 +578,11 @@ export async function updateRinvio(
   data: UpdateRinvioInput,
   targetUserId?: string
 ): Promise<ActionResult<Rinvio>> {
+  const parsed = updateRinvioSchema.safeParse(data);
+  if (!parsed.success) {
+    const msg = parsed.error.errors.map((e) => e.message).filter(Boolean).join(". ") || "Dati aggiornamento rinvio non validi";
+    return { success: false, error: msg };
+  }
   try {
     const existing = await prisma.rinvio.findUnique({
       where: { id },

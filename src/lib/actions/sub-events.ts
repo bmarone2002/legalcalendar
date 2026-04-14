@@ -9,9 +9,9 @@ import { parseJsonField } from "@/lib/utils";
 import { toSubEvent } from "@/lib/mappers";
 import type { SubEventCandidate } from "../rules/types";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
-import { getEventoByCode } from "@/types/macro-areas";
+import { getOrCreateDbUser } from "@/lib/db/user";
+import { computePhase1Overrides } from "./events";
 import {
-  computePhase1MainDueAt,
   computePhase1MainPreview,
 } from "../rules/plugins/data-driven-engine";
 import type { MacroAreaCode, ParteProcessuale, ProcedimentoCode } from "@/types/macro-areas";
@@ -36,8 +36,14 @@ export async function loadParentContext(
   });
   if (!parent) return null;
 
-  const inputsParsed = parent.inputs ? (JSON.parse(parent.inputs) as Record<string, unknown>) : {};
-  const ruleParamsParsed = (JSON.parse(parent.ruleParams || "{}") || {}) as Record<string, unknown>;
+  let inputsParsed: Record<string, unknown> = {};
+  let ruleParamsParsed: Record<string, unknown> = {};
+  try {
+    inputsParsed = parent.inputs ? (JSON.parse(parent.inputs) as Record<string, unknown>) : {};
+  } catch { /* corrupt DB data — fall back to empty */ }
+  try {
+    ruleParamsParsed = (JSON.parse(parent.ruleParams || "{}") || {}) as Record<string, unknown>;
+  } catch { /* corrupt DB data — fall back to empty */ }
 
   const eventForRule: Event = {
     id: parent.id,
@@ -147,6 +153,7 @@ export async function getSubEventsPreview(
   >
 > {
   try {
+    await getOrCreateDbUser();
     const settings = await getSettings();
     const eventForRule: Event = {
       id: "",
@@ -206,6 +213,7 @@ export async function getPhase1MainPreview(input: {
   inputs: Record<string, unknown> | null;
 }): Promise<ActionResult<{ dueAt: string | null; explanation: string }>> {
   try {
+    await getOrCreateDbUser();
     const { macroArea, procedimento, parteProcessuale, eventoCode, inputs } = input;
     if (!macroArea || !procedimento || !parteProcessuale || !eventoCode) {
       return { success: true, data: { dueAt: null, explanation: "" } };
@@ -254,40 +262,25 @@ export async function regenerateSubEvents(parentEventId: string, targetUserId?: 
 
     const data = await replaceSubEvents(parentEventId, candidates, ctx.subEvents);
 
-    // Aggiorna titolo + anchor della pratica (promuovi fase1).
-    if (
-      ctx.parent.macroType === "ATTO_GIURIDICO" &&
-      ctx.parent.ruleTemplateId === "data-driven" &&
-      ctx.parent.macroArea &&
-      ctx.parent.procedimento &&
-      ctx.parent.parteProcessuale &&
-      (ctx.parent as { eventoCode?: string | null }).eventoCode
-    ) {
-      const settings = await getSettings();
-      const inputsForCalc = ctx.userSelections;
-      const eventoCode = (ctx.parent as { eventoCode?: string | null }).eventoCode as string;
-
-      const dueAt = computePhase1MainDueAt({
-        macroArea: ctx.parent.macroArea as any,
-        procedimento: ctx.parent.procedimento as any,
-        parteProcessuale: ctx.parent.parteProcessuale as any,
-        eventoCode,
-        inputs: inputsForCalc,
-        settings,
+    const phase1 = computePhase1Overrides({
+      macroType: ctx.parent.macroType,
+      ruleTemplateId: ctx.parent.ruleTemplateId,
+      eventoCode: (ctx.parent as { eventoCode?: string | null }).eventoCode,
+      macroArea: ctx.parent.macroArea,
+      procedimento: ctx.parent.procedimento,
+      parteProcessuale: ctx.parent.parteProcessuale,
+      inputs: ctx.userSelections,
+      settings,
+    });
+    if (phase1?.startAt) {
+      await prisma.event.update({
+        where: { id: parentEventId },
+        data: {
+          title: phase1.title,
+          startAt: phase1.startAt,
+          endAt: phase1.endAt,
+        },
       });
-
-      if (dueAt) {
-        const ev = getEventoByCode(ctx.parent.procedimento as any, eventoCode);
-        const nextTitle = ev?.label ?? eventoCode;
-        await prisma.event.update({
-          where: { id: parentEventId },
-          data: {
-            title: nextTitle,
-            startAt: dueAt,
-            endAt: new Date(dueAt.getTime() + 60 * 60 * 1000),
-          },
-        });
-      }
     }
 
     return { success: true, data };

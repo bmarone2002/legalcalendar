@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# nested duplicate tree (legacy clone with its own .git)
+/legal-calendar/
+
 # prisma local sqlite (non committare il DB)
 prisma/*.db
 prisma/*.db-journal

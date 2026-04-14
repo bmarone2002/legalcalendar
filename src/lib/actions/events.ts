@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { prisma } from "../db";
 import type { Event, CreateEventInput, UpdateEventInput, EventType } from "@/types";
-import { getOrCreateDbUser } from "@/lib/db/user";
 import { parseJsonField } from "@/lib/utils";
 import { toSubEvent } from "@/lib/mappers";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
@@ -11,6 +10,42 @@ import { sendOneSignalNotification } from "@/lib/notifications/onesignal";
 import { getSettings } from "../settings";
 import { getEventoByCode } from "@/types/macro-areas";
 import { computePhase1MainDueAt } from "../rules/plugins/data-driven-engine";
+
+/** Compute phase-1 title + startAt/endAt override for data-driven atto giuridico. */
+export function computePhase1Overrides(params: {
+  macroType?: string | null;
+  ruleTemplateId?: string | null;
+  eventoCode?: string | null;
+  macroArea?: string | null;
+  procedimento?: string | null;
+  parteProcessuale?: string | null;
+  inputs?: Record<string, unknown> | null;
+  settings: import("../rules/types").AppSettings;
+}): { title?: string; startAt?: Date; endAt?: Date } | null {
+  const { macroType, ruleTemplateId, eventoCode, macroArea, procedimento, parteProcessuale, inputs, settings } = params;
+  if (
+    macroType !== "ATTO_GIURIDICO" ||
+    ruleTemplateId !== "data-driven" ||
+    !eventoCode || !macroArea || !procedimento || !parteProcessuale || !inputs
+  ) {
+    return null;
+  }
+
+  const dueAt = computePhase1MainDueAt({
+    macroArea: macroArea as any,
+    procedimento: procedimento as any,
+    parteProcessuale: parteProcessuale as any,
+    eventoCode,
+    inputs,
+    settings,
+  });
+
+  const ev = getEventoByCode(procedimento as any, eventoCode);
+  const title = ev?.label ?? eventoCode;
+
+  if (!dueAt) return { title };
+  return { title, startAt: dueAt, endAt: new Date(dueAt.getTime() + 60 * 60 * 1000) };
+}
 
 function parseTags(tags: string): string[] {
   try {
@@ -134,38 +169,18 @@ export async function createEvent(data: CreateEventInput, targetUserId?: string)
   try {
     const { userId } = await resolveCalendarUser(targetUserId, "FULL");
 
-    // "Promuovi fase1": l'evento madre rappresenta la fase selezionata (non la pratica come contenitore).
-    // Quindi impostiamo title/startAt/endAt sul "main dueAt" della fase1 calcolata dalle regole.
     let eventTitle = p.title;
     let startAt = p.startAt;
     let endAt = p.endAt;
-    if (
-      p.macroType === "ATTO_GIURIDICO" &&
-      p.ruleTemplateId === "data-driven" &&
-      p.eventoCode &&
-      p.macroArea &&
-      p.procedimento &&
-      p.parteProcessuale &&
-      p.inputs
-    ) {
-      const settings = await getSettings();
-      const dueAt = computePhase1MainDueAt({
-        macroArea: p.macroArea as any,
-        procedimento: p.procedimento as any,
-        parteProcessuale: p.parteProcessuale as any,
-        eventoCode: p.eventoCode,
-        inputs: p.inputs as Record<string, unknown>,
-        settings,
-      });
-
-      const ev = getEventoByCode(p.procedimento as any, p.eventoCode);
-      if (ev) eventTitle = ev.label;
-      else eventTitle = p.eventoCode;
-
-      if (dueAt) {
-        startAt = dueAt;
-        endAt = new Date(dueAt.getTime() + 60 * 60 * 1000);
-      }
+    const phase1 = computePhase1Overrides({
+      ...p,
+      inputs: p.inputs as Record<string, unknown> | null,
+      settings: await getSettings(),
+    });
+    if (phase1) {
+      if (phase1.title) eventTitle = phase1.title;
+      if (phase1.startAt) startAt = phase1.startAt;
+      if (phase1.endAt) endAt = phase1.endAt;
     }
 
     const event = await prisma.event.create({
@@ -194,10 +209,11 @@ export async function createEvent(data: CreateEventInput, targetUserId?: string)
     });
     const mapped = toEvent(event);
 
-    // Push best-effort: non blocca mai la creazione evento.
+    // Push best-effort: notify only the event owner (multi-device).
     try {
       const userPrefs = await prisma.eventNotificationPreference.findMany({
         where: {
+          userId,
           enabled: true,
           OR: [{ eventType: null }, { eventType: event.type }],
         },
@@ -262,38 +278,18 @@ export async function updateEvent(
     }
     await resolveCalendarUser(targetUserId ?? existing.userId, "FULL");
 
-    // Promuovi fase1: se stiamo modificando una pratica data-driven, forziamo
-    // titolo + anchor della voce madre sull'effettiva dueAt della fase.
     let titleOverride = p.title;
     let startAtOverride = p.startAt;
     let endAtOverride = p.endAt;
-    if (
-      p.macroType === "ATTO_GIURIDICO" &&
-      p.ruleTemplateId === "data-driven" &&
-      p.eventoCode &&
-      p.macroArea &&
-      p.procedimento &&
-      p.parteProcessuale &&
-      p.inputs
-    ) {
-      const settings = await getSettings();
-      const dueAt = computePhase1MainDueAt({
-        macroArea: p.macroArea as any,
-        procedimento: p.procedimento as any,
-        parteProcessuale: p.parteProcessuale as any,
-        eventoCode: p.eventoCode,
-        inputs: p.inputs as Record<string, unknown>,
-        settings,
-      });
-
-      const ev = getEventoByCode(p.procedimento as any, p.eventoCode);
-      if (ev) titleOverride = ev.label;
-      else titleOverride = p.eventoCode;
-
-      if (dueAt) {
-        startAtOverride = dueAt;
-        endAtOverride = new Date(dueAt.getTime() + 60 * 60 * 1000);
-      }
+    const phase1 = computePhase1Overrides({
+      ...p,
+      inputs: p.inputs as Record<string, unknown> | null,
+      settings: await getSettings(),
+    });
+    if (phase1) {
+      if (phase1.title) titleOverride = phase1.title;
+      if (phase1.startAt) startAtOverride = phase1.startAt;
+      if (phase1.endAt) endAtOverride = phase1.endAt;
     }
 
     const event = await prisma.event.update({

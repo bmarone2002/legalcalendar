@@ -41,22 +41,3 @@ export function allCalendarFilterColorKeys(): string[] {
   return [...EVENT_TAG_COLORS.map((c) => c.toLowerCase()), COLOR_FILTER_NONE, COLOR_FILTER_OTHER];
 }
 
-/** Frasi (case-insensitive) confrontate con il campo Fase per il filtro «Solo udienze». */
-export const UDIENZA_FASE_PHRASES = [
-  "prima udienza",
-  "udienza istruttoria",
-  "udienza conclusioni",
-  "udienza sospensiva",
-  "udienza trattazione",
-  "udienza",
-] as const;
-
-/** @deprecated use matchesUdienzaPhrasesInFaseText */
-export function titleMatchesUdienzaFilter(title: string | null | undefined): boolean {
-  return matchesUdienzaPhrasesInFaseText(title);
-}
-
-export function matchesUdienzaPhrasesInFaseText(faseText: string | null | undefined): boolean {
-  const t = (faseText ?? "").toLowerCase();
-  return UDIENZA_FASE_PHRASES.some((phrase) => t.includes(phrase));
-}
