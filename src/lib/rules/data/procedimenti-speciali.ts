@@ -108,6 +108,25 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     macroArea: "PROCEDIMENTI_SPECIALI",
     procedimento: "DECRETO_INGIUNTIVO",
     parteProcessuale: "CONVENUTO",
+    eventoLabel: "Notifica opposizione",
+    eventoCode: "NOTIFICA_OPPOSIZIONE_RICORRENTE_DI",
+    eventoBaseKey: "dataNotificaOpposizioneAlRicorrenteDI",
+    direzioneCalcolo: null,
+    numero: null,
+    unita: null,
+    tipoTermine: "manuale",
+    isTermine: false,
+    isSospensioneFeriale: true,
+    isPromemoriaFestivi: true,
+    norma: "Art. 165 c.p.c.",
+    noteOperative:
+      "Evento dal quale far decorrere i 10 giorni per l'iscrizione a ruolo",
+    ordine: 6,
+  },
+  {
+    macroArea: "PROCEDIMENTI_SPECIALI",
+    procedimento: "DECRETO_INGIUNTIVO",
+    parteProcessuale: "CONVENUTO",
     eventoLabel: "Iscrizione a ruolo",
     eventoCode: "ISCRIZIONE_RUOLO_OPPO_DI",
     eventoBaseKey: "dataNotificaOpposizioneAlRicorrenteDI",
@@ -121,7 +140,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: "Art. 165 c.p.c.",
     noteOperative:
       "Regola ordinaria: entro 10 giorni dalla prima notificazione, salvo termini ridotti o particolarità del rito.",
-    ordine: 6,
+    ordine: 7,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -139,7 +158,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     isPromemoriaFestivi: true,
     norma: "Art. 166 c.p.c.",
     noteOperative: "Scadenza a ritroso rispetto alla prima udienza.",
-    ordine: 7,
+    ordine: 8,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -158,7 +177,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Data ancora della pratica: da questa si calcolano i termini a ritroso delle memorie 171-ter.",
-    ordine: 8,
+    ordine: 9,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -177,7 +196,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Evento successivo eventualmente fissato dal giudice; non automaticamente ricavabile in modo affidabile.",
-    ordine: 9,
+    ordine: 10,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -196,7 +215,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Data da inserire manualmente; da qui possono derivare termini conclusionali solo se il modello processuale li prevede e il giudice li assegna.",
-    ordine: 10,
+    ordine: 11,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -215,7 +234,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Conviene gestirle come evento manuale o come regola parametrica separata, perché la decorrenza può dipendere dal provvedimento di rimessione in decisione.",
-    ordine: 11,
+    ordine: 12,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -234,7 +253,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Meglio non automatizzarla in questa prima versione senza distinguere bene il momento da cui decorre il termine.",
-    ordine: 12,
+    ordine: 13,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -253,7 +272,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: null,
     noteOperative:
       "Meglio non automatizzarla in questa prima versione senza distinguere bene il momento da cui decorre il termine.",
-    ordine: 13,
+    ordine: 14,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -271,7 +290,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     isPromemoriaFestivi: true,
     norma: null,
     noteOperative: null,
-    ordine: 14,
+    ordine: 15,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -290,7 +309,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: "Art. 327 c.p.c.; artt. 325, 326 c.p.c.",
     noteOperative:
       "Data chiave per il termine lungo di impugnazione se manca la notifica della sentenza.",
-    ordine: 15,
+    ordine: 16,
   },
   {
     macroArea: "PROCEDIMENTI_SPECIALI",
@@ -309,7 +328,7 @@ const DECRETO_INGIUNTIVO_ROWS: ExcelRuleRow[] = [
     norma: "Artt. 325 e 326 c.p.c.",
     noteOperative:
       "Data chiave per il termine breve di impugnazione; da essa dipendono appello e ricorso per cassazione.",
-    ordine: 16,
+    ordine: 17,
   },
 ];
 
