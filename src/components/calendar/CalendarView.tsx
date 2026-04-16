@@ -1981,23 +1981,23 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                               </p>
                             ) : null}
                           </div>
-                          <div className="flex shrink-0 items-start justify-end gap-2">
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${item.badgeClass}`}
-                            >
-                              {item.badgeLabel}
-                            </span>
+                          <div className="flex max-w-[min(45vw,13rem)] shrink-0 flex-col items-end gap-1.5 text-right">
                             {item.practiceLabel &&
                             item.practiceLabel.trim() !== item.title.trim() ? (
                               <span
-                                className="text-calendar-muted max-w-[min(42vw,12rem)] shrink-0 truncate text-right text-xs"
+                                className="inline-flex max-w-full items-center justify-end rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
                                 title={item.practiceLabel}
                               >
-                                {item.subEventId
-                                  ? `← ${item.practiceLabel}`
-                                  : item.practiceLabel}
+                                <span className="truncate">
+                                  {item.subEventId ? `Pratica: ${item.practiceLabel}` : item.practiceLabel}
+                                </span>
                               </span>
                             ) : null}
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.02em] ring-1 ring-inset ${item.badgeClass}`}
+                            >
+                              {item.badgeLabel}
+                            </span>
                           </div>
                         </div>
                       </button>
