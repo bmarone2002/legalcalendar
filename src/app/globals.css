@@ -187,16 +187,24 @@ body {
 .calendar-theme .fc-daygrid-event-harness { overflow: hidden; }
 .calendar-theme .fc-daygrid-day-events { overflow: hidden; }
 .calendar-theme .fc-daygrid-day-frame { overflow: hidden; }
-/* Eventi madre: testo scuro su sfondo chiaro (mese, settimana, agenda) */
-.calendar-theme .fc-event.fc-event-madre .fc-event-title,
-.calendar-theme .fc-event.fc-event-madre .fc-event-time,
-.calendar-theme .fc-event.fc-event-madre .fc-event-main * { color: #171717 !important; text-shadow: none; }
-.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-title { font-weight: 600; color: #171717 !important; text-shadow: none; }
-.calendar-theme .fc .fc-daygrid-event.fc-event-madre .fc-event-time { color: #171717 !important; }
-/* Sottoeventi: icona promemoria poco invasiva, più spazio al testo */
-.calendar-theme .fc-event.fc-event-sub { border-left-width: 0; border-left-style: none; }
-.calendar-theme .fc-event.fc-event-sub .fc-event-main * { color: #171717 !important; }
-.calendar-theme .fc-event.fc-event-sub .text-calendar-sub-event-icon { font-size: 0.65rem; line-height: 1; }
+/* Eventi calendario: stile unificato (madre e sotto-evento) */
+.calendar-theme .fc-event.fc-event-cal-item .fc-event-title,
+.calendar-theme .fc-event.fc-event-cal-item .fc-event-time,
+.calendar-theme .fc-event.fc-event-cal-item .fc-event-main * { color: #171717 !important; text-shadow: none; }
+.calendar-theme .fc .fc-daygrid-event.fc-event-cal-item .fc-event-title { font-weight: 600; color: #171717 !important; text-shadow: none; }
+.calendar-theme .fc .fc-daygrid-event.fc-event-cal-item .fc-event-time { color: #171717 !important; }
+.calendar-theme .fc-event.fc-event-cal-item { border-left-width: 0; border-left-style: none; }
+.calendar-theme .fc-event.fc-event-cal-item .text-calendar-sub-event-icon { font-size: 0.65rem; line-height: 1; }
+/* Udienze: accento visivo (attenzione) senza stravolgere il colore tag */
+.calendar-theme .fc-event.fc-event-udienza.fc-daygrid-event {
+  box-shadow: inset 3px 0 0 0 #d97706;
+}
+.calendar-theme .fc-event.fc-event-udienza.fc-timegrid-event {
+  box-shadow: inset 3px 0 0 0 #d97706;
+}
+.calendar-theme .fc-list-event.fc-event-udienza td {
+  background: linear-gradient(90deg, rgba(254, 243, 199, 0.55) 0%, rgba(255, 255, 255, 0) 12rem);
+}
 .calendar-theme .calendar-sub-event-feedback {
   position: relative;
   transform-origin: left center;

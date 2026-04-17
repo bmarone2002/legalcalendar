@@ -15,6 +15,36 @@ import type {
   EventMountArg,
   EventChangeArg,
 } from "@fullcalendar/core";
+import { useCalendarTagFilters } from "@/hooks/useCalendarTagFilters";
+import { getEvents, updateEvent, deleteEvent } from "@/lib/actions/events";
+import { regenerateSubEvents, updateSubEvent, deleteSubEvent } from "@/lib/actions/sub-events";
+import type { Event as AppEvent, EventType, SubEvent } from "@/types";
+import { EventModal } from "@/components/event-modal/EventModal";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  EVENT_TAG_COLORS,
+  paletteKeyForFilter,
+  allCalendarFilterColorKeys,
+  COLOR_FILTER_NONE,
+  COLOR_FILTER_OTHER,
+} from "@/constants/event-tag-colors";
+import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
+import { getPracticeTitleFromEvent } from "@/lib/practice-title";
+import { matchesUdienzaPanelPhaseLabel } from "@/lib/udienza-panel-phases";
+import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Gavel,
+  ListChecks,
+  Plus,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
 
 const FC_PLUGINS = [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin];
 
@@ -60,29 +90,10 @@ const FC_VIEWS = {
 };
 
 function fcEventClassNames(arg: { event: { extendedProps: Record<string, unknown> } }) {
-  return (arg.event.extendedProps.isSubEvent as boolean) ? ["fc-event-sub"] : ["fc-event-madre"];
+  const classes = ["fc-event-cal-item"];
+  if (arg.event.extendedProps.isUdienza) classes.push("fc-event-udienza");
+  return classes;
 }
-import { useCalendarTagFilters } from "@/hooks/useCalendarTagFilters";
-import { getEvents, updateEvent, deleteEvent } from "@/lib/actions/events";
-import { regenerateSubEvents, updateSubEvent, deleteSubEvent } from "@/lib/actions/sub-events";
-import type { Event as AppEvent, EventType, SubEvent } from "@/types";
-import { EventModal } from "@/components/event-modal/EventModal";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  EVENT_TAG_COLORS,
-  paletteKeyForFilter,
-  allCalendarFilterColorKeys,
-  COLOR_FILTER_NONE,
-  COLOR_FILTER_OTHER,
-} from "@/constants/event-tag-colors";
-import { getFaseDisplayString, getFaseDisplayFromFields } from "@/lib/event-fase";
-import { getPracticeTitleFromEvent } from "@/lib/practice-title";
-import { matchesUdienzaPanelPhaseLabel } from "@/lib/udienza-panel-phases";
-import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Gavel, ListChecks, Plus, Search, type LucideIcon } from "lucide-react";
 
 /** Focus del resoconto sotto calendario/agenda (non filtra la vista principale). */
 type SmartPanelFocus = "udienze" | "adempimenti";
@@ -111,6 +122,22 @@ function paintListSubEventDotFromParentTag(el: HTMLElement, parentTagColor: stri
     dot.style.borderColor = LIST_SUB_DOT_NEUTRAL;
     dot.style.backgroundColor = LIST_SUB_DOT_NEUTRAL;
   }
+}
+
+/** Colori bordo/sfondo agenda dopo toggle stato (allineato a sotto-eventi e evento madre). */
+function agendaColorsAfterStatusToggle(
+  parentTag: string | null | undefined,
+  newStatus: "pending" | "done"
+): { newBg: string; newBorder: string } {
+  const pt = parentTag?.trim();
+  if (pt) {
+    return {
+      newBg: pt,
+      newBorder: newStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING,
+    };
+  }
+  const newBg = newStatus === "done" ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+  return { newBg, newBorder: newBg };
 }
 
 function isListViewType(viewType: string): boolean {
@@ -176,6 +203,16 @@ function sottoeventoPannelloUdienze(se: SubEvent): boolean {
   return matchesUdienzaPanelPhaseLabel(se.title);
 }
 
+/** Stessa logica del pannello «Udienze»: evento madre che conta come udienza in calendario. */
+function isUdienzaMotherEvent(ev: AppEvent): boolean {
+  return matchesUdienzaPanelPhaseLabel(getFaseDisplayString(ev)) || ev.type === "udienza";
+}
+
+function isUdienzaSubCalendar(se: SubEvent, isRinvioUdienzaSubEvent: boolean): boolean {
+  if (isRinvioUdienzaSubEvent) return true;
+  return sottoeventoPannelloUdienze(se);
+}
+
 /**
  * «Aggiungi adempimento collegato» dalla modale pratica: i sottoeventi generati hanno
  * `ruleParams.linkedEvent: true` (ruleId `data-driven` o `reminder`, vedi `buildLinkedEventCandidates`).
@@ -234,6 +271,20 @@ function TrashIcon({ className }: { className?: string }) {
   );
 }
 
+/** Evidenziazione udienze: priorità visiva + accessibilità. */
+function UdienzaAttentionMark() {
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-0.5 text-amber-800"
+      title="Udienza — richiede attenzione"
+    >
+      <Gavel className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+      <AlertTriangle className="h-3 w-3 text-amber-600" aria-hidden />
+      <span className="sr-only">Udienza, richiede attenzione</span>
+    </span>
+  );
+}
+
 function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   // Evento madre: se è stato scelto un colore tag, usiamo quello; altrimenti nessun tag (sfondo neutro)
   const rawColor = (e.color ?? "").trim();
@@ -253,6 +304,16 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
   /** Riga principale in calendario/agenda: fase processuale se nota, altrimenti titolo evento. */
   const calendarTitleParent = faseLabel || mainTitle;
   const practiceTitleFull = getPracticeTitleFromEvent(e);
+  const motherDone = e.status === "done";
+  let motherBg = mainBackground;
+  let motherBorder = mainBorder;
+  if (tagColor) {
+    motherBg = tagColor;
+    motherBorder = motherDone ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+  } else {
+    motherBg = motherDone ? SUB_EVENT_COLOR_DONE : "#ffffff";
+    motherBorder = motherDone ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING;
+  }
   const out: Array<Record<string, unknown>> = [
     {
       id: e.id,
@@ -260,12 +321,13 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       start: e.startAt,
       end: e.endAt,
       allDay: false,
-      backgroundColor: mainBackground,
-      borderColor: mainBorder,
+      backgroundColor: motherBg,
+      borderColor: motherBorder,
       extendedProps: {
         type: e.type,
         tags: e.tags,
         isSubEvent: false,
+        isUdienza: isUdienzaMotherEvent(e),
         status: e.status ?? "pending",
         filterColorKey,
         parentTagColor: tagColor,
@@ -323,6 +385,7 @@ function toFullCalendarEvents(e: AppEvent): Array<Record<string, unknown>> {
       editable: false,
       extendedProps: {
         isSubEvent: true,
+        isUdienza: isUdienzaSubCalendar(se, isRinvioUdienzaSubEvent),
         isRinvioUdienzaSubEvent,
         isAdempimentoCollegatoSubEvent,
         parentEventId: e.id,
@@ -427,7 +490,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   const [draftEvents, setDraftEvents] = useState<DraftEvent[]>([]);
   const [showPending, setShowPending] = useState<boolean>(true);
   const [showDone, setShowDone] = useState<boolean>(false);
-  const [subEventStatusFeedback, setSubEventStatusFeedback] = useState<
+  const [itemStatusFeedback, setItemStatusFeedback] = useState<
     Record<string, "to-done" | "to-pending">
   >({});
 
@@ -554,8 +617,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
   const handleEventDidMount = useCallback((info: EventMountArg) => {
     if (!isListViewType(info.view.type)) return;
-    const isSub = info.event.extendedProps.isSubEvent as boolean | undefined;
-    if (!isSub) return;
     const id = String(info.event.id);
     listEventRowElsRef.current.set(id, info.el);
     const parentTag = info.event.extendedProps.parentTagColor as string | null | undefined;
@@ -563,14 +624,13 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   }, []);
 
   const handleEventWillUnmount = useCallback((info: EventMountArg) => {
-    const isSub = info.event.extendedProps.isSubEvent as boolean | undefined;
-    if (!isSub) return;
+    if (!isListViewType(info.view.type)) return;
     listEventRowElsRef.current.delete(String(info.event.id));
   }, []);
 
   const handleEventChange = useCallback((arg: EventChangeArg) => {
-    const isSub = arg.event.extendedProps.isSubEvent as boolean | undefined;
-    if (!isSub) return;
+    const viewType = calendarRef.current?.getApi()?.view?.type ?? "";
+    if (!isListViewType(viewType)) return;
     const el = listEventRowElsRef.current.get(String(arg.event.id));
     if (!el) return;
     const parentTag = arg.event.extendedProps.parentTagColor as string | null | undefined;
@@ -835,6 +895,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 extendedProps: {
                   isSubEvent: false,
                   isDraft: true,
+                  isUdienza: false,
                   type: (f.type as string | undefined) ?? "altro",
                   status: f.status ?? "pending",
                   filterColorKey: tag,
@@ -1208,18 +1269,40 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   }, []);
 
   const renderEventContent = useCallback((arg: EventContentArg) => {
-    const isSub = arg.event.extendedProps.isSubEvent as boolean | undefined;
-    const parentTitle = arg.event.extendedProps.parentTitle as string | undefined;
-    const practiceTitleFull = (arg.event.extendedProps.practiceTitleFull as string | undefined)?.trim();
-    const kind = arg.event.extendedProps.kind as string | undefined;
-    const isListView = (arg.view.type === "list" || arg.view.type === "listWeek" || arg.view.type === "listDay" || arg.view.type === "listMonth" || arg.view.type === "listFromToday");
+    const ext = arg.event.extendedProps as Record<string, unknown>;
+    const isSub = Boolean(ext.isSubEvent);
+    const isDraft = Boolean(ext.isDraft);
+    const isUdienza = Boolean(ext.isUdienza);
+    const parentTitle = ext.parentTitle as string | undefined;
+    const practiceTitleFull = (ext.practiceTitleFull as string | undefined)?.trim();
+    const kind = ext.kind as string | undefined;
+    const isListView =
+      arg.view.type === "list" ||
+      arg.view.type === "listWeek" ||
+      arg.view.type === "listDay" ||
+      arg.view.type === "listMonth" ||
+      arg.view.type === "listFromToday";
 
-    if (isSub && isListView) {
+    const udienzaListRow = isUdienza
+      ? "ring-1 ring-amber-400/40 bg-gradient-to-r from-amber-50/85 to-transparent"
+      : "";
+
+    if (isListView && isDraft) {
+      return (
+        <div className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 border-l-amber-500 pl-1 bg-amber-50/60">
+          <span className="fc-list-event-title min-w-0 flex-1 truncate font-medium text-amber-950">
+            {arg.event.title}
+          </span>
+        </div>
+      );
+    }
+
+    if (isListView) {
       const borderColor = arg.event.borderColor as string | undefined;
-      const status = arg.event.extendedProps.status as string | undefined;
+      const status = ext.status as string | undefined;
       const isDone = status === "done";
       const isReminder = kind === "promemoria";
-      const feedbackState = subEventStatusFeedback[arg.event.id as string];
+      const feedbackState = itemStatusFeedback[arg.event.id as string];
       const isAnimatingToDone = feedbackState === "to-done";
       const isAnimatingToPending = feedbackState === "to-pending";
       const rowFeedbackClass = isAnimatingToDone
@@ -1232,88 +1315,101 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       if (evDay) evDay.setHours(0, 0, 0, 0);
       const todayList = new Date();
       todayList.setHours(0, 0, 0, 0);
-      const isFutureReminder = isReminder && evDay != null && evDay > todayList;
+      const isFutureReminder = isSub && isReminder && evDay != null && evDay > todayList;
+
       const practiceLabel = practiceTitleFull || parentTitle;
-      const subTitleShown = (arg.event.title || "").trim();
-      const showPracticeLabel = Boolean(practiceLabel && practiceLabel !== subTitleShown);
+      const titleShown = (arg.event.title || "").trim();
+      const showPracticeLabel = Boolean(practiceLabel && practiceLabel !== titleShown);
+      const titleSafe = practiceTitleFull || titleShown || "questa pratica";
+
+      const scheduleFeedback = (id: string, feedbackKey: "to-done" | "to-pending") => {
+        const existingTimeout = subEventFeedbackTimeoutsRef.current.get(id);
+        if (existingTimeout) clearTimeout(existingTimeout);
+        setItemStatusFeedback((prev) => ({ ...prev, [id]: feedbackKey }));
+        const clearTimeoutId = setTimeout(() => {
+          setItemStatusFeedback((prev) => {
+            if (!(id in prev)) return prev;
+            const next = { ...prev };
+            delete next[id];
+            return next;
+          });
+          subEventFeedbackTimeoutsRef.current.delete(id);
+        }, 1400);
+        subEventFeedbackTimeoutsRef.current.set(id, clearTimeoutId);
+        requestAnimationFrame(() => {
+          const row = listEventRowElsRef.current.get(id);
+          if (row) {
+            paintListSubEventDotFromParentTag(row, ext.parentTagColor as string | null | undefined);
+          }
+        });
+      };
+
+      const applyColorsAfterToggle = (newStatus: "pending" | "done") => {
+        const { newBg, newBorder } = agendaColorsAfterStatusToggle(
+          ext.parentTagColor as string | null | undefined,
+          newStatus
+        );
+        arg.event.setExtendedProp("status", newStatus);
+        arg.event.setProp("backgroundColor", newBg);
+        arg.event.setProp("borderColor", newBorder);
+      };
+
+      const onToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        const id = arg.event.id as string;
+        const nextStatus = isDone ? "pending" : "done";
+        if (isSub) {
+          const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" }, targetUserId);
+          if (result.success && result.data) {
+            const st = result.data.status;
+            if (st !== "done" && st !== "pending") return;
+            const feedbackKey = st === "done" ? "to-done" : "to-pending";
+            applyColorsAfterToggle(st);
+            scheduleFeedback(id, feedbackKey);
+            if (st === "done" && !showDone) {
+              window.setTimeout(() => arg.event.remove(), 380);
+            }
+            if (st === "pending" && !showPending) {
+              window.setTimeout(() => arg.event.remove(), 380);
+            }
+          }
+        } else {
+          const result = await updateEvent(id, { status: nextStatus }, targetUserId);
+          if (result.success && result.data) {
+            const raw = result.data.status;
+            const s = raw === "done" ? "done" : "pending";
+            const feedbackKey = s === "done" ? "to-done" : "to-pending";
+            applyColorsAfterToggle(s);
+            scheduleFeedback(id, feedbackKey);
+            if (s === "done" && !showDone) {
+              window.setTimeout(() => arg.event.remove(), 380);
+            }
+            if (s === "pending" && !showPending) {
+              window.setTimeout(() => arg.event.remove(), 380);
+            }
+          }
+        }
+      };
+
       return (
         <div
-          className={`fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1 ${rowFeedbackClass}`}
+          className={`fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1 ${rowFeedbackClass} ${udienzaListRow}`}
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
           {canEdit && !isFutureReminder ? (
-          <button
-            type="button"
-            aria-label={isDone ? "Segna come non fatto" : "Segna come fatto"}
-            className={`h-5 w-9 rounded-full border flex items-center px-0.5 transition-colors ${
-              isDone
-                ? "bg-emerald-500 border-emerald-600"
-                : "bg-red-500 border-red-600"
-            }`}
-            onClick={async (e) => {
-              e.stopPropagation();
-              const id = arg.event.id as string;
-              const nextStatus = isDone ? "pending" : "done";
-              const result = await updateSubEvent(id, { status: nextStatus as "pending" | "done" }, targetUserId);
-              if (result.success && result.data) {
-                const newStatus = result.data.status;
-                const feedbackKey = newStatus === "done" ? "to-done" : "to-pending";
-                const parentTag = arg.event.extendedProps.parentTagColor as string | null | undefined;
-                const newBg = parentTag
-                  ? parentTag
-                  : newStatus === "done"
-                    ? SUB_EVENT_COLOR_DONE
-                    : SUB_EVENT_COLOR_PENDING;
-                const newBorder = parentTag
-                  ? newStatus === "done"
-                    ? SUB_EVENT_COLOR_DONE
-                    : SUB_EVENT_COLOR_PENDING
-                  : newBg;
-                arg.event.setExtendedProp("status", newStatus);
-                arg.event.setProp("backgroundColor", newBg);
-                arg.event.setProp("borderColor", newBorder);
-                const existingTimeout = subEventFeedbackTimeoutsRef.current.get(id);
-                if (existingTimeout) clearTimeout(existingTimeout);
-                setSubEventStatusFeedback((prev) => ({ ...prev, [id]: feedbackKey }));
-                const clearTimeoutId = setTimeout(() => {
-                  setSubEventStatusFeedback((prev) => {
-                    if (!(id in prev)) return prev;
-                    const next = { ...prev };
-                    delete next[id];
-                    return next;
-                  });
-                  subEventFeedbackTimeoutsRef.current.delete(id);
-                }, 1400);
-                subEventFeedbackTimeoutsRef.current.set(id, clearTimeoutId);
-                requestAnimationFrame(() => {
-                  const row = listEventRowElsRef.current.get(id);
-                  if (row) {
-                    paintListSubEventDotFromParentTag(
-                      row,
-                      arg.event.extendedProps.parentTagColor as string | null | undefined
-                    );
-                  }
-                });
-                if (newStatus === "done" && !showDone) {
-                  window.setTimeout(() => {
-                    arg.event.remove();
-                  }, 380);
-                }
-                if (newStatus === "pending" && !showPending) {
-                  window.setTimeout(() => {
-                    arg.event.remove();
-                  }, 380);
-                }
-              }
-            }}
-          >
-            <span
-              className="h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform"
-              style={{
-                transform: isDone ? "translateX(12px)" : "translateX(0px)",
-              }}
-            />
-          </button>
+            <button
+              type="button"
+              aria-label={isDone ? "Segna come non fatto" : "Segna come fatto"}
+              className={`h-5 w-9 shrink-0 rounded-full border flex items-center px-0.5 transition-colors ${
+                isDone ? "bg-emerald-500 border-emerald-600" : "bg-red-500 border-red-600"
+              }`}
+              onClick={onToggle}
+            >
+              <span
+                className="h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform"
+                style={{ transform: isDone ? "translateX(12px)" : "translateX(0px)" }}
+              />
+            </button>
           ) : (
             <span
               className={`inline-block h-3 w-3 rounded-full shrink-0 ${isFutureReminder ? "bg-zinc-400" : ""}`}
@@ -1321,13 +1417,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 isFutureReminder
                   ? undefined
                   : (() => {
-                      const pt = (arg.event.extendedProps.parentTagColor as string | undefined)?.trim();
+                      const pt = (ext.parentTagColor as string | undefined)?.trim();
                       if (pt) return { backgroundColor: pt };
                       return { backgroundColor: isDone ? SUB_EVENT_COLOR_DONE : SUB_EVENT_COLOR_PENDING };
                     })()
               }
             />
           )}
+          {isUdienza ? <UdienzaAttentionMark /> : null}
           <span className="fc-list-event-title min-w-0 flex-1 truncate" style={{ color: "#171717" }}>
             {arg.event.title}
           </span>
@@ -1342,9 +1439,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               {isAnimatingToDone ? "Nei completati" : "Nei da fare"}
             </span>
           ) : null}
-          {kind && (
-            <span className="text-calendar-muted text-xs shrink-0">{kind}</span>
-          )}
+          {isSub && kind ? <span className="text-calendar-muted text-xs shrink-0">{kind}</span> : null}
           {showPracticeLabel ? (
             <span
               className="text-calendar-muted max-w-[min(42vw,12rem)] shrink-0 truncate text-xs text-right"
@@ -1353,7 +1448,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               ← {practiceLabel}
             </span>
           ) : null}
-          {canEdit && (
+          {canEdit && isSub && (
             <button
               type="button"
               aria-label="Rimuovi sottoevento"
@@ -1377,78 +1472,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               <TrashIcon className="h-3.5 w-3.5" />
             </button>
           )}
-        </div>
-      );
-    }
-    if (isSub) {
-      const borderColor = arg.event.borderColor as string | undefined;
-      const status = arg.event.extendedProps.status as string | undefined;
-      const isDone = status === "done";
-      const isPromemoriaSub = kind === "promemoria";
-      const parentTagColorRaw = arg.event.extendedProps.parentTagColor as string | undefined;
-      const parentTagColor = parentTagColorRaw?.trim() ? parentTagColorRaw.trim() : null;
-      const evStart = arg.event.start;
-      const evDay = evStart ? new Date(typeof evStart === "string" ? evStart : evStart.getTime()) : null;
-      if (evDay) evDay.setHours(0, 0, 0, 0);
-      const todaySub = new Date();
-      todaySub.setHours(0, 0, 0, 0);
-      const isFutureReminderSub = isPromemoriaSub && evDay != null && evDay > todaySub;
-      const arrowColorClass = isFutureReminderSub
-        ? "text-zinc-400"
-        : isDone
-          ? "text-emerald-500"
-          : "text-red-500";
-      return (
-        <div
-          className="fc-event-main-frame flex items-start gap-1 rounded border-l-2 pl-1"
-          style={{ borderLeftColor: borderColor ?? undefined }}
-        >
-          {parentTagColor && (
-            <span
-              aria-hidden
-              className="inline-block h-2 w-2 rounded-full shrink-0"
-              style={{ backgroundColor: parentTagColor }}
-              title="Colore tag pratica"
-            />
-          )}
-          <span className={`${arrowColorClass} shrink-0 text-[10px] leading-none opacity-90`} aria-hidden title="Promemoria">↳</span>
-          <span className="truncate min-w-0 flex-1 self-start text-[inherit] leading-tight" style={{ color: "#171717" }}>
-            {arg.event.title}
-          </span>
-        </div>
-      );
-    }
-    // Evento madre in vista Agenda: mostra spunta verde se completato + icona cestino per eliminare
-    if (isListView) {
-      const evStatus = arg.event.extendedProps.status as string | undefined;
-      const isDoneEv = evStatus === "done";
-      const eventTitleShown = (arg.event.title || "").trim();
-      const showPracticeAside = Boolean(practiceTitleFull && practiceTitleFull !== eventTitleShown);
-      const titleSafe = practiceTitleFull || eventTitleShown || "questa pratica";
-      return (
-        <div className="fc-event-main-frame flex items-center gap-2">
-          {isDoneEv && (
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 shrink-0">
-              <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3">
-                <path d="M3 8l3.5 3.5L13 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          )}
-          <span
-            className={`fc-list-event-title min-w-0 flex-1 truncate font-medium ${isDoneEv ? "line-through text-zinc-400" : ""}`}
-            style={{ color: isDoneEv ? undefined : "#171717" }}
-          >
-            {arg.event.title}
-          </span>
-          {showPracticeAside ? (
-            <span
-              className="text-calendar-muted max-w-[min(42vw,12rem)] shrink-0 truncate text-xs text-right"
-              title={practiceTitleFull}
-            >
-              {practiceTitleFull}
-            </span>
-          ) : null}
-          {canEdit && (
+          {canEdit && !isSub && (
             <button
               type="button"
               aria-label="Rimuovi evento"
@@ -1457,10 +1481,10 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               onClick={async (e) => {
                 e.stopPropagation();
                 const id = arg.event.id as string;
-                  const confirmed = window.confirm(
-                    `Stai per eliminare la pratica “${titleSafe}” e tutti i promemoria collegati. Vuoi continuare?`
-                  );
-                  if (!confirmed) return;
+                const confirmed = window.confirm(
+                  `Stai per eliminare la pratica “${titleSafe}” e tutti i promemoria collegati. Vuoi continuare?`
+                );
+                if (!confirmed) return;
                 const result = await deleteEvent(id, targetUserId);
                 if (result.success) {
                   const api = calendarRef.current?.getApi();
@@ -1470,9 +1494,9 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   }
                   const events = api.getEvents();
                   events.forEach((ev) => {
-                    const isSub = ev.extendedProps.isSubEvent as boolean | undefined;
+                    const isSubEv = ev.extendedProps.isSubEvent as boolean | undefined;
                     const parentId = ev.extendedProps.parentEventId as string | undefined;
-                    if (ev.id === id || (isSub && parentId === id)) {
+                    if (ev.id === id || (isSubEv && parentId === id)) {
                       ev.remove();
                     }
                   });
@@ -1485,43 +1509,68 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
         </div>
       );
     }
-    // Evento madre in vista Mese/Giorno/Settimana: pallino (o spunta verde se completato) + titolo
-    if (!isSub && arg.view.type.startsWith("dayGrid")) {
-      const evStatus = arg.event.extendedProps.status as string | undefined;
-      const isDoneEv = evStatus === "done";
-      const bgColor = arg.event.backgroundColor as string | undefined;
-      const hasTagColor = bgColor && bgColor !== "#ffffff";
-      const dotColor = hasTagColor ? bgColor : "#171717";
+    if (isSub) {
+      const borderColor = arg.event.borderColor as string | undefined;
+      const parentTagColorRaw = ext.parentTagColor as string | undefined;
+      const parentTagColor = parentTagColorRaw?.trim() ? parentTagColorRaw.trim() : null;
       return (
-        <div className="fc-event-main-frame flex items-center gap-1">
-          {isDoneEv ? (
-            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-green-500 shrink-0 mr-0.5">
-              <svg viewBox="0 0 16 16" fill="none" className="w-2.5 h-2.5">
-                <path d="M3 8l3.5 3.5L13 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          ) : (
+        <div
+          className={`fc-event-main-frame flex items-center gap-1 rounded border-l-[3px] pl-1 ${
+            isUdienza ? "ring-1 ring-amber-300/50 bg-amber-50/25" : ""
+          }`}
+          style={{ borderLeftColor: borderColor ?? undefined }}
+        >
+          {parentTagColor ? (
             <span
               aria-hidden
-              className="mr-1.5 inline-block h-3 w-3 rounded-full shrink-0"
-              style={{ backgroundColor: dotColor }}
+              className="inline-block h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: parentTagColor }}
+              title="Colore tag pratica"
             />
-          )}
-          <span className={`truncate ${isDoneEv ? "line-through text-zinc-400" : ""}`} style={{ color: isDoneEv ? undefined : "#171717" }}>
+          ) : null}
+          {isUdienza ? <UdienzaAttentionMark /> : null}
+          <span className="min-w-0 flex-1 truncate leading-tight text-[inherit]" style={{ color: "#171717" }}>
             {arg.event.title}
           </span>
         </div>
       );
     }
-    // Evento madre in vista Giorno/Settimana: privilegia l'inizio del titolo quando i box sono stretti.
-    if (!isSub && arg.view.type.startsWith("timeGrid")) {
-      const evStatus = arg.event.extendedProps.status as string | undefined;
-      const isDoneEv = evStatus === "done";
+    if (arg.view.type.startsWith("dayGrid")) {
+      const borderColor = arg.event.borderColor as string | undefined;
+      const parentTag = (ext.parentTagColor as string | undefined)?.trim();
       return (
-        <div className="fc-event-main-frame flex w-full items-start justify-start">
+        <div
+          className={`fc-event-main-frame flex items-center gap-1 rounded border-l-[3px] pl-0.5 ${
+            isUdienza ? "ring-1 ring-amber-300/50 bg-amber-50/20" : ""
+          }`}
+          style={{ borderLeftColor: borderColor ?? undefined }}
+        >
+          {parentTag ? (
+            <span
+              aria-hidden
+              className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: parentTag }}
+              title="Colore tag pratica"
+            />
+          ) : null}
+          {isUdienza ? <UdienzaAttentionMark /> : null}
+          <span className="min-w-0 flex-1 truncate" style={{ color: "#171717" }}>
+            {arg.event.title}
+          </span>
+        </div>
+      );
+    }
+    if (arg.view.type.startsWith("timeGrid")) {
+      return (
+        <div
+          className={`fc-event-main-frame flex w-full items-center gap-1 ${
+            isUdienza ? "rounded-sm bg-amber-50/25 px-0.5 ring-1 ring-amber-300/50" : ""
+          }`}
+        >
+          {isUdienza ? <UdienzaAttentionMark /> : null}
           <span
-            className={`min-w-0 w-full truncate text-left leading-tight ${isDoneEv ? "line-through text-zinc-400" : ""}`}
-            style={{ color: isDoneEv ? undefined : "#171717" }}
+            className="min-w-0 w-full truncate text-left leading-tight"
+            style={{ color: "#171717" }}
             title={arg.event.title}
           >
             {arg.event.title}
@@ -1535,7 +1584,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     targetUserId,
     showPending,
     showDone,
-    subEventStatusFeedback,
+    itemStatusFeedback,
   ]);
 
   return (
@@ -2017,11 +2066,17 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {smartPanelItems.map((item) => (
+                  {smartPanelItems.map((item) => {
+                    const isUdienzaRow = item.badgeLabel === "Udienza";
+                    return (
                     <li key={item.id}>
                       <button
                         type="button"
-                        className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navy)]/35 focus-visible:ring-offset-2"
+                        className={`w-full rounded-xl border p-3 text-left shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navy)]/35 focus-visible:ring-offset-2 ${
+                          isUdienzaRow
+                            ? "border-amber-300/60 bg-gradient-to-br from-amber-50/90 to-white hover:border-amber-400/50 hover:bg-amber-50/40"
+                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/90"
+                        }`}
                         onClick={() =>
                           handleSmartPanelItemActivate(item.parentEventId, item.subEventId, item.date)
                         }
@@ -2029,8 +2084,15 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                               {item.dateLabel}
+                              {isUdienzaRow ? (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100/90 px-2 py-0.5 font-bold text-amber-900 normal-case">
+                                  <Gavel className="h-3 w-3" aria-hidden />
+                                  <AlertTriangle className="h-3 w-3 text-amber-700" aria-hidden />
+                                  <span className="sr-only">Udienza</span>
+                                </span>
+                              ) : null}
                             </p>
                             <p
                               className={`mt-1 text-sm font-semibold text-slate-900 ${
@@ -2066,7 +2128,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                         </div>
                       </button>
                     </li>
-                  ))}
+                  );
+                  })}
                 </ul>
               )}
             </div>
