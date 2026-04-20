@@ -74,13 +74,13 @@ const FC_VIEWS = {
   },
   listFromToday: {
     type: "list" as const,
-    duration: { years: 8 },
+    duration: { years: 2 },
     visibleRange: (currentDate: Date) => {
-      const start = new Date(currentDate);
-      start.setFullYear(start.getFullYear() - 3);
+      // Agenda operativa: da oggi in avanti, senza espandere la vista su intervalli pluriennali.
+      const start = new Date();
       start.setHours(0, 0, 0, 0);
-      const end = new Date(currentDate);
-      end.setFullYear(end.getFullYear() + 3);
+      const end = new Date(start);
+      end.setFullYear(end.getFullYear() + 2);
       end.setHours(23, 59, 59, 999);
       return { start, end };
     },
