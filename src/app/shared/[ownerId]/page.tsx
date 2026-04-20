@@ -23,7 +23,7 @@ export default async function SharedCalendarPage({ params }: SharedCalendarPageP
       }
     >
       <SignedIn>
-        <div className="flex h-[calc(100dvh-9.5rem)] min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <SharedCalendarView ownerId={ownerId} />
         </div>
       </SignedIn>
