@@ -36,7 +36,6 @@ import { useListboxArrowKeys } from "@/hooks/useListboxArrowKeys";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import {
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Gavel,
@@ -276,11 +275,10 @@ function UdienzaAttentionMark() {
   return (
     <span
       className="inline-flex shrink-0 items-center gap-0.5 text-amber-800"
-      title="Udienza — richiede attenzione"
+      title="Udienza"
     >
       <Gavel className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-      <AlertTriangle className="h-3 w-3 text-amber-600" aria-hidden />
-      <span className="sr-only">Udienza, richiede attenzione</span>
+      <span className="sr-only">Udienza</span>
     </span>
   );
 }
@@ -2152,7 +2150,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                               {isUdienzaRow ? (
                                 <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100/90 px-2 py-0.5 font-bold text-amber-900 normal-case">
                                   <Gavel className="h-3 w-3" aria-hidden />
-                                  <AlertTriangle className="h-3 w-3 text-amber-700" aria-hidden />
                                   <span className="sr-only">Udienza</span>
                                 </span>
                               ) : null}
