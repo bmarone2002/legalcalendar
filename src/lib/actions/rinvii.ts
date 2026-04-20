@@ -68,6 +68,22 @@ function toDateOnlyString(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function hasExplicitRinvioTime(d: Date): boolean {
+  return d.getHours() !== 12 || d.getMinutes() !== 0 || d.getSeconds() !== 0 || d.getMilliseconds() !== 0;
+}
+
+function applyTimeFromReference(date: Date, ref: Date): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    ref.getHours(),
+    ref.getMinutes(),
+    0,
+    0
+  );
+}
+
 function parseAdempimenti(json: string): Adempimento[] {
   try {
     const arr = JSON.parse(json) as unknown;
@@ -169,8 +185,11 @@ async function generateSubEventsForRinvio(
     udienzaInfo.tipoUdienza,
     udienzaInfo.tipoUdienzaCustom
   );
+  const preserveExplicitTime = hasExplicitRinvioTime(udienzaInfo.dataUdienza);
 
-  const udienzaDueAt = applyDeadlineTime(udienzaInfo.dataUdienza, settings);
+  const udienzaDueAt = preserveExplicitTime
+    ? new Date(udienzaInfo.dataUdienza)
+    : applyDeadlineTime(udienzaInfo.dataUdienza, settings);
   const reminderOffsets =
     reminderOffsetsFromInput && reminderOffsetsFromInput.length > 0
       ? reminderOffsetsFromInput
@@ -201,7 +220,9 @@ async function generateSubEventsForRinvio(
     if (daysBefore <= 0) continue;
     const alertRaw = addDays(udienzaInfo.dataUdienza, -daysBefore);
     const alertAdjusted = adjustFinalDeadline(alertRaw, "backward", settings);
-    const alertDueAt = applyDeadlineTime(alertAdjusted, settings);
+    const alertDueAt = preserveExplicitTime
+      ? applyTimeFromReference(alertAdjusted, udienzaInfo.dataUdienza)
+      : applyDeadlineTime(alertAdjusted, settings);
 
     batch.push({
       parentEventId,
@@ -233,11 +254,14 @@ async function generateSubEventsForRinvio(
       le.offsetDays,
       settings,
     );
+    const linkedDueAt = preserveExplicitTime
+      ? applyTimeFromReference(dueAt, udienzaInfo.dataUdienza)
+      : dueAt;
     batch.push({
       parentEventId,
       title,
       kind: "attivita",
-      dueAt,
+      dueAt: linkedDueAt,
       status: "pending",
       priority: 0,
       ruleId: RINVIO_RULE_ID,

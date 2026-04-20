@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DatePicker } from "./DatePicker";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LinkedEventOffsetDateControls } from "./LinkedEventOffsetDateControls";
 import {
   getRinviiByEventId,
@@ -160,6 +161,11 @@ function RinvioCard({
         </span>
         <span className="text-xs text-zinc-500">
           {format(new Date(rinvio.dataUdienza), "dd MMM yyyy", { locale: it })}
+          {(() => {
+            const d = new Date(rinvio.dataUdienza);
+            if (d.getHours() === 12 && d.getMinutes() === 0) return "";
+            return ` • ${format(d, "HH:mm")}`;
+          })()}
         </span>
       </button>
 
@@ -265,6 +271,8 @@ export function ProsecuzionePanel({
   const [tipoUdienza, setTipoUdienza] = useState<TipoUdienza | "">("");
   const [tipoUdienzaCustom, setTipoUdienzaCustom] = useState("");
   const [dataUdienza, setDataUdienza] = useState<Date | null>(null);
+  const [useCustomTime, setUseCustomTime] = useState(false);
+  const [customTime, setCustomTime] = useState("08:00");
   const [note, setNote] = useState("");
   const [isUdienza, setIsUdienza] = useState(true);
   const [adempimenti, setAdempimenti] = useState<AdempimentoForm[]>([]);
@@ -313,6 +321,8 @@ export function ProsecuzionePanel({
     setTipoUdienza("");
     setTipoUdienzaCustom("");
     setDataUdienza(null);
+    setUseCustomTime(false);
+    setCustomTime("08:00");
     setNote("");
     setIsUdienza(true);
     setAdempimenti([]);
@@ -352,12 +362,24 @@ export function ProsecuzionePanel({
 
     setSaving(true);
     try {
-      const normalizedDataUdienza = new Date(
-        dataUdienza.getFullYear(),
-        dataUdienza.getMonth(),
-        dataUdienza.getDate(),
-        12, 0, 0
-      );
+      const [hours, minutes] = customTime.split(":").map((n) => Number(n));
+      const normalizedDataUdienza = useCustomTime
+        ? new Date(
+            dataUdienza.getFullYear(),
+            dataUdienza.getMonth(),
+            dataUdienza.getDate(),
+            Number.isFinite(hours) ? hours : 8,
+            Number.isFinite(minutes) ? minutes : 0,
+            0
+          )
+        : new Date(
+            dataUdienza.getFullYear(),
+            dataUdienza.getMonth(),
+            dataUdienza.getDate(),
+            12,
+            0,
+            0
+          );
 
       const evento = availableEventi.find((e) => e.code === effectiveEventoCode);
       const labelEvento = evento?.label ?? effectiveEventoCode;
@@ -490,6 +512,12 @@ export function ProsecuzionePanel({
     setShowForm(true);
 
     setDataUdienza(new Date(r.dataUdienza));
+    const udienzaDate = new Date(r.dataUdienza);
+    const hasCustomHour = udienzaDate.getHours() !== 12 || udienzaDate.getMinutes() !== 0;
+    setUseCustomTime(hasCustomHour);
+    setCustomTime(
+      `${String(udienzaDate.getHours()).padStart(2, "0")}:${String(udienzaDate.getMinutes()).padStart(2, "0")}`
+    );
     setNote(r.note ?? "");
 
     setReminderOffsets(r.reminderOffsets ?? []);
@@ -715,6 +743,30 @@ export function ProsecuzionePanel({
                   onChange={setDataUdienza}
                   placeholder="Scegli la data"
                 />
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="rinvio-use-custom-time"
+                      checked={useCustomTime}
+                      onCheckedChange={(checked) => setUseCustomTime(checked === true)}
+                      disabled={!dataUdienza}
+                    />
+                    <Label
+                      htmlFor="rinvio-use-custom-time"
+                      className="cursor-pointer text-xs font-normal text-zinc-600"
+                    >
+                      Imposta ora specifica
+                    </Label>
+                  </div>
+                  {useCustomTime && (
+                    <input
+                      type="time"
+                      value={customTime}
+                      onChange={(e) => setCustomTime(e.target.value)}
+                      className="h-9 rounded-md border border-zinc-200 bg-white px-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[var(--navy)] focus:ring-offset-2"
+                    />
+                  )}
+                </div>
               </div>
               {isManualPractice && (
                 <div className="rounded-lg border border-zinc-200/80 bg-white p-3">
