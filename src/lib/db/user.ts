@@ -27,6 +27,9 @@ async function _getOrCreateDbUser() {
     data: {
       clerkUserId: userId,
       email: email ?? undefined,
+      subscriptionStatus: "trialing",
+      currentPlan: "pro",
+      trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
   });
 

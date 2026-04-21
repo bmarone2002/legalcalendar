@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar, SidebarContent } from "./Sidebar";
 
 interface AppShellProps {
@@ -13,7 +14,11 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, headerTitle }: AppShellProps) {
+  const { isLoaded, isSignedIn } = useUser();
+  const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [billingChecked, setBillingChecked] = useState(false);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -25,6 +30,53 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
       document.body.style.overflow = "";
     };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function enforceBillingGate() {
+      if (!isLoaded) return;
+      if (!isSignedIn) {
+        if (!cancelled) setBillingChecked(true);
+        return;
+      }
+
+      const allowedWithoutPremium =
+        pathname === "/profilo" ||
+        pathname.startsWith("/profilo?") ||
+        pathname.startsWith("/legal") ||
+        pathname.startsWith("/accept-legal");
+
+      if (allowedWithoutPremium) {
+        if (!cancelled) setBillingChecked(true);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/billing/status", { cache: "no-store" });
+        const json = await res.json();
+        const hasAccess = Boolean(json?.success && json?.data?.hasPremiumAccess);
+
+        if (!hasAccess) {
+          router.replace("/profilo?billing_required=1");
+          return;
+        }
+
+        if (!cancelled) setBillingChecked(true);
+      } catch {
+        // Keep UX safe on transient network failures and avoid hard lockout.
+        if (!cancelled) setBillingChecked(true);
+      }
+    }
+
+    void enforceBillingGate();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, pathname, router]);
+
+  const needsBillingCheck = isSignedIn && pathname !== "/profilo";
+  const showBlockingLoader = needsBillingCheck && !billingChecked;
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--surface)]" style={{ backgroundColor: "var(--surface)" }}>
@@ -83,7 +135,13 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
             className="flex min-h-0 flex-1 flex-col overflow-auto p-3 sm:p-4 md:p-5 lg:p-6"
             style={{ backgroundColor: "var(--surface)" }}
           >
-            {children}
+            {showBlockingLoader ? (
+              <div className="mx-auto mt-10 w-full max-w-xl rounded-xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-600 shadow-sm">
+                Verifica stato abbonamento in corso...
+              </div>
+            ) : (
+              children
+            )}
           </main>
         </div>
       </div>

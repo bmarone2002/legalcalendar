@@ -26,6 +26,9 @@ export function hasPremiumAccess(user: BillingUser): boolean {
   if (hasLegacyPremiumAccess(user)) return true;
   if (user.isTester) return true;
   if (user.planOverride === PREMIUM_OVERRIDE) return true;
+  if (user.subscriptionStatus === "trialing") {
+    return !isTrialExpired(user.trialEndsAt);
+  }
   return PREMIUM_STATUSES.includes(user.subscriptionStatus);
 }
 
