@@ -22,6 +22,13 @@ function resolvePriceId(billingCycle: "monthly" | "yearly"): string {
   return priceYearly;
 }
 
+function isNoSuchCustomerError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeError = error as { code?: string; message?: string };
+  const message = maybeError.message ?? "";
+  return maybeError.code === "resource_missing" || message.includes("No such customer");
+}
+
 export async function POST(req: Request) {
   try {
     const payload = checkoutSchema.parse(await req.json().catch(() => ({})));
@@ -30,50 +37,92 @@ export async function POST(req: Request) {
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin ?? "http://localhost:3000";
 
-    let stripeCustomerId = user.stripeCustomerId;
-    if (!stripeCustomerId) {
+    async function createAndPersistCustomer() {
       const customer = await stripe.customers.create({
         email: user.email ?? undefined,
         metadata: { userId: user.id, clerkUserId: user.clerkUserId },
       });
-      stripeCustomerId = customer.id;
+      const stripeCustomerId = customer.id;
       await prisma.user.update({
         where: { id: user.id },
         data: { stripeCustomerId },
       });
+      return stripeCustomerId;
+    }
+
+    let stripeCustomerId = user.stripeCustomerId;
+    if (!stripeCustomerId) {
+      stripeCustomerId = await createAndPersistCustomer();
     }
 
     const priceId = resolvePriceId(payload.billingCycle);
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: stripeCustomerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      allow_promotion_codes: true,
-      billing_address_collection: "auto",
-      consent_collection: {
-        terms_of_service: "required",
-      },
-      custom_text: {
-        terms_of_service_acceptance: {
-          message:
-            "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: stripeCustomerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        allow_promotion_codes: true,
+        billing_address_collection: "auto",
+        consent_collection: {
+          terms_of_service: "required",
         },
-      },
-      success_url: `${appUrl}/?checkout=success`,
-      cancel_url: `${appUrl}/?checkout=cancelled`,
-      subscription_data: {
-        ...(payload.trialDays != null && payload.trialDays > 0 ? { trial_period_days: payload.trialDays } : {}),
+        custom_text: {
+          terms_of_service_acceptance: {
+            message:
+              "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
+          },
+        },
+        success_url: `${appUrl}/?checkout=success`,
+        cancel_url: `${appUrl}/?checkout=cancelled`,
+        subscription_data: {
+          ...(payload.trialDays != null && payload.trialDays > 0 ? { trial_period_days: payload.trialDays } : {}),
+          metadata: {
+            userId: user.id,
+            clerkUserId: user.clerkUserId,
+            billingCycle: payload.billingCycle,
+          },
+        },
         metadata: {
           userId: user.id,
           clerkUserId: user.clerkUserId,
-          billingCycle: payload.billingCycle,
         },
-      },
-      metadata: {
-        userId: user.id,
-        clerkUserId: user.clerkUserId,
-      },
-    });
+      });
+    } catch (error) {
+      if (!isNoSuchCustomerError(error)) throw error;
+      // Customer ID belongs to another Stripe environment (test/live mismatch): recreate safely.
+      stripeCustomerId = await createAndPersistCustomer();
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: stripeCustomerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        allow_promotion_codes: true,
+        billing_address_collection: "auto",
+        consent_collection: {
+          terms_of_service: "required",
+        },
+        custom_text: {
+          terms_of_service_acceptance: {
+            message:
+              "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
+          },
+        },
+        success_url: `${appUrl}/?checkout=success`,
+        cancel_url: `${appUrl}/?checkout=cancelled`,
+        subscription_data: {
+          ...(payload.trialDays != null && payload.trialDays > 0 ? { trial_period_days: payload.trialDays } : {}),
+          metadata: {
+            userId: user.id,
+            clerkUserId: user.clerkUserId,
+            billingCycle: payload.billingCycle,
+          },
+        },
+        metadata: {
+          userId: user.id,
+          clerkUserId: user.clerkUserId,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
