@@ -49,6 +49,21 @@ Apri [http://localhost:3000](http://localhost:3000).
 - `POST /api/billing/checkout` crea una sessione Stripe Checkout (`billingCycle: monthly|yearly`, `trialDays` opzionale).
 - `POST /api/billing/portal` apre Stripe Customer Portal per il cliente corrente.
 - `POST /api/billing/webhook` sincronizza Stripe -> DB (usa firma webhook).
+- `GET /api/billing/test-mode` verifica configurazione Stripe lato server (diagnostica test mode).
+
+### Stripe test mode (setup rapido)
+
+1. Copia `.env.example` in `.env`.
+2. Inserisci chiavi Stripe **test**:
+   - `STRIPE_SECRET_KEY` deve iniziare con `sk_test_`
+   - `STRIPE_WEBHOOK_SECRET` dal webhook creato in Stripe CLI/dashboard test
+   - `STRIPE_PRICE_PRO_MONTHLY` e `STRIPE_PRICE_PRO_YEARLY` con Price ID test (`price_...`)
+3. Avvia app e apri pagina interna `http://localhost:3000/billing`.
+4. Clicca **Verifica configurazione Stripe**.
+5. Se stato "Pronto per test end-to-end", prova:
+   - **Apri Checkout Test**
+   - completa con carta test Stripe (es. `4242 4242 4242 4242`)
+   - verifica aggiornamento utente via webhook.
 
 ### Tester gratuiti durante la beta
 

@@ -1,4 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function SignUpPage() {
   return (
@@ -14,6 +15,21 @@ export default function SignUpPage() {
             },
           }}
         />
+        <p className="mt-4 text-center text-xs leading-relaxed text-zinc-500">
+          Proseguendo dichiari di aver letto{" "}
+          <Link href="/legal/terms" className="underline underline-offset-2">
+            Termini
+          </Link>
+          ,{" "}
+          <Link href="/legal/privacy" className="underline underline-offset-2">
+            Privacy
+          </Link>{" "}
+          e{" "}
+          <Link href="/legal/cookie" className="underline underline-offset-2">
+            Cookie Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

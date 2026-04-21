@@ -449,6 +449,9 @@ function LandingPage() {
             <p>&copy; {new Date().getFullYear()} Agenda Legale</p>
             <div className="flex gap-4">
               <Link href="/guida" className="hover:text-[var(--navy)]">Guida</Link>
+              <Link href="/legal/terms" className="hover:text-[var(--navy)]">Termini</Link>
+              <Link href="/legal/privacy" className="hover:text-[var(--navy)]">Privacy</Link>
+              <Link href="/legal/cookie" className="hover:text-[var(--navy)]">Cookie</Link>
             </div>
           </div>
         </footer>

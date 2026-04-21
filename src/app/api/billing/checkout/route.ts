@@ -50,6 +50,15 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       billing_address_collection: "auto",
+      consent_collection: {
+        terms_of_service: "required",
+      },
+      custom_text: {
+        terms_of_service_acceptance: {
+          message:
+            "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
+        },
+      },
       success_url: `${appUrl}/?checkout=success`,
       cancel_url: `${appUrl}/?checkout=cancelled`,
       subscription_data: {

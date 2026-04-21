@@ -8,6 +8,7 @@ const navItems = [
   { href: "/", label: "Calendario", icon: CalendarIcon },
   { href: "/pratiche", label: "Pratiche", icon: PracticeIcon },
   { href: "/shared", label: "Condivisioni", icon: ShareIcon },
+  { href: "/billing", label: "Billing", icon: BillingIcon },
   { href: "/backup", label: "Backup", icon: BackupIcon },
   { href: "/guida", label: "Guida", icon: GuideIcon },
 ];
@@ -44,6 +45,16 @@ function ShareIcon({ className }: { className?: string }) {
       <circle cx="18" cy="19" r="3" />
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  );
+}
+
+function BillingIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <path d="M2.5 10h19" />
+      <path d="M7 15h3" />
     </svg>
   );
 }
