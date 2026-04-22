@@ -131,10 +131,9 @@ body {
 .calendar-theme .calendar-month-container .fc { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 /* Vista Agenda: scroll nel blocco (header sito e barra strumenti restano visibili) */
 .calendar-theme .calendar-agenda-scroll-container {
-  flex: 0 1 auto;
-  /* Contenitore agenda stabile: evita grandi aree vuote quando ci sono poche righe. */
-  min-height: clamp(14rem, 28vh, 20rem);
-  max-height: clamp(18rem, 42vh, 28rem);
+  flex: 1 1 0%;
+  /* Più altezza per l’area che scorre (lista): ~metà viewport, con minimo/massimo ragionevoli; +1.5cm su richiesta UI */
+  min-height: calc(clamp(22rem, 48vh, 42rem) + 1.5cm);
 }
 .calendar-theme .calendar-agenda-scroll-container .fc {
   flex: 1 1 auto;
