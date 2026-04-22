@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const supportSchema = z.object({
   email: z.string().trim().email("Email non valida"),
-  category: z.enum(["accesso", "calendario", "pagamenti", "bug", "altro"]),
+  category: z.enum(["commerciale", "accesso", "calendario", "pagamenti", "bug", "altro"]),
   subject: z.string().trim().min(3, "Oggetto troppo corto").max(120, "Oggetto troppo lungo"),
   message: z
     .string()
@@ -16,6 +16,7 @@ const supportSchema = z.object({
 });
 
 const CATEGORY_LABEL: Record<z.infer<typeof supportSchema>["category"], string> = {
+  commerciale: "Commerciale/Pre-iscrizione",
   accesso: "Accesso/Account",
   calendario: "Calendario/Scadenze",
   pagamenti: "Pagamenti",

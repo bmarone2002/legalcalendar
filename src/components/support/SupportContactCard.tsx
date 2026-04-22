@@ -2,43 +2,67 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
-type Category = "accesso" | "calendario" | "pagamenti" | "bug" | "altro";
+type Audience = "prospect" | "customer";
+type Category = "commerciale" | "accesso" | "calendario" | "pagamenti" | "bug" | "altro";
 type Priority = "normale" | "urgente";
 
-const categoryOptions: { value: Category; label: string }[] = [
-  { value: "accesso", label: "Accesso / Account" },
-  { value: "calendario", label: "Calendario / Scadenze" },
-  { value: "pagamenti", label: "Pagamenti" },
-  { value: "bug", label: "Bug tecnico" },
-  { value: "altro", label: "Altro" },
-];
-
-const faqByCategory: Record<Category, { question: string; href: string }[]> = {
-  accesso: [
-    { question: "Posso usare Agenda Legale da più dispositivi?", href: "#faq" },
-    { question: "Non vedo più un evento che avevo inserito, cosa posso fare?", href: "#faq" },
+const categoryOptionsByAudience: Record<Audience, { value: Category; label: string }[]> = {
+  prospect: [
+    { value: "commerciale", label: "Informazioni commerciali / Demo" },
+    { value: "altro", label: "Altro" },
   ],
-  calendario: [
-    { question: "Qual è la differenza tra 'Da fare' e 'Completati'?", href: "#faq" },
-    { question: "Qual è l'ordine corretto di lavoro in Agenda Legale?", href: "#faq" },
-  ],
-  pagamenti: [
-    { question: "Controlla la sezione profilo e stato piano per la fatturazione.", href: "/profilo" },
-    { question: "Se non risolvi, invia una richiesta con oggetto dettagliato.", href: "#supporto-form" },
-  ],
-  bug: [
-    { question: "Non vedo più un evento che avevo inserito, cosa posso fare?", href: "#faq" },
-    { question: "Inserisci nel ticket pagina e passaggi per riprodurre il problema.", href: "#supporto-form" },
-  ],
-  altro: [
-    { question: "Consulta prima le domande frequenti qui sotto.", href: "#faq" },
-    { question: "Se non trovi risposta, apri una richiesta dal form.", href: "#supporto-form" },
+  customer: [
+    { value: "accesso", label: "Accesso / Account" },
+    { value: "calendario", label: "Calendario / Scadenze" },
+    { value: "pagamenti", label: "Pagamenti" },
+    { value: "bug", label: "Bug tecnico" },
+    { value: "altro", label: "Altro" },
   ],
 };
 
-export function SupportContactCard() {
+const faqByCategory: Record<Category, { question: string; href: string }[]> = {
+  commerciale: [
+    { question: "Scopri le funzionalità principali e i casi d'uso.", href: "/#funzionalita" },
+    { question: "Consulta la guida per vedere il workflow operativo.", href: "/guida#workflow" },
+  ],
+  accesso: [
+    { question: "Posso usare Agenda Legale da più dispositivi?", href: "/guida#faq" },
+    { question: "Non vedo più un evento che avevo inserito, cosa posso fare?", href: "/guida#faq" },
+  ],
+  calendario: [
+    { question: "Qual è la differenza tra 'Da fare' e 'Completati'?", href: "/guida#faq" },
+    { question: "Qual è l'ordine corretto di lavoro in Agenda Legale?", href: "/guida#faq" },
+  ],
+  pagamenti: [
+    { question: "Controlla la sezione profilo e stato piano per la fatturazione.", href: "/profilo" },
+    { question: "Se non risolvi, invia una richiesta con oggetto dettagliato.", href: "/supporto" },
+  ],
+  bug: [
+    { question: "Non vedo più un evento che avevo inserito, cosa posso fare?", href: "/guida#faq" },
+    { question: "Inserisci nel ticket pagina e passaggi per riprodurre il problema.", href: "/supporto" },
+  ],
+  altro: [
+    { question: "Consulta prima le domande frequenti nella guida.", href: "/guida#faq" },
+    { question: "Se non trovi risposta, apri una richiesta dal form.", href: "/supporto" },
+  ],
+};
+
+type SupportContactCardProps = {
+  audience?: Audience;
+  title?: string;
+  subtitle?: string;
+  formId?: string;
+};
+
+export function SupportContactCard({
+  audience = "customer",
+  title,
+  subtitle,
+  formId = "supporto-form",
+}: SupportContactCardProps) {
+  const categoryOptions = categoryOptionsByAudience[audience];
   const [email, setEmail] = useState("");
-  const [category, setCategory] = useState<Category>("calendario");
+  const [category, setCategory] = useState<Category>(categoryOptions[0]?.value ?? "altro");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [priority, setPriority] = useState<Priority>("normale");
@@ -46,6 +70,17 @@ export function SupportContactCard() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successTicketId, setSuccessTicketId] = useState<string | null>(null);
+
+  const resolvedTitle =
+    title ??
+    (audience === "prospect"
+      ? "Vuoi capire se Agenda Legale fa per il tuo studio?"
+      : "Hai già un account e ti serve supporto?");
+  const resolvedSubtitle =
+    subtitle ??
+    (audience === "prospect"
+      ? "Scrivici per una demo, informazioni sui piani o chiarimenti prima dell'attivazione."
+      : "Prima di inviare la richiesta, controlla i suggerimenti rapidi in base alla categoria selezionata.");
 
   const suggestedFaq = useMemo(() => faqByCategory[category], [category]);
 
@@ -80,6 +115,7 @@ export function SupportContactCard() {
       setMessage("");
       setPriority("normale");
       setPrivacyAccepted(false);
+      setCategory(categoryOptions[0]?.value ?? "altro");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Errore inatteso.";
       setErrorMessage(message);
@@ -90,13 +126,11 @@ export function SupportContactCard() {
 
   return (
     <section
-      id="supporto-form"
+      id={formId}
       className="rounded-2xl border border-[var(--gold)]/30 bg-white p-5 shadow-sm sm:p-6"
     >
-      <h3 className="text-lg font-semibold text-[var(--navy)]">Non hai risolto? Contatta il supporto</h3>
-      <p className="mt-1 text-sm text-zinc-700">
-        Prima di inviare la richiesta, controlla i suggerimenti rapidi in base alla categoria selezionata.
-      </p>
+      <h3 className="text-lg font-semibold text-[var(--navy)]">{resolvedTitle}</h3>
+      <p className="mt-1 text-sm text-zinc-700">{resolvedSubtitle}</p>
 
       <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--gold)]">
@@ -168,31 +202,33 @@ export function SupportContactCard() {
           />
         </label>
 
-        <div className="grid gap-2 text-sm text-zinc-700">
-          <span>Priorita</span>
-          <div className="flex items-center gap-5">
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
-                name="priority"
-                value="normale"
-                checked={priority === "normale"}
-                onChange={() => setPriority("normale")}
-              />
-              Normale
-            </label>
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
-                name="priority"
-                value="urgente"
-                checked={priority === "urgente"}
-                onChange={() => setPriority("urgente")}
-              />
-              Urgente
-            </label>
+        {audience === "customer" ? (
+          <div className="grid gap-2 text-sm text-zinc-700">
+            <span>Priorita</span>
+            <div className="flex items-center gap-5">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`priority-${formId}`}
+                  value="normale"
+                  checked={priority === "normale"}
+                  onChange={() => setPriority("normale")}
+                />
+                Normale
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`priority-${formId}`}
+                  value="urgente"
+                  checked={priority === "urgente"}
+                  onChange={() => setPriority("urgente")}
+                />
+                Urgente
+              </label>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <label className="inline-flex items-start gap-2 text-xs text-zinc-700 sm:text-sm">
           <input
@@ -211,7 +247,11 @@ export function SupportContactCard() {
           disabled={submitting}
           className="inline-flex w-fit items-center rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)] shadow-sm hover:bg-[var(--gold-light)] disabled:cursor-not-allowed disabled:opacity-65"
         >
-          {submitting ? "Invio in corso..." : "Invia richiesta"}
+          {submitting
+            ? "Invio in corso..."
+            : audience === "prospect"
+              ? "Richiedi informazioni"
+              : "Invia richiesta"}
         </button>
 
         {errorMessage ? (
