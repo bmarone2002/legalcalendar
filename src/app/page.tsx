@@ -69,13 +69,6 @@ function LandingPage() {
               <span aria-hidden="true" className="text-[11px]">📖</span>
               Guida
             </Link>
-            <Link
-              href="/supporto"
-              className="hidden items-center gap-1.5 rounded-full border border-zinc-400/25 px-3 py-1 text-xs font-medium text-zinc-200/90 transition-colors hover:border-[var(--gold)]/50 hover:text-[var(--gold)] sm:inline-flex"
-            >
-              <span aria-hidden="true" className="text-[11px]">🆘</span>
-              Supporto
-            </Link>
             <span className="mx-0.5 hidden h-4 w-px bg-zinc-500/30 sm:inline-block" />
             <SignInButton mode="modal">
               <button
@@ -456,7 +449,6 @@ function LandingPage() {
             <p>&copy; {new Date().getFullYear()} Agenda Legale</p>
             <div className="flex gap-4">
               <Link href="/guida" className="hover:text-[var(--navy)]">Guida</Link>
-              <Link href="/supporto" className="hover:text-[var(--navy)]">Supporto</Link>
               <Link href="/legal/terms" className="hover:text-[var(--navy)]">Termini</Link>
               <Link href="/legal/privacy" className="hover:text-[var(--navy)]">Privacy</Link>
               <Link href="/legal/cookie" className="hover:text-[var(--navy)]">Cookie</Link>

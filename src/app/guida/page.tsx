@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { SupportContactCard } from "@/components/support/SupportContactCard";
 
 export default function GuidaPage() {
   return (
@@ -555,15 +556,10 @@ export default function GuidaPage() {
             Supporto
           </h2>
           <p className="mb-4 text-sm text-zinc-700">
-            Se le FAQ non risolvono il tuo problema, usa la pagina supporto dedicata: trovi percorso
-            commerciale per chi non è ancora iscritto e supporto tecnico per chi ha già un account.
+            Se le FAQ non risolvono il tuo problema, inviaci una richiesta di assistenza: il messaggio
+            viene recapitato al team supporto e ricevi una conferma immediata via email.
           </p>
-          <Link
-            href="/supporto"
-            className="inline-flex items-center rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)] shadow-sm hover:bg-[var(--gold-light)]"
-          >
-            Vai alla pagina Supporto
-          </Link>
+          <SupportContactCard />
         </section>
 
         {/* CTA finale */}
