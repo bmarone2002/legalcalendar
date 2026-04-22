@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { SupportContactCard } from "@/components/support/SupportContactCard";
 
 export default function GuidaPage() {
   return (
@@ -87,6 +88,13 @@ export default function GuidaPage() {
             >
               <span aria-hidden="true">💾</span>
               Backup
+            </Link>
+            <Link
+              href="#supporto"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--navy)]/15 bg-white px-3.5 py-1.5 font-medium text-[var(--navy)] shadow-sm transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)]"
+            >
+              <span aria-hidden="true">🆘</span>
+              Supporto
             </Link>
           </div>
         </section>
@@ -538,9 +546,20 @@ export default function GuidaPage() {
             />
             <FaqItem
               question="Ho bisogno di assistenza, come vi contatto?"
-              answer="Se incontri difficoltà puoi contattare il referente indicato nel materiale di attivazione del servizio oppure usare i canali di supporto comunicati al momento dell'adesione."
+              answer="Nella sezione Supporto qui sotto puoi compilare il form assistenza. Riceverai una conferma automatica con codice pratica e verrai ricontattato via email."
             />
           </div>
+        </section>
+
+        <section id="supporto" className="mb-12 scroll-mt-20">
+          <h2 className="mb-4 text-xl font-semibold text-[var(--navy)]">
+            Supporto
+          </h2>
+          <p className="mb-4 text-sm text-zinc-700">
+            Se le FAQ non risolvono il tuo problema, inviaci una richiesta di assistenza: il messaggio
+            viene recapitato al team supporto e ricevi una conferma immediata via email.
+          </p>
+          <SupportContactCard />
         </section>
 
         {/* CTA finale */}
