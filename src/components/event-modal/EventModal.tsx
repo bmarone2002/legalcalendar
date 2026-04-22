@@ -1319,23 +1319,24 @@ export function EventModal({
         }
         if (form.generateSubEvents) {
           const usePreviewList = hasClickedCalcola;
-          if (usePreviewList) {
-            const regen = await createSubEventsFromPreview(
-              eventId,
-              previewSubEvents.map((p) => p.id),
-              targetUserId
+          const regen = usePreviewList
+            ? await createSubEventsFromPreview(
+                eventId,
+                previewSubEvents.map((p) => p.id),
+                targetUserId
+              )
+            : await regenerateSubEvents(eventId, targetUserId);
+
+          if (!regen.success) {
+            setError(
+              regen.error ??
+                "Errore aggiornamento sottoeventi. Riprova o rigenera dalla tab Regole."
             );
-            if (!regen.success) {
-              setError(
-                regen.error ??
-                  "Errore aggiornamento sottoeventi. Riprova o rigenera dalla tab Regole."
-              );
-              return;
-            }
-            if (regen.data) {
-              setSubEvents(regen.data);
-              setSelectedSubEventId(null);
-            }
+            return;
+          }
+          if (regen.data) {
+            setSubEvents(regen.data);
+            setSelectedSubEventId(null);
           }
         }
       }
