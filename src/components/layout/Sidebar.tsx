@@ -11,6 +11,7 @@ const navItems = [
   { href: "/profilo", label: "Il mio profilo", icon: BillingIcon },
   { href: "/backup", label: "Backup", icon: BackupIcon },
   { href: "/guida", label: "Guida", icon: GuideIcon },
+  { href: "/supporto", label: "Supporto", icon: SupportIcon },
 ];
 
 function CalendarIcon({ className }: { className?: string }) {
@@ -96,6 +97,24 @@ function GuideIcon({ className }: { className?: string }) {
   );
 }
 
+function SupportIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 8v5" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
 /** Contenuto logo + nav riutilizzabile in Sidebar e drawer mobile */
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -105,8 +124,8 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <>
       <div className="flex min-h-[108px] w-full items-center justify-center overflow-hidden border-b border-[var(--gold)]/30 bg-[var(--navy)] px-3 py-3" style={{ backgroundColor: "var(--navy)" }}>
         {!logoError ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
           <div className="flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
