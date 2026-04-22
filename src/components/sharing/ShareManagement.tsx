@@ -288,49 +288,51 @@ export function ShareManagement() {
             </p>
           </div>
         ) : (
-          <ul className="space-y-2" role="list">
-            {shares.map((share) => (
-              <li
-                key={share.id}
-                className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 shadow-sm transition-colors hover:border-zinc-300 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4"
-              >
-                <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--navy)]/8 text-sm font-semibold uppercase text-[var(--navy)] sm:h-9 sm:w-9 sm:text-xs">
-                    {(share.user.email ?? "?").slice(0, 1)}
-                  </span>
-                  <p className="min-w-0 flex-1 break-words text-sm font-medium leading-snug text-zinc-900 sm:truncate sm:leading-normal">
-                    {share.user.email ?? "Email non disponibile"}
-                  </p>
-                </div>
-                <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center">
-                  <Select
-                    value={share.permission}
-                    onValueChange={(v) => handleUpdatePermission(share.id, v as SharePermission)}
-                  >
-                    <SelectTrigger className="h-11 min-h-[44px] w-full border-zinc-200 bg-white text-base sm:h-9 sm:min-h-0 sm:w-[200px] sm:text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="VIEW_ONLY" className="min-h-10 py-2.5 sm:min-h-0 sm:py-1.5">
-                        Solo visualizzazione
-                      </SelectItem>
-                      <SelectItem value="FULL" className="min-h-10 py-2.5 sm:min-h-0 sm:py-1.5">
-                        Accesso completo
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-11 min-h-[44px] w-full justify-center text-sm text-red-600 touch-manipulation hover:bg-red-50 hover:text-red-700 sm:h-9 sm:min-h-0 sm:w-auto sm:text-xs"
-                    onClick={() => handleRevoke(share.id)}
-                  >
-                    Revoca
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="max-h-[58vh] overflow-y-auto pr-1">
+            <ul className="space-y-2" role="list">
+              {shares.map((share) => (
+                <li
+                  key={share.id}
+                  className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 shadow-sm transition-colors hover:border-zinc-300 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--navy)]/8 text-sm font-semibold uppercase text-[var(--navy)] sm:h-9 sm:w-9 sm:text-xs">
+                      {(share.user.email ?? "?").slice(0, 1)}
+                    </span>
+                    <p className="min-w-0 flex-1 break-words text-sm font-medium leading-snug text-zinc-900 sm:truncate sm:leading-normal">
+                      {share.user.email ?? "Email non disponibile"}
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center">
+                    <Select
+                      value={share.permission}
+                      onValueChange={(v) => handleUpdatePermission(share.id, v as SharePermission)}
+                    >
+                      <SelectTrigger className="h-11 min-h-[44px] w-full border-zinc-200 bg-white text-base sm:h-9 sm:min-h-0 sm:w-[200px] sm:text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VIEW_ONLY" className="min-h-10 py-2.5 sm:min-h-0 sm:py-1.5">
+                          Solo visualizzazione
+                        </SelectItem>
+                        <SelectItem value="FULL" className="min-h-10 py-2.5 sm:min-h-0 sm:py-1.5">
+                          Accesso completo
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-11 min-h-[44px] w-full justify-center text-sm text-red-600 touch-manipulation hover:bg-red-50 hover:text-red-700 sm:h-9 sm:min-h-0 sm:w-auto sm:text-xs"
+                      onClick={() => handleRevoke(share.id)}
+                    >
+                      Revoca
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </div>

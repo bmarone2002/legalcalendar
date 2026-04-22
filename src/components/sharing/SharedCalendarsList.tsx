@@ -77,55 +77,57 @@ export function SharedCalendarsList() {
           </p>
         </div>
       ) : (
-        <ul className="space-y-2" role="list">
-          {shares.map((share) => (
-            <li
-              key={share.id}
-              className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 shadow-sm transition-colors hover:border-zinc-300 sm:flex-row sm:items-center sm:justify-between sm:p-4"
-            >
-              <div className="flex min-w-0 flex-1 gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-                  <UserRound className="h-5 w-5" aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="break-words text-sm font-medium leading-snug text-zinc-900 sm:truncate sm:leading-normal">
-                    {share.owner.email ?? "Email non disponibile"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-zinc-500">Proprietario del calendario</p>
-                  <span
-                    className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                      share.permission === "FULL"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-sky-100 text-sky-800"
-                    }`}
-                  >
-                    {share.permission === "FULL" ? "Accesso completo" : "Solo visualizzazione"}
+        <div className="max-h-[58vh] overflow-y-auto pr-1">
+          <ul className="space-y-2" role="list">
+            {shares.map((share) => (
+              <li
+                key={share.id}
+                className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 shadow-sm transition-colors hover:border-zinc-300 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+              >
+                <div className="flex min-w-0 flex-1 gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+                    <UserRound className="h-5 w-5" aria-hidden />
                   </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-sm font-medium leading-snug text-zinc-900 sm:truncate sm:leading-normal">
+                      {share.owner.email ?? "Email non disponibile"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">Proprietario del calendario</p>
+                    <span
+                      className={`mt-2 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                        share.permission === "FULL"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-sky-100 text-sky-800"
+                      }`}
+                    >
+                      {share.permission === "FULL" ? "Accesso completo" : "Solo visualizzazione"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center">
-                <Link
-                  href={`/shared/${share.owner.id}`}
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "h-11 min-h-[44px] w-full justify-center gap-1.5 border-[var(--navy)]/25 text-base font-medium text-[var(--navy)] touch-manipulation hover:bg-[var(--calendar-brown-pale)] sm:h-9 sm:min-h-0 sm:w-auto sm:text-[13px]"
-                  )}
-                >
-                  <ExternalLink className="h-4 w-4 sm:h-3.5 sm:w-3.5" aria-hidden />
-                  Apri calendario
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-11 min-h-[44px] w-full justify-center text-sm text-red-600 touch-manipulation hover:bg-red-50 hover:text-red-700 sm:h-9 sm:min-h-0 sm:w-auto sm:text-xs"
-                  onClick={() => handleRemove(share.id)}
-                >
-                  Rimuovi
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center">
+                  <Link
+                    href={`/shared/${share.owner.id}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "h-11 min-h-[44px] w-full justify-center gap-1.5 border-[var(--navy)]/25 text-base font-medium text-[var(--navy)] touch-manipulation hover:bg-[var(--calendar-brown-pale)] sm:h-9 sm:min-h-0 sm:w-auto sm:text-[13px]"
+                    )}
+                  >
+                    <ExternalLink className="h-4 w-4 sm:h-3.5 sm:w-3.5" aria-hidden />
+                    Apri calendario
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-11 min-h-[44px] w-full justify-center text-sm text-red-600 touch-manipulation hover:bg-red-50 hover:text-red-700 sm:h-9 sm:min-h-0 sm:w-auto sm:text-xs"
+                    onClick={() => handleRemove(share.id)}
+                  >
+                    Rimuovi
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {error && (
         <p className="mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
