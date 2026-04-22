@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { itIT } from "@clerk/localizations";
 import { Geist } from "next/font/google";
 import { WheelScrollSupport } from "@/components/layout/WheelScrollSupport";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,8 +49,29 @@ const clerkAppearance = {
 };
 
 export const metadata: Metadata = {
-  title: "Agenda Legale",
-  description: "Agenda personale per avvocato con eventi e sottoeventi",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: "Agenda Legale",
+    template: "%s | Agenda Legale",
+  },
+  description:
+    "Software per studi legali per gestire pratiche, udienze e scadenze in un unico calendario operativo.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "it_IT",
+    siteName: "Agenda Legale",
+    title: "Agenda Legale",
+    description:
+      "Software per studi legali per gestire pratiche, udienze e scadenze in un unico calendario operativo.",
+    url: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
