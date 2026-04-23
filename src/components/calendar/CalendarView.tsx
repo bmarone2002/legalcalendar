@@ -1427,6 +1427,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             if (st !== "done" && st !== "pending") return;
             const feedbackKey = st === "done" ? "to-done" : "to-pending";
             applyColorsAfterToggle(st);
+            setAllEvents((prev) =>
+              prev.map((ev) => {
+                const subEvents = (ev.subEvents ?? []).map((se) =>
+                  se.id === id ? { ...se, status: st } : se
+                );
+                return { ...ev, subEvents };
+              })
+            );
             scheduleFeedback(id, feedbackKey);
             if (st === "done" && !showDone) {
               window.setTimeout(() => arg.event.remove(), 380);
@@ -1442,6 +1450,16 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             const s = raw === "done" ? "done" : "pending";
             const feedbackKey = s === "done" ? "to-done" : "to-pending";
             applyColorsAfterToggle(s);
+            setAllEvents((prev) =>
+              prev.map((ev) =>
+                ev.id === id
+                  ? {
+                      ...ev,
+                      status: s,
+                    }
+                  : ev
+              )
+            );
             scheduleFeedback(id, feedbackKey);
             if (s === "done" && !showDone) {
               window.setTimeout(() => arg.event.remove(), 380);
@@ -1462,6 +1480,11 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
             <button
               type="button"
               aria-label={isDone ? "Segna come non fatto" : "Segna come fatto"}
+              title={
+                isSub
+                  ? "Aggiorna solo questo adempimento"
+                  : "Aggiorna solo questo evento madre (non i collegati)"
+              }
               className={`h-5 w-9 shrink-0 rounded-full border flex items-center px-0.5 transition-colors ${
                 isDone ? "bg-emerald-500 border-emerald-600" : "bg-red-500 border-red-600"
               }`}

@@ -2160,8 +2160,8 @@ export function EventModal({
                   }`}
                   aria-label={
                     form.status === "done"
-                      ? "Segna la pratica come da fare"
-                      : "Segna la pratica come completata"
+                      ? "Segna la pratica e gli adempimenti collegati come da fare"
+                      : "Segna la pratica e gli adempimenti collegati come completati"
                   }
                   disabled={saving || readOnly}
                 >
@@ -2178,7 +2178,9 @@ export function EventModal({
                       </svg>
                     )}
                   </span>
-                  {form.status === "done" ? "Segna la pratica come da fare" : "Segna la pratica come completata"}
+                  {form.status === "done"
+                    ? "Segna pratica + adempimenti collegati come da fare"
+                    : "Segna pratica + adempimenti collegati come completati"}
                 </button>
               </div>
 
