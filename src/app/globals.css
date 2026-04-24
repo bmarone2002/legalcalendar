@@ -134,9 +134,6 @@ body {
   flex: 1 1 0%;
   /* Più altezza per l’area che scorre (lista): ~metà viewport, con minimo/massimo ragionevoli; +1.5cm su richiesta UI */
   min-height: calc(clamp(22rem, 48vh, 42rem) + 1.5cm);
-  height: calc(clamp(22rem, 48vh, 42rem) + 1.5cm);
-  max-height: calc(clamp(22rem, 48vh, 42rem) + 1.5cm);
-  overflow: hidden;
 }
 .calendar-theme .calendar-agenda-scroll-container .fc {
   flex: 1 1 auto;
@@ -149,8 +146,6 @@ body {
 }
 .calendar-theme .calendar-agenda-scroll-container .fc-list-view .fc-scroller {
   overflow-y: auto !important;
-  height: 100% !important;
-  max-height: 100% !important;
   -webkit-overflow-scrolling: touch;
 }
 .calendar-theme .calendar-month-container .fc .fc-view-harness { flex: 1 1 auto; min-height: 0; }
