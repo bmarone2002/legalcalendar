@@ -2040,7 +2040,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           </div>
         </div>
       </div>
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6 overflow-hidden">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6">
       <div
         ref={calendarContainerRef}
         className={
@@ -2095,7 +2095,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
         )}
         </div>
 
-        <aside className="w-full min-h-0 shrink-0" aria-label="Pannello intelligente: resoconto udienze o adempimenti">
+        <aside className="w-full shrink-0" aria-label="Pannello intelligente: resoconto udienze o adempimenti">
           <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
             <div className="flex flex-col gap-3 bg-[var(--navy)] px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
               <div>
