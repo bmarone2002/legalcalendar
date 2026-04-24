@@ -1673,7 +1673,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
   ]);
 
   return (
-      <div className="flex min-h-0 flex-1 min-w-0 flex-col gap-2 overflow-hidden sm:gap-3 calendar-theme">
+      <div className="flex min-h-0 flex-1 min-w-0 flex-col gap-2 sm:gap-3 calendar-theme">
       <div className="mb-1 shrink-0 rounded-2xl border border-zinc-200/90 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-3.5">
         {/* Riga 1: azioni principali + blocco filtri unificato */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
@@ -2046,7 +2046,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
         className={
           currentView === "listFromToday"
             ? "calendar-agenda-scroll-container calendar-month-container flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col overflow-x-auto rounded-2xl border border-zinc-200 bg-white shadow-sm"
-            : "calendar-month-container w-full min-w-0 max-w-full shrink-0 overflow-x-auto overflow-y-hidden"
+            : "calendar-month-container w-full min-w-0 max-w-full shrink-0 overflow-x-auto"
         }
       >
         {currentView === "listFromToday" && (
