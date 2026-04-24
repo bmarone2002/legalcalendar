@@ -80,9 +80,11 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
     pathname !== "/profilo" &&
     !pathname.startsWith("/onboarding/billing");
   const showBlockingLoader = needsBillingCheck && !billingChecked;
+  const lockMainVerticalScroll =
+    pathname === "/" || pathname.startsWith("/shared/");
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--surface)]" style={{ backgroundColor: "var(--surface)" }}>
+    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-[var(--surface)]" style={{ backgroundColor: "var(--surface)" }}>
       <div className="flex min-h-0 w-full flex-1">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -135,7 +137,9 @@ export function AppShell({ children, headerTitle }: AppShellProps) {
             per tenere sempre al sicuro i tuoi eventi e poterli recuperare in ogni momento.
           </div>
           <main
-            className="flex min-h-0 flex-1 flex-col overflow-auto p-3 sm:p-4 md:p-5 lg:p-6"
+            className={`flex min-h-0 flex-1 flex-col p-3 sm:p-4 md:p-5 lg:p-6 ${
+              lockMainVerticalScroll ? "overflow-x-auto overflow-y-hidden" : "overflow-auto"
+            }`}
             style={{ backgroundColor: "var(--surface)" }}
           >
             {showBlockingLoader ? (
