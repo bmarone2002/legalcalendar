@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
 import { AppShell } from "@/components/layout/AppShell";
 
-type BillingCycle = "monthly" | "yearly";
 type SubscriptionStatus = "free" | "trialing" | "active" | "past_due" | "canceled";
 
 type BillingStatusData = {
@@ -55,11 +54,9 @@ export default function ProfilePage() {
 
 function ProfilePanel() {
   const { user } = useUser();
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [status, setStatus] = useState<BillingStatusData | null>(null);
   const [diag, setDiag] = useState<DiagnosticData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,27 +102,6 @@ function ProfilePanel() {
       setError(e instanceof Error ? e.message : "Errore inatteso");
     } finally {
       setLoadingStatus(false);
-    }
-  }
-
-  async function openCheckout() {
-    setLoadingCheckout(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billingCycle, trialDays: 30 }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json?.success || !json?.data?.checkoutUrl) {
-        throw new Error(json?.error ?? "Errore creazione checkout");
-      }
-      window.location.href = json.data.checkoutUrl;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Errore inatteso");
-    } finally {
-      setLoadingCheckout(false);
     }
   }
 
@@ -183,28 +159,9 @@ function ProfilePanel() {
       <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-[var(--navy)]">Pagamenti</h2>
         <p className="mt-1 text-sm text-zinc-600">
-          Avvia un nuovo checkout oppure apri il portale cliente per gestire il piano attivo.
+          Apri il portale cliente per gestire il piano attivo.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-zinc-700" htmlFor="billingCycle">
-            Ciclo:
-          </label>
-          <select
-            id="billingCycle"
-            value={billingCycle}
-            onChange={(e) => setBillingCycle(e.target.value as BillingCycle)}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
-          >
-            <option value="monthly">Mensile</option>
-            <option value="yearly">Annuale</option>
-          </select>
-          <button
-            onClick={openCheckout}
-            disabled={loadingCheckout}
-            className="rounded-md bg-[var(--gold)] px-4 py-2 text-sm font-semibold text-[var(--navy)] disabled:opacity-60"
-          >
-            {loadingCheckout ? "Apro checkout..." : "Attiva o rinnova piano"}
-          </button>
           <button
             onClick={openPortal}
             disabled={loadingPortal}
