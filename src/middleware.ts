@@ -12,6 +12,19 @@ const ALLOWED_PATH_PREFIXES = [
 ];
 
 export default clerkMiddleware(async (auth, req) => {
+  const host = req.headers.get("host") ?? req.nextUrl.host;
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const isApexDomain = host === "agendalegale.com";
+  const isHttpRequest = forwardedProto === "http";
+
+  // Keep a single canonical origin for SEO: https://www.agendalegale.com
+  if (isApexDomain || isHttpRequest) {
+    const canonicalUrl = req.nextUrl.clone();
+    canonicalUrl.protocol = "https";
+    canonicalUrl.host = "www.agendalegale.com";
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   const { userId, sessionClaims } = await auth();
   const pathname = req.nextUrl.pathname;
   const recentlyAcceptedCookie = req.cookies.get("legal_accept_recent")?.value === "1";

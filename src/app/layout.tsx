@@ -56,9 +56,6 @@ export const metadata: Metadata = {
   },
   description:
     "Software per studi legali per gestire pratiche, udienze e scadenze in un unico calendario operativo.",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     locale: "it_IT",
