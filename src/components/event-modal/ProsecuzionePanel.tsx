@@ -928,6 +928,7 @@ export function ProsecuzionePanel({
                       <span className="text-[11px] font-medium text-zinc-500">Scostamento</span>
                       <LinkedEventOffsetDateControls
                         offsetDays={row.offsetDays}
+                        useFerialeSuspension={row.useFerialeSuspension === true}
                         onOffsetChange={(next) =>
                           setLinkedEvents((prev) => {
                             const ev = [...prev];
@@ -940,9 +941,37 @@ export function ProsecuzionePanel({
                         plusButtonClassName="flex h-9 w-9 items-center justify-center border-l border-zinc-200 text-lg font-semibold text-zinc-700 hover:bg-zinc-50"
                         counterClassName="flex min-w-[3rem] items-center justify-center bg-zinc-50/80 text-sm font-semibold tabular-nums text-zinc-900"
                       />
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`rinvio-linked-event-feriale-${i}`}
+                          checked={row.useFerialeSuspension === true}
+                          disabled={readOnly}
+                          onCheckedChange={(checked) =>
+                            setLinkedEvents((prev) => {
+                              const ev = [...prev];
+                              ev[i] = {
+                                ...ev[i],
+                                useFerialeSuspension: checked === true,
+                              };
+                              return ev;
+                            })
+                          }
+                        />
+                        <Label
+                          htmlFor={`rinvio-linked-event-feriale-${i}`}
+                          className="cursor-pointer text-[11px] font-normal text-zinc-600"
+                        >
+                          sospensione feriale
+                        </Label>
+                      </div>
                       <span className="text-[11px] text-zinc-500">
                         giorni rispetto alla data {isUdienza ? "udienza" : "dell'adempimento"}
                       </span>
+                      {row.useFerialeSuspension === true ? (
+                        <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700">
+                          feriale
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => setLinkedEvents((prev) => prev.filter((_, idx) => idx !== i))}
@@ -959,7 +988,12 @@ export function ProsecuzionePanel({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setLinkedEvents((prev) => [...prev, { title: "", offsetDays: 7 }])}
+                  onClick={() =>
+                    setLinkedEvents((prev) => [
+                      ...prev,
+                      { title: "", offsetDays: 7, useFerialeSuspension: false },
+                    ])
+                  }
                   className="h-8 w-full border-dashed border-zinc-300 text-xs text-zinc-700 hover:border-[var(--navy)]/30 hover:bg-[var(--calendar-brown-pale)] sm:w-auto"
                 >
                   + Aggiungi adempimento collegato

@@ -35,6 +35,7 @@ const adempimentoSchema = z.object({
 const linkedEventSpecSchema = z.object({
   title: z.string().min(1),
   offsetDays: z.number().int(),
+  useFerialeSuspension: z.boolean().optional(),
 });
 
 const createRinvioSchema = z.object({
@@ -251,6 +252,7 @@ async function generateSubEventsForRinvio(
     const dueAt = computeLinkedEventDueAt(
       udienzaInfo.dataUdienza,
       le.offsetDays,
+      le.useFerialeSuspension === true,
       settings,
     );
     const linkedDueAt = preserveExplicitTime
@@ -268,8 +270,11 @@ async function generateSubEventsForRinvio(
         rinvioId,
         tipo: "evento-collegato",
         offsetDays: le.offsetDays,
+        useFerialeSuspension: le.useFerialeSuspension === true,
       }),
-      explanation: `Evento collegato al rinvio (${le.offsetDays >= 0 ? "+" : ""}${le.offsetDays} gg dalla data ${isUdienza ? "udienza" : "dell'adempimento"})`,
+      explanation:
+        `Evento collegato al rinvio (${le.offsetDays >= 0 ? "+" : ""}${le.offsetDays} gg dalla data ${isUdienza ? "udienza" : "dell'adempimento"})` +
+        (le.useFerialeSuspension ? " [sosp. feriale]" : ""),
       createdBy: "manuale",
       locked: false,
     });
@@ -521,9 +526,11 @@ export async function getRinviiByEventId(
       if (typeof rinvioId !== "string") continue;
       const offsetDays = Number(params.offsetDays);
       if (!Number.isFinite(offsetDays)) continue;
+      const useFerialeSuspension = params.useFerialeSuspension === true;
       const spec: LinkedEventSpec = {
         title: s.title ?? "",
         offsetDays,
+        useFerialeSuspension,
       };
       const cur = linkedEventsByRinvioId.get(rinvioId) ?? [];
       cur.push(spec);

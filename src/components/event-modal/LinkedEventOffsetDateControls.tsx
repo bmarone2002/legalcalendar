@@ -16,6 +16,7 @@ function atNoonLocal(d: Date): Date {
 
 export function LinkedEventOffsetDateControls({
   offsetDays,
+  useFerialeSuspension = false,
   onOffsetChange,
   referenceDate,
   readOnly = false,
@@ -26,6 +27,7 @@ export function LinkedEventOffsetDateControls({
   counterClassName,
 }: {
   offsetDays: number;
+  useFerialeSuspension?: boolean;
   onOffsetChange: (next: number) => void;
   referenceDate: Date | null;
   readOnly?: boolean;
@@ -42,7 +44,12 @@ export function LinkedEventOffsetDateControls({
   const refNoon = refOk ? atNoonLocal(referenceDate) : null;
   const resultDate =
     refNoon != null
-      ? computeLinkedEventDueAt(refNoon, offsetDays, settings)
+      ? computeLinkedEventDueAt(
+          refNoon,
+          offsetDays,
+          useFerialeSuspension,
+          settings,
+        )
       : null;
 
   const baseBtn =
@@ -92,6 +99,7 @@ export function LinkedEventOffsetDateControls({
           const next = bestOffsetDaysForLinkedTargetDate(
             refNoon,
             d,
+            useFerialeSuspension,
             settings,
             OFFSET_MIN,
             OFFSET_MAX,

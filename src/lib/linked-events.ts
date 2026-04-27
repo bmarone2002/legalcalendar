@@ -1,14 +1,30 @@
 import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
 import type { AppSettings } from "@/lib/rules/types";
-import { adjustFinalDeadline, applyDeadlineTime } from "@/lib/date-utils";
+import {
+  adjustFinalDeadline,
+  applyDeadlineTime,
+  shiftCalendarDaysExcludingFeriale,
+} from "@/lib/date-utils";
 import type { SubEventCandidate } from "@/lib/rules/types";
 
-export type LinkedEventSpec = { title: string; offsetDays: number };
+export type LinkedEventSpec = {
+  title: string;
+  offsetDays: number;
+  useFerialeSuspension?: boolean;
+};
 
 export function isLinkedEventSpec(x: unknown): x is LinkedEventSpec {
   if (!x || typeof x !== "object") return false;
   const o = x as Record<string, unknown>;
-  return typeof o.title === "string" && typeof o.offsetDays === "number" && Number.isFinite(o.offsetDays);
+  const hasValidFeriale =
+    o.useFerialeSuspension === undefined ||
+    typeof o.useFerialeSuspension === "boolean";
+  return (
+    typeof o.title === "string" &&
+    typeof o.offsetDays === "number" &&
+    Number.isFinite(o.offsetDays) &&
+    hasValidFeriale
+  );
 }
 
 export function parseLinkedEvents(raw: unknown): LinkedEventSpec[] {
@@ -16,6 +32,7 @@ export function parseLinkedEvents(raw: unknown): LinkedEventSpec[] {
   return raw.filter(isLinkedEventSpec).map((l) => ({
     title: l.title.trim(),
     offsetDays: l.offsetDays,
+    useFerialeSuspension: l.useFerialeSuspension === true,
   }));
 }
 
@@ -26,11 +43,19 @@ export function parseLinkedEvents(raw: unknown): LinkedEventSpec[] {
 export function computeLinkedEventDueAt(
   refDate: Date,
   offsetDays: number,
+  useFerialeSuspension: boolean,
   settings: AppSettings,
 ): Date {
-  const raw = addDays(refDate, offsetDays);
   const direction: "forward" | "backward" =
     offsetDays >= 0 ? "forward" : "backward";
+  const raw = useFerialeSuspension
+    ? shiftCalendarDaysExcludingFeriale(
+        refDate,
+        Math.abs(offsetDays),
+        direction,
+        settings,
+      )
+    : addDays(refDate, offsetDays);
   const adjusted = adjustFinalDeadline(raw, direction, settings);
   return applyDeadlineTime(adjusted, settings);
 }
@@ -42,6 +67,7 @@ export function computeLinkedEventDueAt(
 export function bestOffsetDaysForLinkedTargetDate(
   refDate: Date,
   targetCalendarDate: Date,
+  useFerialeSuspension: boolean,
   settings: AppSettings,
   minOff = -365,
   maxOff = 365,
@@ -50,7 +76,12 @@ export function bestOffsetDaysForLinkedTargetDate(
   let bestO = 0;
   let bestDist = Infinity;
   for (let o = minOff; o <= maxOff; o++) {
-    const due = computeLinkedEventDueAt(refDate, o, settings);
+    const due = computeLinkedEventDueAt(
+      refDate,
+      o,
+      useFerialeSuspension,
+      settings,
+    );
     const dist = Math.abs(differenceInCalendarDays(startOfDay(due), targetDay));
     if (dist < bestDist || (dist === bestDist && Math.abs(o) < Math.abs(bestO))) {
       bestDist = dist;
@@ -71,7 +102,12 @@ export function buildLinkedEventCandidates(
   for (const le of specs) {
     const title = le.title.trim();
     if (!title) continue;
-    const dueAt = computeLinkedEventDueAt(refDate, le.offsetDays, settings);
+    const dueAt = computeLinkedEventDueAt(
+      refDate,
+      le.offsetDays,
+      le.useFerialeSuspension === true,
+      settings,
+    );
     out.push({
       title,
       kind: "attivita",
@@ -84,8 +120,11 @@ export function buildLinkedEventCandidates(
         /** Marcatore persistito sul SubEvent: pannello «Adempimenti» / eventi collegati in calendario. */
         linkedEvent: true,
         offsetDays: le.offsetDays,
+        useFerialeSuspension: le.useFerialeSuspension === true,
       },
-      explanation: `Evento collegato: ${le.offsetDays >= 0 ? "+" : ""}${le.offsetDays} giorni dalla data di riferimento`,
+      explanation:
+        `Evento collegato: ${le.offsetDays >= 0 ? "+" : ""}${le.offsetDays} giorni dalla data di riferimento` +
+        (le.useFerialeSuspension ? " [sosp. feriale]" : ""),
       createdBy: "manuale",
       isPlaceholder: false,
     });

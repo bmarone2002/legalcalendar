@@ -808,9 +808,17 @@ export function EventModal({
                 typeof x === "object" &&
                 typeof (x as LinkedEventSpec).title === "string" &&
                 typeof (x as LinkedEventSpec).offsetDays === "number" &&
-                Number.isFinite((x as LinkedEventSpec).offsetDays),
+                Number.isFinite((x as LinkedEventSpec).offsetDays) &&
+                (
+                  (x as LinkedEventSpec).useFerialeSuspension === undefined ||
+                  typeof (x as LinkedEventSpec).useFerialeSuspension === "boolean"
+                ),
             )
-            .map((x) => ({ title: x.title, offsetDays: x.offsetDays }))
+            .map((x) => ({
+              title: x.title,
+              offsetDays: x.offsetDays,
+              useFerialeSuspension: x.useFerialeSuspension === true,
+            }))
         : [];
       setForm({
         title: e.title,
@@ -2055,6 +2063,7 @@ export function EventModal({
                             <span className="text-xs font-medium text-zinc-500">Scostamento</span>
                             <LinkedEventOffsetDateControls
                               offsetDays={row.offsetDays}
+                              useFerialeSuspension={row.useFerialeSuspension === true}
                               onOffsetChange={(next) =>
                                 setForm((f) => {
                                   const ev = [...f.linkedEvents];
@@ -2067,7 +2076,35 @@ export function EventModal({
                               minusButtonClassName="flex h-9 w-9 items-center justify-center border-r border-zinc-200 text-lg font-semibold leading-none text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-40"
                               plusButtonClassName="flex h-9 w-9 items-center justify-center border-l border-zinc-200 text-lg font-semibold leading-none text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-40"
                             />
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                id={`linked-event-feriale-${i}`}
+                                checked={row.useFerialeSuspension === true}
+                                onCheckedChange={(checked) =>
+                                  setForm((f) => {
+                                    const ev = [...f.linkedEvents];
+                                    ev[i] = {
+                                      ...ev[i],
+                                      useFerialeSuspension: checked === true,
+                                    };
+                                    return { ...f, linkedEvents: ev };
+                                  })
+                                }
+                                disabled={readOnly}
+                              />
+                              <Label
+                                htmlFor={`linked-event-feriale-${i}`}
+                                className="cursor-pointer text-xs font-normal text-zinc-600"
+                              >
+                                sospensione feriale
+                              </Label>
+                            </div>
                             <span className="text-xs text-zinc-500">giorni dalla data di riferimento (anche negativi)</span>
+                            {row.useFerialeSuspension === true ? (
+                              <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700">
+                                feriale
+                              </span>
+                            ) : null}
                           </div>
                           <button
                             type="button"
@@ -2094,7 +2131,10 @@ export function EventModal({
                       onClick={() =>
                         setForm((f) => ({
                           ...f,
-                          linkedEvents: [...f.linkedEvents, { title: "", offsetDays: 7 }],
+                          linkedEvents: [
+                            ...f.linkedEvents,
+                            { title: "", offsetDays: 7, useFerialeSuspension: false },
+                          ],
                         }))
                       }
                       className="w-full border-dashed border-zinc-300 text-zinc-700 hover:border-[var(--navy)]/40 hover:bg-[var(--calendar-brown-pale)] sm:w-auto"
