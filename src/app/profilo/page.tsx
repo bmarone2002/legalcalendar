@@ -159,7 +159,7 @@ function ProfilePanel() {
       <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-[var(--navy)]">Pagamenti</h2>
         <p className="mt-1 text-sm text-zinc-600">
-          Apri il portale cliente per gestire il piano attivo.
+          Piano unico 9,99 €/mese (prezzo fisso). Apri il portale cliente per gestire il piano attivo.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button

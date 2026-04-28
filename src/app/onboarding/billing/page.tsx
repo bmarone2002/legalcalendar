@@ -86,6 +86,9 @@ function BillingOnboardingPanel() {
         <p className="mt-2 text-sm text-zinc-600">
           Stiamo avviando la tua prova di 30 giorni tramite checkout sicuro Stripe.
         </p>
+        <p className="mt-2 text-sm font-medium text-zinc-700">
+          Al termine della prova: piano unico 9,99 €/mese (prezzo fisso).
+        </p>
 
         {loading && (
           <p className="mt-4 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">

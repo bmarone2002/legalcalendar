@@ -14,11 +14,14 @@ const ALLOWED_PATH_PREFIXES = [
 export default clerkMiddleware(async (auth, req) => {
   const host = req.headers.get("host") ?? req.nextUrl.host;
   const forwardedProto = req.headers.get("x-forwarded-proto");
-  const isApexDomain = host === "agendalegale.com";
+  const hostname = host.split(":")[0];
+  const isApexDomain = hostname === "agendalegale.com";
+  const isProductionHost =
+    hostname === "agendalegale.com" || hostname === "www.agendalegale.com";
   const isHttpRequest = forwardedProto === "http";
 
   // Keep a single canonical origin for SEO: https://www.agendalegale.com
-  if (isApexDomain || isHttpRequest) {
+  if (isApexDomain || (isProductionHost && isHttpRequest)) {
     const canonicalUrl = req.nextUrl.clone();
     canonicalUrl.protocol = "https";
     canonicalUrl.host = "www.agendalegale.com";

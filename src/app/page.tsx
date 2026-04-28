@@ -140,9 +140,9 @@ function LandingPage() {
                 </div>
 
                 <p className="mt-3 text-xs text-zinc-500">
-                  Attivazione immediata &middot; Piano da{" "}
-                  <span className="font-semibold text-zinc-700">€ 10/mese</span> &middot; Nessun
-                  lock-in
+                  Attivazione immediata &middot; Piano unico{" "}
+                  <span className="font-semibold text-zinc-700">9,99 €/mese</span> &middot; Prezzo
+                  fisso, nessun lock-in
                 </p>
               </div>
 

@@ -7,6 +7,13 @@ export default function SubscriptionPage() {
       </header>
 
       <section className="rounded-xl border border-zinc-200 bg-white p-4 sm:p-5">
+        <h3 className="text-base font-semibold text-[var(--navy)]">Prezzo del piano</h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-700">
+          Il piano è unico: 9,99 €/mese. Non si tratta di un prezzo "a partire da".
+        </p>
+      </section>
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-4 sm:p-5">
         <h3 className="text-base font-semibold text-[var(--navy)]">Rinnovo automatico</h3>
         <p className="mt-2 text-sm leading-relaxed text-zinc-700">
           I piani in abbonamento si rinnovano automaticamente alla scadenza del periodo, salvo disdetta prima del rinnovo.
