@@ -82,20 +82,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const withClerk = Boolean(clerkPublishableKey);
+
   return (
     <html lang="it">
       <body className={`${geistSans.variable} antialiased`}>
-        <ClerkProvider
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignInUrl="/"
-          afterSignUpUrl="/onboarding/billing"
-          localization={itIT}
-          appearance={clerkAppearance}
-        >
-          <WheelScrollSupport />
-          {children}
-        </ClerkProvider>
+        {withClerk ? (
+          <ClerkProvider
+            signInUrl="/sign-in"
+            signUpUrl="/sign-up"
+            afterSignInUrl="/"
+            afterSignUpUrl="/onboarding/billing"
+            localization={itIT}
+            appearance={clerkAppearance}
+          >
+            <WheelScrollSupport />
+            {children}
+          </ClerkProvider>
+        ) : (
+          <>
+            <WheelScrollSupport />
+            {children}
+          </>
+        )}
       </body>
     </html>
   );
