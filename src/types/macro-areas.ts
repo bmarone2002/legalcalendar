@@ -1895,13 +1895,13 @@ export function getEventiDisponibiliPerProsecuzione(
     if (!civili || events.some((e) => e.code === PROSECUZIONE_UDIENZA_DIFFERITA.code)) {
       return events;
     }
-    const maxOrdine = events.reduce((max, e) => Math.max(max, e.ordine), 0);
+    const minOrdine = events.reduce((min, e) => Math.min(min, e.ordine), 0);
     return [
-      ...events,
       {
         ...PROSECUZIONE_UDIENZA_DIFFERITA,
-        ordine: maxOrdine + 1,
+        ordine: minOrdine - 1,
       },
+      ...events,
     ];
   };
   if (minOrdine == null) {
