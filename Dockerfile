@@ -22,6 +22,7 @@ ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 # Runtime needs Prisma schema/migrations for `prisma migrate deploy` in start:prod.
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
