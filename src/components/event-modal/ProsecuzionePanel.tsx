@@ -317,6 +317,15 @@ export function ProsecuzionePanel({
     }
   }, [macroArea, procedimento, parteProcessuale]);
 
+  const availableEventiForSelect = useMemo(() => {
+    const UDIENZA_DIFFERITA_CODE = "UDIENZA_DIFFERITA";
+    return [...availableEventi].sort((a, b) => {
+      if (a.code === UDIENZA_DIFFERITA_CODE && b.code !== UDIENZA_DIFFERITA_CODE) return -1;
+      if (b.code === UDIENZA_DIFFERITA_CODE && a.code !== UDIENZA_DIFFERITA_CODE) return 1;
+      return a.ordine - b.ordine;
+    });
+  }, [availableEventi]);
+
   const resetForm = () => {
     setTipoUdienza("");
     setTipoUdienzaCustom("");
@@ -734,7 +743,7 @@ export function ProsecuzionePanel({
                       <SelectItem value="__empty" disabled>
                         Seleziona evento/fase…
                       </SelectItem>
-                      {availableEventi.map((ev) => (
+                      {availableEventiForSelect.map((ev) => (
                         <SelectItem key={ev.code} value={ev.code}>
                           {ev.label}
                         </SelectItem>
