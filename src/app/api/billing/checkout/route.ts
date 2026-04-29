@@ -107,12 +107,17 @@ export async function POST(req: Request) {
       stripeCustomerId = await createAndPersistCustomer();
     }
 
+    if (!stripeCustomerId) {
+      throw new Error("Impossibile creare il cliente Stripe");
+    }
+
     const priceId = resolvePriceId(payload.billingCycle);
+    const ensuredStripeCustomerId = stripeCustomerId;
     let session;
     try {
       session = await stripe.checkout.sessions.create(
         buildCheckoutSessionParams(
-          stripeCustomerId,
+          ensuredStripeCustomerId,
           priceId,
           appUrl,
           user,
