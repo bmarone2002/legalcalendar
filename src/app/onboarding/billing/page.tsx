@@ -84,10 +84,12 @@ function BillingOnboardingPanel() {
       <div className="w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-xl font-semibold text-[var(--navy)]">Attivazione prova gratuita</h1>
         <p className="mt-2 text-sm text-zinc-600">
-          Stiamo avviando la tua prova di 30 giorni tramite checkout sicuro Stripe.
+          Stiamo avviando la tua prova di 30 giorni tramite checkout sicuro Stripe, senza richiedere la
+          carta all'inizio.
         </p>
         <p className="mt-2 text-sm font-medium text-zinc-700">
-          Al termine della prova: piano unico 9,99 €/mese (prezzo fisso).
+          Al termine della prova, se non aggiungi un metodo di pagamento, l'abbonamento verra' annullato
+          automaticamente.
         </p>
 
         {loading && (

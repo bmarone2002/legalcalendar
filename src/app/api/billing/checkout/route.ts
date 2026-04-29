@@ -29,6 +29,58 @@ function isNoSuchCustomerError(error: unknown): boolean {
   return maybeError.code === "resource_missing" || message.includes("No such customer");
 }
 
+function buildCheckoutSessionParams(
+  stripeCustomerId: string,
+  priceId: string,
+  appUrl: string,
+  user: Awaited<ReturnType<typeof getOrCreateDbUser>>,
+  billingCycle: "monthly" | "yearly",
+  trialDays?: number
+) {
+  const hasTrial = trialDays != null && trialDays > 0;
+
+  return {
+    mode: "subscription" as const,
+    customer: stripeCustomerId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    allow_promotion_codes: true,
+    billing_address_collection: "auto" as const,
+    consent_collection: {
+      terms_of_service: "required" as const,
+    },
+    custom_text: {
+      terms_of_service_acceptance: {
+        message:
+          "Confermando il checkout accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
+      },
+    },
+    payment_method_collection: hasTrial ? ("if_required" as const) : ("always" as const),
+    success_url: `${appUrl}/?checkout=success`,
+    cancel_url: `${appUrl}/?checkout=cancelled`,
+    subscription_data: {
+      ...(hasTrial
+        ? {
+            trial_period_days: trialDays,
+            trial_settings: {
+              end_behavior: {
+                missing_payment_method: "cancel" as const,
+              },
+            },
+          }
+        : {}),
+      metadata: {
+        userId: user.id,
+        clerkUserId: user.clerkUserId,
+        billingCycle,
+      },
+    },
+    metadata: {
+      userId: user.id,
+      clerkUserId: user.clerkUserId,
+    },
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const payload = checkoutSchema.parse(await req.json().catch(() => ({})));
@@ -58,70 +110,30 @@ export async function POST(req: Request) {
     const priceId = resolvePriceId(payload.billingCycle);
     let session;
     try {
-      session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer: stripeCustomerId,
-        line_items: [{ price: priceId, quantity: 1 }],
-        allow_promotion_codes: true,
-        billing_address_collection: "auto",
-        consent_collection: {
-          terms_of_service: "required",
-        },
-        custom_text: {
-          terms_of_service_acceptance: {
-            message:
-              "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
-          },
-        },
-        success_url: `${appUrl}/?checkout=success`,
-        cancel_url: `${appUrl}/?checkout=cancelled`,
-        subscription_data: {
-          ...(payload.trialDays != null && payload.trialDays > 0 ? { trial_period_days: payload.trialDays } : {}),
-          metadata: {
-            userId: user.id,
-            clerkUserId: user.clerkUserId,
-            billingCycle: payload.billingCycle,
-          },
-        },
-        metadata: {
-          userId: user.id,
-          clerkUserId: user.clerkUserId,
-        },
-      });
+      session = await stripe.checkout.sessions.create(
+        buildCheckoutSessionParams(
+          stripeCustomerId,
+          priceId,
+          appUrl,
+          user,
+          payload.billingCycle,
+          payload.trialDays
+        )
+      );
     } catch (error) {
       if (!isNoSuchCustomerError(error)) throw error;
       // Customer ID belongs to another Stripe environment (test/live mismatch): recreate safely.
       stripeCustomerId = await createAndPersistCustomer();
-      session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer: stripeCustomerId,
-        line_items: [{ price: priceId, quantity: 1 }],
-        allow_promotion_codes: true,
-        billing_address_collection: "auto",
-        consent_collection: {
-          terms_of_service: "required",
-        },
-        custom_text: {
-          terms_of_service_acceptance: {
-            message:
-              "Confermando il pagamento accetti i Termini di Servizio e le Condizioni di Abbonamento di Agenda Legale.",
-          },
-        },
-        success_url: `${appUrl}/?checkout=success`,
-        cancel_url: `${appUrl}/?checkout=cancelled`,
-        subscription_data: {
-          ...(payload.trialDays != null && payload.trialDays > 0 ? { trial_period_days: payload.trialDays } : {}),
-          metadata: {
-            userId: user.id,
-            clerkUserId: user.clerkUserId,
-            billingCycle: payload.billingCycle,
-          },
-        },
-        metadata: {
-          userId: user.id,
-          clerkUserId: user.clerkUserId,
-        },
-      });
+      session = await stripe.checkout.sessions.create(
+        buildCheckoutSessionParams(
+          stripeCustomerId,
+          priceId,
+          appUrl,
+          user,
+          payload.billingCycle,
+          payload.trialDays
+        )
+      );
     }
 
     return NextResponse.json({
