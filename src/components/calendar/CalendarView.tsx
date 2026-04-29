@@ -1436,12 +1436,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               })
             );
             scheduleFeedback(id, feedbackKey);
-            if (st === "done" && !showDone) {
-              window.setTimeout(() => arg.event.remove(), 380);
-            }
-            if (st === "pending" && !showPending) {
-              window.setTimeout(() => arg.event.remove(), 380);
-            }
           }
         } else {
           const result = await updateEvent(id, { status: nextStatus }, targetUserId);
@@ -1461,12 +1455,6 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
               )
             );
             scheduleFeedback(id, feedbackKey);
-            if (s === "done" && !showDone) {
-              window.setTimeout(() => arg.event.remove(), 380);
-            }
-            if (s === "pending" && !showPending) {
-              window.setTimeout(() => arg.event.remove(), 380);
-            }
           }
         }
       };
