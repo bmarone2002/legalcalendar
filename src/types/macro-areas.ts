@@ -1849,6 +1849,21 @@ export const EVENTI_PER_PROCEDIMENTO: Partial<Record<ProcedimentoCode, EventoDis
   ],
 };
 
+const CIVILE_INTERNAL_MACRO_AREAS: ReadonlySet<MacroAreaCode> = new Set([
+  "CIVILE_CONTENZIOSO",
+  "PROCEDIMENTI_SPECIALI",
+  "ESECUZIONI",
+  "LAVORO",
+]);
+
+const PROSECUZIONE_UDIENZA_DIFFERITA: EventoDisponibile = {
+  code: "UDIENZA_DIFFERITA",
+  label: "Udienza differita",
+  inputKey: "dataUdienzaDifferita",
+  parteProcessuale: "COMUNE",
+  ordine: Number.MAX_SAFE_INTEGER,
+};
+
 /** Ordine minimo per eventi in Prosecuzione (solo fasi successive alle memorie 171-ter n.1/2/3). */
 export const ORDINE_MIN_PROSECUZIONE: Partial<Record<ProcedimentoCode, number>> = {
   CITAZIONE_CIVILE: 8,
@@ -1875,15 +1890,32 @@ export function getEventiDisponibiliPerProsecuzione(
   parteProcessuale: ParteProcessuale,
 ): EventoDisponibile[] {
   const minOrdine = ORDINE_MIN_PROSECUZIONE[procedimento];
-  if (minOrdine == null) return getEventiDisponibili(macroArea, procedimento, parteProcessuale);
+  const civili = CIVILE_INTERNAL_MACRO_AREAS.has(macroArea);
+  const withUdienzaDifferita = (events: EventoDisponibile[]): EventoDisponibile[] => {
+    if (!civili || events.some((e) => e.code === PROSECUZIONE_UDIENZA_DIFFERITA.code)) {
+      return events;
+    }
+    const maxOrdine = events.reduce((max, e) => Math.max(max, e.ordine), 0);
+    return [
+      ...events,
+      {
+        ...PROSECUZIONE_UDIENZA_DIFFERITA,
+        ordine: maxOrdine + 1,
+      },
+    ];
+  };
+  if (minOrdine == null) {
+    return withUdienzaDifferita(getEventiDisponibili(macroArea, procedimento, parteProcessuale));
+  }
   const all = EVENTI_PER_PROCEDIMENTO[procedimento] ?? [];
-  return all
+  const filtered = all
     .filter(
       (e) =>
         (e.parteProcessuale === parteProcessuale || e.parteProcessuale === "COMUNE") &&
         e.ordine >= minOrdine
     )
     .sort((a, b) => a.ordine - b.ordine);
+  return withUdienzaDifferita(filtered);
 }
 
 /** Trova un EventoDisponibile per code all'interno di un procedimento. */

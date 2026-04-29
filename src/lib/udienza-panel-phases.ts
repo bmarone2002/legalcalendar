@@ -14,6 +14,7 @@ const UDIENZA_PANEL_PHASE_LABELS = [
   "Udienza comparizione",
   "Udienza conclusioni",
   "Udienza fissata dal giudice con decreto - fase cautelare",
+  "Udienza differita",
   "Udienza istruttoria",
   "Udienza sospensiva",
   "Udienza trattazione",
