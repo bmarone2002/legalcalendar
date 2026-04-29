@@ -129,9 +129,14 @@ export async function POST(req: Request) {
       if (!isNoSuchCustomerError(error)) throw error;
       // Customer ID belongs to another Stripe environment (test/live mismatch): recreate safely.
       stripeCustomerId = await createAndPersistCustomer();
+      if (!stripeCustomerId) {
+        throw new Error("Impossibile ricreare il cliente Stripe");
+      }
+
+      const recoveredStripeCustomerId = stripeCustomerId;
       session = await stripe.checkout.sessions.create(
         buildCheckoutSessionParams(
-          stripeCustomerId,
+          recoveredStripeCustomerId,
           priceId,
           appUrl,
           user,
