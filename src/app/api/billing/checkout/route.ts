@@ -81,6 +81,11 @@ function buildCheckoutSessionParams(
   };
 }
 
+function canUserStartTrial(user: Awaited<ReturnType<typeof getOrCreateDbUser>>): boolean {
+  // Grant trial only once: after first trial/subscription, checkout must require payment method.
+  return user.subscriptionStatus === "free" && !user.trialEndsAt && !user.stripeSubscriptionId;
+}
+
 export async function POST(req: Request) {
   try {
     const payload = checkoutSchema.parse(await req.json().catch(() => ({})));
@@ -111,6 +116,9 @@ export async function POST(req: Request) {
       throw new Error("Impossibile creare il cliente Stripe");
     }
 
+    const requestedTrialDays = payload.trialDays ?? 0;
+    const effectiveTrialDays = requestedTrialDays > 0 && canUserStartTrial(user) ? requestedTrialDays : undefined;
+
     const priceId = resolvePriceId(payload.billingCycle);
     const ensuredStripeCustomerId = stripeCustomerId;
     let session;
@@ -122,7 +130,7 @@ export async function POST(req: Request) {
           appUrl,
           user,
           payload.billingCycle,
-          payload.trialDays
+          effectiveTrialDays
         )
       );
     } catch (error) {
@@ -141,7 +149,7 @@ export async function POST(req: Request) {
           appUrl,
           user,
           payload.billingCycle,
-          payload.trialDays
+          effectiveTrialDays
         )
       );
     }
