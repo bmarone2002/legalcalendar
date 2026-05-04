@@ -60,8 +60,10 @@ body {
 .calendar-theme .fc .fc-list .fc-list-day-cushion {
   background: var(--navy);
   color: #ffffff;
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 1rem;
   font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.35;
 }
 .calendar-theme .fc .fc-list .fc-list-day-text,
 .calendar-theme .fc .fc-list .fc-list-day-side-text {
@@ -87,10 +89,62 @@ body {
   border-width: 2px !important;
   border-radius: 9999px;
 }
+
+/* Agenda (lista): padding celle e separazione tra righe */
+.calendar-theme .fc-list-event > td {
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  vertical-align: middle !important;
+}
+.calendar-theme .fc-list-event-time {
+  padding-left: 0.85rem !important;
+  padding-right: 0.35rem !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.calendar-theme .fc-list-event-graphic {
+  padding-left: 0.25rem !important;
+  padding-right: 0.6rem !important;
+}
+.calendar-theme .fc-list-event-title {
+  padding-right: 0.85rem !important;
+}
+.calendar-theme .fc-list-event + .fc-list-event > td {
+  border-top: 1px solid #f3f4f6;
+}
+.calendar-theme .fc-list-day + .fc-list-event > td {
+  padding-top: 0.75rem !important;
+}
+
 .calendar-theme .fc-theme-standard td, .calendar-theme .fc-theme-standard th { border-color: #d4d8e0; }
 .calendar-theme .fc-scrollgrid { background: #fff; }
 .calendar-theme .fc .fc-daygrid-day { background: #fff; }
-.calendar-theme .fc .fc-daygrid-day-frame { min-height: 100px; }
+.calendar-theme .fc .fc-daygrid-day-frame {
+  min-height: 112px;
+  padding: 0.25rem 0.2rem 0.35rem;
+}
+.calendar-theme .fc .fc-daygrid-day-top {
+  padding: 0.35rem 0.4rem 0.2rem;
+}
+.calendar-theme .fc .fc-daygrid-day-number {
+  padding: 0.15rem 0.35rem;
+  font-size: 0.85rem;
+}
+.calendar-theme .fc .fc-daygrid-day-events {
+  margin-top: 0.15rem;
+  padding: 0 0.12rem 0.2rem;
+}
+.calendar-theme .fc .fc-daygrid-event {
+  margin-top: 0.2rem !important;
+  margin-bottom: 0.12rem !important;
+  padding: 0.28rem 0.45rem !important;
+  border-radius: 0.35rem !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.35 !important;
+}
+.calendar-theme .fc .fc-daygrid-block-event .fc-event-main-frame {
+  min-height: 1.5rem;
+}
 .calendar-theme .fc .fc-day-other .fc-daygrid-day-number { color: #b0a090; }
 /* Vista Settimana: 24 righe orarie visibili (una per ogni ora), caselle verticali */
 .calendar-theme .fc .fc-timegrid-slots { min-height: 960px; }
@@ -158,6 +212,12 @@ body {
 .calendar-theme .fc-event { overflow: hidden; }
 .calendar-theme .fc-event .fc-event-main { overflow: hidden; }
 .calendar-theme .fc-event .fc-event-main-frame { overflow: hidden; display: flex; align-items: center; min-height: 0; }
+/* Lista e mese: evita altezza collassata rispetto alla vista settimana */
+.calendar-theme .fc-list-event .fc-event-main-frame,
+.calendar-theme .fc-daygrid-event .fc-event-main-frame {
+  min-height: 1.5rem;
+  line-height: 1.35;
+}
 .calendar-theme .fc-event .fc-event-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calendar-theme .fc-event .fc-event-title-container { overflow: hidden; min-width: 0; }
 .calendar-theme .fc .fc-timegrid-event .fc-event-main {

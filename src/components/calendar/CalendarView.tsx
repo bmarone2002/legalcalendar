@@ -952,6 +952,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                 start,
                 end,
                 allDay: false,
+                /** Sempre chip leggibile nella vista mese (altrimenti FC può usare `.fc-daygrid-dot-event`). */
+                display: "block",
                 backgroundColor: "#FFF9C4",
                 borderColor: "#FBC02D",
                 extendedProps: {
@@ -1351,8 +1353,8 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
     if (isListView && isDraft) {
       return (
-        <div className="fc-event-main-frame flex items-center gap-2 rounded border-l-4 border-l-amber-500 pl-1 bg-amber-50/60">
-          <span className="fc-list-event-title min-w-0 flex-1 truncate font-medium text-amber-950">
+        <div className="fc-event-main-frame calendar-list-event-inner flex items-center gap-3 rounded-md border border-amber-200/80 border-l-4 border-l-amber-500 bg-amber-50/65 py-2 pl-2 pr-2">
+          <span className="fc-list-event-title min-w-0 flex-1 truncate text-sm font-medium leading-snug text-amber-950">
             {arg.event.title}
           </span>
         </div>
@@ -1461,7 +1463,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
       return (
         <div
-          className={`fc-event-main-frame flex items-center gap-2 rounded border-l-4 pl-1 ${rowFeedbackClass} ${udienzaListRow}`}
+          className={`fc-event-main-frame calendar-list-event-inner flex min-h-[2.375rem] items-center gap-3 rounded-md border border-transparent border-l-4 py-2 pl-3 pr-2 text-sm leading-snug ${rowFeedbackClass} ${udienzaListRow}`}
           style={{ borderLeftColor: borderColor ?? undefined }}
         >
           {canEdit && !isFutureReminder ? (
@@ -1473,14 +1475,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
                   ? "Aggiorna solo questo adempimento"
                   : "Aggiorna solo questo evento madre (non i collegati)"
               }
-              className={`h-5 w-9 shrink-0 rounded-full border flex items-center px-0.5 transition-colors ${
+              className={`h-7 w-10 shrink-0 rounded-full border flex items-center px-0.5 transition-colors ${
                 isDone ? "bg-emerald-500 border-emerald-600" : "bg-red-500 border-red-600"
               }`}
               onClick={onToggle}
             >
               <span
                 className="h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform"
-                style={{ transform: isDone ? "translateX(12px)" : "translateX(0px)" }}
+                style={{ transform: isDone ? "translateX(14px)" : "translateX(0px)" }}
               />
             </button>
           ) : (
@@ -1588,7 +1590,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       const parentTagColor = parentTagColorRaw?.trim() ? parentTagColorRaw.trim() : null;
       return (
         <div
-          className={`fc-event-main-frame flex items-center gap-1 rounded border-l-[3px] pl-1 ${
+          className={`fc-event-main-frame flex min-h-[1.5rem] items-center gap-1.5 rounded border-l-[3px] px-1 py-0.5 ${
             isUdienza ? "ring-1 ring-amber-300/50 bg-amber-50/25" : ""
           }`}
           style={{ borderLeftColor: borderColor ?? undefined }}
@@ -1613,7 +1615,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       const parentTag = (ext.parentTagColor as string | undefined)?.trim();
       return (
         <div
-          className={`fc-event-main-frame flex items-center gap-1 rounded border-l-[3px] pl-0.5 ${
+          className={`fc-event-main-frame flex min-h-[1.625rem] items-center gap-1.5 rounded border-l-[3px] px-1 py-0.5 ${
             isUdienza ? "ring-1 ring-amber-300/50 bg-amber-50/20" : ""
           }`}
           style={{ borderLeftColor: borderColor ?? undefined }}
@@ -2061,7 +2063,7 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
           editable={canEdit}
           selectable={canEdit}
           selectMirror={canEdit}
-          dayMaxEvents
+          dayMaxEvents={6}
           weekends
           datesSet={handleDatesSet}
           eventsSet={handleEventsSet}
