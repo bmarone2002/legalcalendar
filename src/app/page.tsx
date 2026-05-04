@@ -25,11 +25,10 @@ export default function Home() {
 
 function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-[var(--surface)]">
+    <div className="min-h-screen bg-[var(--surface)]">
       {/* ── Navbar ─────────────────────────────────────────────── */}
-      {/* z-[100] + sfondo coprente: in WebKit il main può essere dipinto sopra un header sticky più basso, rubando tap (blur/blobs). */}
-      <header className="sticky top-0 z-[100] isolate border-b border-[var(--gold)]/20 bg-[var(--navy)] shadow-[0_1px_0_rgba(0,0,0,0.06)]">
-        <div className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-[60] isolate border-b border-[var(--gold)]/20 bg-[var(--navy)]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -47,7 +46,7 @@ function LandingPage() {
             </div>
           </div>
 
-          <nav className="relative z-10 flex items-center gap-2 sm:gap-2.5">
+          <nav className="flex items-center gap-2 sm:gap-2.5">
             <Link
               href="#funzionalita"
               className="hidden items-center gap-1.5 rounded-full border border-zinc-400/25 px-3 py-1 text-xs font-medium text-zinc-200/90 transition-colors hover:border-[var(--gold)]/50 hover:text-[var(--gold)] md:inline-flex"
@@ -90,21 +89,15 @@ function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-0">
+      <main>
         {/* ── Hero ──────────────────────────────────────────────── */}
-        <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#f5f0e6] via-[#f8f4ec] to-[var(--surface)]">
-          {/* Decorative blobs: contenuti e pointer-events bloccati così Safari non intercetta tap sopra alla navbar */}
-          <div
-            className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none"
-            style={{ pointerEvents: "none" }}
-            aria-hidden
-          >
-            <div className="absolute -right-24 -top-24 h-[min(28rem,90vw)] w-[min(28rem,90vw)] max-h-[560px] max-w-[560px] rounded-full bg-[var(--gold)]/[0.08] blur-[3rem]" />
-            <div className="absolute -bottom-12 -left-16 h-[min(22rem,70vw)] w-[min(22rem,70vw)] max-h-[380px] max-w-[380px] rounded-full bg-[var(--navy)]/[0.06] blur-[3rem]" />
-            <div className="absolute right-[18%] top-[22%] h-44 w-44 rounded-full bg-[var(--gold)]/[0.05] blur-2xl" />
-          </div>
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#f5f0e6] via-[#f8f4ec] to-[var(--surface)]">
+          {/* Decorative blobs */}
+          <div className="pointer-events-none absolute -right-40 -top-40 h-[600px] w-[600px] rounded-full bg-[var(--gold)]/[0.07] blur-3xl" />
+          <div className="pointer-events-none absolute -left-32 bottom-20 h-[400px] w-[400px] rounded-full bg-[var(--navy)]/[0.04] blur-3xl" />
+          <div className="pointer-events-none absolute right-1/4 top-1/3 h-[200px] w-[200px] rounded-full bg-[var(--gold)]/[0.04] blur-2xl" />
 
-          <div className="relative z-10 mx-auto max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pt-16 lg:pt-20">
+          <div className="mx-auto max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pt-16 lg:pt-20">
             {/* Top row: text + screenshot */}
             <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-12">
               {/* Text column */}
@@ -153,13 +146,10 @@ function LandingPage() {
               </div>
 
               {/* Screenshot column – grande con card flottanti */}
-              <div className="relative z-10 flex flex-1 items-center justify-center lg:justify-end">
+              <div className="relative flex flex-1 items-center justify-center lg:justify-end">
                 <div className="relative w-full max-w-xl lg:max-w-[580px]">
-                  {/* Glow — deve ignorare tap (prima causava overlap hit-target in Safari) */}
-                  <div
-                    className="pointer-events-none absolute -inset-5 z-0 rounded-3xl bg-gradient-to-br from-[var(--gold)]/18 via-transparent to-[var(--navy)]/10 blur-2xl"
-                    aria-hidden
-                  />
+                  {/* Glow */}
+                  <div className="pointer-events-none absolute -inset-5 rounded-3xl bg-gradient-to-br from-[var(--gold)]/20 via-transparent to-[var(--navy)]/10 blur-2xl" aria-hidden />
 
                   {/* Main screenshot */}
                   <div className="relative overflow-hidden rounded-2xl border border-zinc-200/60 shadow-2xl shadow-black/10">
