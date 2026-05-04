@@ -32,9 +32,18 @@
   --font-sans: var(--font-geist-sans);
 }
 
-html, body { overflow-x: hidden; }
-html { font-size: 13px; }
+/*
+ * Overflow orizzontale: solo su <html>.
+ * Safari (WebKit) con `overflow-x: hidden` anche su body rompe il posizionamento di
+ * elementi `position: fixed` usati dai modal/menu Clerk (backdrop, popover avatar).
+ */
+html {
+  overflow-x: hidden;
+  font-size: 14px;
+}
 body {
+  overflow-x: unset;
+  min-width: 0;
   background: #fff;
   color: #171717;
   font-family: Arial, Helvetica, sans-serif;

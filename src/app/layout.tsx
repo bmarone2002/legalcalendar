@@ -23,14 +23,23 @@ const clerkAppearance = {
     fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
   },
   elements: {
-    card: "rounded-2xl border border-[var(--gold)]/20 bg-white shadow-xl shadow-[var(--navy)]/10",
-    logoImage: "!h-[4.5rem] !w-auto !max-h-none",
+    rootBox: "min-w-0",
+    card:
+      "rounded-2xl border border-[var(--gold)]/20 bg-white p-4 shadow-xl shadow-[var(--navy)]/10 sm:p-6",
+    cardBox: "flex flex-col gap-4 overflow-visible",
+    header: "gap-2 text-center",
+    main: "flex flex-col gap-4",
+    logoImage: "h-auto max-h-[3.5rem] w-auto object-contain",
     headerTitle: "text-[var(--navy)]",
     headerSubtitle: "text-zinc-600",
+    socialButtonsRoot: "flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-3",
+    socialButtons: "flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-3",
     socialButtonsBlockButton:
-      "rounded-lg border border-zinc-200 hover:border-[var(--gold)]/45 hover:bg-[var(--gold)]/5",
+      "relative flex min-h-[2.75rem] w-full flex-1 basis-0 items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 hover:border-[var(--gold)]/45 hover:bg-[var(--gold)]/5",
+    lastAuthenticationStrategyBadge:
+      "static m-0 ml-2 inline-flex max-w-[45%] shrink-0 translate-x-0 translate-y-0 text-right text-[10px] font-medium leading-tight text-zinc-500 sm:max-w-[10rem] sm:text-left",
     formFieldInput:
-      "rounded-lg border-zinc-300 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/25",
+      "rounded-lg border border-zinc-300 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/25",
     formFieldLabel: "text-zinc-700",
     formButtonPrimary:
       "rounded-lg bg-[var(--gold)] text-[var(--navy)] hover:bg-[var(--gold-light)] shadow-sm font-semibold",
@@ -43,7 +52,12 @@ const clerkAppearance = {
     identityPreviewEditButton: "text-[var(--navy)] hover:text-[var(--navy-light)]",
     formResendCodeLink: "text-[var(--navy)] hover:text-[var(--navy-light)]",
     otpCodeFieldInput:
-      "rounded-lg border-zinc-300 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/25",
+      "rounded-lg border border-zinc-300 focus:border-[var(--gold)] focus:ring-2 focus:ring-[var(--gold)]/25",
+    userButtonPopoverCard: "min-w-[16rem] overflow-visible rounded-xl border border-zinc-200 p-3 shadow-lg",
+    userButtonPopoverMain: "flex flex-col gap-2",
+    userPreviewAvatarContainer: "flex items-center gap-3 overflow-visible",
+    userPreviewAvatarBox: "shrink-0 overflow-visible",
+    userButtonAvatarBox: "shrink-0 overflow-visible ring-2 ring-[var(--gold)]/50",
   },
 };
 
