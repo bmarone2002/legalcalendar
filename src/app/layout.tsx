@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { itIT } from "@clerk/localizations";
 import { Geist } from "next/font/google";
-import { WheelScrollSupport } from "@/components/layout/WheelScrollSupport";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -93,7 +92,6 @@ export default function RootLayout({
           localization={itIT}
           appearance={clerkAppearance}
         >
-          <WheelScrollSupport />
           {children}
         </ClerkProvider>
       </body>
