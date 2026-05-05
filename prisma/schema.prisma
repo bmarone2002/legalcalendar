@@ -81,6 +81,7 @@ model Event {
   @@index([userId, startAt])
   @@index([userId, macroType])
   @@index([userId, type])
+  @@index([userId, status])
   @@index([orgId, startAt])
 }
 
@@ -104,6 +105,8 @@ model SubEvent {
 
   @@index([parentEventId])
   @@index([dueAt])
+  @@index([parentEventId, ruleId])
+  @@index([parentEventId, dueAt])
 }
 
 model Rinvio {

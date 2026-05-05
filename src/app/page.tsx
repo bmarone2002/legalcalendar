@@ -2,6 +2,7 @@ import { CalendarView } from "@/components/calendar/CalendarView";
 import { AppShell } from "@/components/layout/AppShell";
 import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -34,6 +35,11 @@ function LandingPage() {
             <img
               src="/logo-agenda-legale.png"
               alt="Agenda Legale"
+              width={192}
+              height={96}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="h-16 w-auto object-contain sm:h-20 lg:h-24"
             />
             <div className="hidden sm:block">
@@ -153,10 +159,13 @@ function LandingPage() {
 
                   {/* Main screenshot */}
                   <div className="relative overflow-hidden rounded-2xl border border-zinc-200/60 shadow-2xl shadow-black/10">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src="/screenshot-calendario.png"
                       alt="Calendario di Agenda Legale"
+                      width={1160}
+                      height={760}
+                      sizes="(min-width: 1024px) 580px, 100vw"
+                      priority
                       className="h-auto w-full"
                     />
                   </div>

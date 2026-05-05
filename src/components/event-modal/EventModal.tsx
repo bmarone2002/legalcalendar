@@ -46,7 +46,7 @@ type ActiveTab = "dettagli" | "prosecuzione";
 
 type PendingRinvioSaveResult = "not_required" | "saved" | "failed";
 
-interface EventModalProps {
+export interface EventModalProps {
   mode: ModalMode;
   eventId?: string;
   initialStart?: Date;

@@ -89,6 +89,63 @@ function toEvent(r: {
   };
 }
 
+// Select mirato per ridurre il payload Prisma -> app: include solo i campi usati da `toEvent`/`toSubEvent`.
+const eventSelectFields = {
+  id: true,
+  title: true,
+  description: true,
+  startAt: true,
+  endAt: true,
+  type: true,
+  tags: true,
+  caseId: true,
+  notes: true,
+  generateSubEvents: true,
+  ruleTemplateId: true,
+  ruleParams: true,
+  macroType: true,
+  macroArea: true,
+  procedimento: true,
+  parteProcessuale: true,
+  eventoCode: true,
+  inputs: true,
+  color: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const subEventSelectFields = {
+  id: true,
+  parentEventId: true,
+  title: true,
+  kind: true,
+  dueAt: true,
+  status: true,
+  priority: true,
+  ruleId: true,
+  ruleParams: true,
+  explanation: true,
+  createdBy: true,
+  locked: true,
+  isPlaceholder: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+function buildEventWithSubEventsSelect() {
+  return {
+    ...eventSelectFields,
+    subEvents: {
+      select: { ...subEventSelectFields },
+      orderBy: [
+        { dueAt: { sort: "asc" as const, nulls: "last" as const } },
+        { priority: "asc" as const },
+      ],
+    },
+  };
+}
+
 const createEventSchema = z.object({
   title: z.string().min(1, "Inserire un titolo evento"),
   description: z.string().nullable().optional(),
@@ -174,39 +231,37 @@ export async function createEvent(data: CreateEventInput, targetUserId?: string)
 
     // Push best-effort: notify only the event owner (multi-device).
     try {
+      // Query unica: preferenze + utente destinatario in un solo round-trip DB.
       const userPrefs = await prisma.eventNotificationPreference.findMany({
         where: {
           userId,
           enabled: true,
           OR: [{ eventType: null }, { eventType: event.type }],
         },
-        select: { userId: true, macroArea: true },
+        select: {
+          userId: true,
+          macroArea: true,
+          user: { select: { clerkUserId: true } },
+        },
       });
-      const targetUserIds = new Set<string>();
+      const externalUserIdSet = new Set<string>();
       for (const pref of userPrefs) {
-        if (!pref.macroArea || pref.macroArea === event.macroArea) {
-          targetUserIds.add(pref.userId);
-        }
+        if (pref.macroArea && pref.macroArea !== event.macroArea) continue;
+        const externalId = pref.user?.clerkUserId;
+        if (externalId) externalUserIdSet.add(externalId);
       }
-      if (targetUserIds.size > 0) {
-        const users = await prisma.user.findMany({
-          where: { id: { in: Array.from(targetUserIds) } },
-          select: { clerkUserId: true },
+      if (externalUserIdSet.size > 0) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://agendalegale-production.up.railway.app";
+        await sendOneSignalNotification({
+          externalUserIds: Array.from(externalUserIdSet),
+          title: "Nuovo evento in agenda",
+          message: event.title,
+          data: {
+            type: "event",
+            eventId: event.id,
+            url: `${baseUrl}/?eventId=${encodeURIComponent(event.id)}`,
+          },
         });
-        const externalUserIds = users.map((u) => u.clerkUserId).filter(Boolean);
-        if (externalUserIds.length > 0) {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://agendalegale-production.up.railway.app";
-          await sendOneSignalNotification({
-            externalUserIds,
-            title: "Nuovo evento in agenda",
-            message: event.title,
-            data: {
-              type: "event",
-              eventId: event.id,
-              url: `${baseUrl}/?eventId=${encodeURIComponent(event.id)}`,
-            },
-          });
-        }
       }
     } catch (notifyError) {
       console.warn("Notifica evento non inviata:", notifyError);
@@ -328,7 +383,7 @@ export async function getEvents(start: Date, end: Date, targetUserId?: string): 
           { subEvents: { some: { dueAt: { gte: rangeStart, lte: rangeEnd } } } },
         ],
       },
-      include: { subEvents: { orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }] } },
+      select: buildEventWithSubEventsSelect(),
       orderBy: { startAt: "asc" },
     });
     return { success: true, data: events.map(toEvent) };
@@ -342,14 +397,22 @@ export async function getEvents(start: Date, end: Date, targetUserId?: string): 
 
 export async function getEventById(id: string, targetUserId?: string): Promise<ActionResult<Event | null>> {
   try {
+    // Auth-first: query leggera per autorizzare prima del payload completo.
+    const owner = await prisma.event.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+    if (!owner) {
+      return { success: true, data: null };
+    }
+    await resolveCalendarUser(targetUserId ?? owner.userId, "VIEW_ONLY");
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { subEvents: { orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { priority: "asc" }] } },
+      select: buildEventWithSubEventsSelect(),
     });
     if (!event) {
       return { success: true, data: null };
     }
-    await resolveCalendarUser(targetUserId ?? event.userId, "VIEW_ONLY");
     return { success: true, data: toEvent(event) };
   } catch (e) {
     return {

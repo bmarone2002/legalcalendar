@@ -65,3 +65,31 @@ Questa checklist e pensata per il rilascio su Railway con Clerk + Stripe.
   - fallimenti webhook Stripe
   - availability `GET /api/health`
 - Tieni pronto rollback selettivo del billing se webhook degradano.
+
+## Tuning performance opzionale (Railway)
+
+Modifiche che si applicano dal dashboard Railway, **senza cambi al codice**.
+
+### NODE_OPTIONS
+
+- Aggiungi su servizio app:
+  - `NODE_OPTIONS=--max-old-space-size=512`
+- Utile su piano Hobby (RAM limitata) per evitare OOM su export/restore grandi.
+- Alza a `768` o `1024` solo se vedi `out of memory` nei log.
+
+### DATABASE_URL pooling
+
+- Se usi un pooler Postgres compatibile (es. PgBouncer), aggiungi alla connection string:
+  - `?pgbouncer=true&connection_limit=5&pool_timeout=10`
+- Mantieni `connection_limit` basso (3-5) finche' c'e' una sola istanza app.
+- Se aumenti le repliche, ricalcola: `connection_limit * repliche` deve restare sotto i max del pooler.
+
+### Healthcheck
+
+- Gia' configurato in `railway.toml`: `healthcheckPath = "/api/health"`.
+- Verifica nel dashboard che la probe sia attiva sul servizio.
+
+### Indici DB
+
+- La migrazione `20260505082000_add_perf_indexes` aggiunge 3 indici additivi (zero rischio dati).
+- Si applica automaticamente al deploy via `prisma migrate deploy` in `start:prod`.

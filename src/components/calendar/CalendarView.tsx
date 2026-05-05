@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -19,8 +20,14 @@ import { useCalendarTagFilters } from "@/hooks/useCalendarTagFilters";
 import { getEvents, updateEvent, deleteEvent } from "@/lib/actions/events";
 import { regenerateSubEvents, updateSubEvent, deleteSubEvent } from "@/lib/actions/sub-events";
 import type { Event as AppEvent, EventType, SubEvent } from "@/types";
-import { EventModal } from "@/components/event-modal/EventModal";
+import type { EventModalProps } from "@/components/event-modal/EventModal";
 import { Button } from "@/components/ui/button";
+
+// Lazy-load: la modale eventi e' grande (~2.4k righe) e non serve al first paint del calendario.
+const EventModal = dynamic<EventModalProps>(
+  () => import("@/components/event-modal/EventModal").then((m) => m.EventModal),
+  { ssr: false }
+);
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   EVENT_TAG_COLORS,
@@ -905,12 +912,14 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
       const viewType =
         info.view?.type ?? calendarRef.current?.getApi()?.view?.type ?? "";
 
-      // Finestra ampia per `allEvents` (pannello intelligente + ricerca). getEvents() restituisce
-      // solo pratiche con almeno un’intersezione col range: se la finestra è stretta, spariscono
-      // udienze/adempimenti lontani nel tempo (anche se la pratica ha altre date dentro).
+      // Finestra dati per `allEvents` (pannello intelligente + ricerca). Volutamente
+      // contenuta per ridurre il payload e i ricalcoli; quando l'utente naviga avanti/indietro
+      // la vista di FullCalendar fornisce comunque `info.start`/`info.end` cosi' i dati
+      // visibili vengono caricati on-demand. Per finestre molto piu' ampie della "wide window"
+      // di default, usiamo direttamente `info.start`/`info.end`.
       const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
-      const wideStart = new Date(Date.now() - 12 * YEAR_MS);
-      const wideEnd = new Date(Date.now() + 20 * YEAR_MS);
+      const wideStart = new Date(Date.now() - 2 * YEAR_MS);
+      const wideEnd = new Date(Date.now() + 3 * YEAR_MS);
       const fetchStart = new Date(Math.min(info.start.getTime(), wideStart.getTime()));
       const fetchEnd = new Date(Math.max(info.end.getTime(), wideEnd.getTime()));
       getEvents(fetchStart, fetchEnd, targetUserId)
@@ -1059,17 +1068,18 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
     onEscape: () => setSearchSuggestions([]),
   });
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      const query = value;
-      setSearchQuery(query);
-
-      const trimmed = query.trim().toLowerCase();
-      if (trimmed.length < 2) {
-        setSearchSuggestions([]);
-        return;
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
       }
+    };
+  }, []);
 
+  const computeSearchSuggestions = useCallback(
+    (trimmed: string): SearchSuggestion[] => {
       const suggestions: SearchSuggestion[] = [];
       for (const ev of allEvents) {
         const rawTitle = (ev.title ?? "").toString();
@@ -1120,10 +1130,32 @@ export function CalendarView({ targetUserId, permission }: CalendarViewProps = {
 
         if (suggestions.length >= 10) break;
       }
-
-      setSearchSuggestions(suggestions);
+      return suggestions;
     },
     [allEvents]
+  );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+
+      const trimmed = value.trim().toLowerCase();
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
+      }
+      if (trimmed.length < 2) {
+        setSearchSuggestions([]);
+        return;
+      }
+
+      // Debounce 150ms: evita di scorrere `allEvents` ad ogni tasto durante la digitazione.
+      searchDebounceRef.current = setTimeout(() => {
+        searchDebounceRef.current = null;
+        setSearchSuggestions(computeSearchSuggestions(trimmed));
+      }, 150);
+    },
+    [computeSearchSuggestions]
   );
 
   const handleSuggestionClick = useCallback(
