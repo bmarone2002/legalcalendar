@@ -8,6 +8,7 @@ import { getRequestId, logApiEvent, withRequestIdHeaders } from "@/lib/server/re
 
 const checkoutSchema = z.object({
   billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
+  trialDays: z.number().int().min(0).max(90).optional(),
 });
 
 function resolvePriceId(billingCycle: "monthly" | "yearly"): string {
@@ -87,9 +88,9 @@ function canUserStartTrial(user: Awaited<ReturnType<typeof getOrCreateDbUser>>):
   return user.subscriptionStatus === "free" && !user.trialEndsAt && !user.stripeSubscriptionId;
 }
 
-function resolveServerTrialDays(): number {
+function resolveServerTrialDays(): number | undefined {
   const configured = process.env.STRIPE_TRIAL_DAYS;
-  if (!configured) return 0;
+  if (!configured) return undefined;
   const parsed = Number.parseInt(configured, 10);
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 90) {
     throw new Error("Variabile STRIPE_TRIAL_DAYS non valida (usa un intero tra 0 e 90)");
@@ -144,8 +145,11 @@ export async function POST(req: Request) {
     }
 
     const configuredTrialDays = resolveServerTrialDays();
+    const requestedTrialDays = payload.trialDays;
+    const fallbackTrialDays = 30;
+    const baseTrialDays = configuredTrialDays ?? requestedTrialDays ?? fallbackTrialDays;
     const effectiveTrialDays =
-      configuredTrialDays > 0 && canUserStartTrial(user) ? configuredTrialDays : undefined;
+      canUserStartTrial(user) && baseTrialDays > 0 ? baseTrialDays : undefined;
 
     const priceId = resolvePriceId(payload.billingCycle);
     const ensuredStripeCustomerId = stripeCustomerId;
