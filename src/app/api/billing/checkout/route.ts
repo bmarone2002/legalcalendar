@@ -147,7 +147,8 @@ export async function POST(req: Request) {
     const configuredTrialDays = resolveServerTrialDays();
     const requestedTrialDays = payload.trialDays;
     const fallbackTrialDays = 30;
-    const baseTrialDays = configuredTrialDays ?? requestedTrialDays ?? fallbackTrialDays;
+    // Prefer explicit onboarding trial request; fallback to env/default when not provided.
+    const baseTrialDays = requestedTrialDays ?? configuredTrialDays ?? fallbackTrialDays;
     const effectiveTrialDays =
       canUserStartTrial(user) && baseTrialDays > 0 ? baseTrialDays : undefined;
 
