@@ -29,7 +29,7 @@ function LandingPage() {
     <div className="min-h-screen bg-[var(--surface)]">
       {/* ── Navbar ─────────────────────────────────────────────── */}
       <header className="sticky top-0 z-[60] isolate border-b border-[var(--gold)]/20 bg-[var(--navy)]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-7 lg:px-10">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -103,33 +103,33 @@ function LandingPage() {
           <div className="pointer-events-none absolute -left-32 bottom-20 h-[400px] w-[400px] rounded-full bg-[var(--navy)]/[0.04] blur-3xl" />
           <div className="pointer-events-none absolute right-1/4 top-1/3 h-[200px] w-[200px] rounded-full bg-[var(--gold)]/[0.04] blur-2xl" />
 
-          <div className="mx-auto max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pt-16 lg:pt-20">
+          <div className="mx-auto max-w-7xl px-5 pb-10 pt-14 sm:px-7 sm:pt-20 lg:px-10 lg:pt-24">
             {/* Top row: text + screenshot */}
-            <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-12">
+            <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-16">
               {/* Text column */}
-              <div className="max-w-xl shrink-0 text-left text-[var(--navy)] lg:max-w-lg">
+              <div className="max-w-xl shrink-0 text-left text-[var(--navy)] lg:max-w-xl">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/30 bg-white/80 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--gold)] shadow-sm backdrop-blur-sm">
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
                   Prova gratuita 30 giorni &middot; Nessun vincolo
                 </span>
 
-                <h1 className="mt-5 text-[2rem] font-bold leading-[1.12] tracking-tight sm:text-[2.75rem] lg:text-[3.25rem]">
+                <h1 className="mt-6 text-[2.25rem] font-bold leading-[1.1] tracking-tight sm:text-[3rem] lg:text-[3.7rem]">
                   Gestisci pratiche, udienze e scadenze{" "}
                   <span className="text-[var(--gold)]">senza più caos operativo</span>.
                 </h1>
 
-                <p className="mt-5 max-w-md text-[15px] leading-relaxed text-zinc-600 sm:text-base">
+                <p className="mt-6 max-w-lg text-base leading-relaxed text-zinc-600 sm:text-lg">
                   Con <span className="font-semibold text-[var(--navy)]">Agenda Legale</span>{" "}
                   trasformi attività sparse in un flusso unico: apri la pratica, gestisci le fasi,
                   calcoli i termini e controlli tutto da un calendario pensato per il tuo studio.
                 </p>
 
                 {/* CTA */}
-                <div className="mt-8 flex flex-wrap items-center gap-3">
+                <div className="mt-10 flex flex-wrap items-center gap-4">
                   <SignUpButton mode="redirect">
                     <button
                       type="button"
-                      className="rounded-lg bg-[var(--gold)] px-6 py-3 text-sm font-bold text-[var(--navy)] shadow-lg shadow-[var(--gold)]/25 transition-all hover:scale-[1.02] hover:bg-[var(--gold-light)] hover:shadow-xl sm:text-base"
+                      className="rounded-lg bg-[var(--gold)] px-7 py-3.5 text-base font-bold text-[var(--navy)] shadow-lg shadow-[var(--gold)]/25 transition-all hover:scale-[1.02] hover:bg-[var(--gold-light)] hover:shadow-xl"
                     >
                       Attiva prova gratuita
                     </button>
@@ -137,14 +137,14 @@ function LandingPage() {
                   <SignInButton mode="redirect">
                     <button
                       type="button"
-                      className="rounded-lg border border-[var(--navy)]/15 bg-white px-5 py-3 text-sm font-medium text-[var(--navy)] transition-colors hover:bg-[var(--navy)] hover:text-white"
+                      className="rounded-lg border border-[var(--navy)]/15 bg-white px-6 py-3.5 text-base font-medium text-[var(--navy)] transition-colors hover:bg-[var(--navy)] hover:text-white"
                     >
                       Ho già un account
                     </button>
                   </SignInButton>
                 </div>
 
-                <p className="mt-3 text-xs text-zinc-500">
+                <p className="mt-4 text-sm text-zinc-500">
                   Attivazione immediata &middot; Piano unico{" "}
                   <span className="font-semibold text-zinc-700">9,99 €/mese</span> &middot; Prezzo
                   fisso, nessun lock-in
@@ -153,7 +153,7 @@ function LandingPage() {
 
               {/* Screenshot column – grande con card flottanti */}
               <div className="relative flex flex-1 items-center justify-center lg:justify-end">
-                <div className="relative w-full max-w-xl lg:max-w-[580px]">
+                <div className="relative w-full max-w-2xl lg:max-w-[700px]">
                   {/* Glow */}
                   <div className="pointer-events-none absolute -inset-5 rounded-3xl bg-gradient-to-br from-[var(--gold)]/20 via-transparent to-[var(--navy)]/10 blur-2xl" aria-hidden />
 
@@ -200,7 +200,7 @@ function LandingPage() {
             </div>
 
             {/* Benefit strip – sotto hero, più sostanziose */}
-            <div className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:grid-cols-4 sm:gap-4">
+            <div className="mt-12 grid grid-cols-2 gap-4 sm:mt-14 sm:grid-cols-4 sm:gap-5">
               <HeroBenefit
                 icon={<span className="text-amber-600">⏱</span>}
                 title="Meno tempo perso"
@@ -247,7 +247,7 @@ function LandingPage() {
 
         {/* ── Funzionalità ──────────────────────────────────────── */}
         <section id="funzionalita" className="scroll-mt-20 border-b border-zinc-200 bg-[var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-7 sm:py-20 lg:px-10 lg:py-24">
             <SectionHeader
               label="Funzionalità"
               title="Una piattaforma unica per il lavoro legale quotidiano"
@@ -304,7 +304,7 @@ function LandingPage() {
 
         {/* ── Valore concreto ───────────────────────────────────── */}
         <section className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-7 sm:py-24 lg:px-10 lg:py-24">
             <SectionHeader
               label="Valore"
               title="Perché gli studi scelgono Agenda Legale"
@@ -333,7 +333,7 @@ function LandingPage() {
 
         {/* ── Come funziona ──────────────────────────────────────── */}
         <section id="come-funziona" className="scroll-mt-20 border-b border-zinc-200 bg-[var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-7 sm:py-24 lg:px-10 lg:py-24">
             <SectionHeader
               label="Come funziona"
               title="Dal primo accesso alla gestione quotidiana"
@@ -367,7 +367,7 @@ function LandingPage() {
 
         {/* ── Per chi è ──────────────────────────────────────────── */}
         <section className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-7 sm:py-24 lg:px-10 lg:py-24">
             <SectionHeader
               label="Per chi è"
               title="Pensata per chi vive il diritto ogni giorno"
@@ -395,7 +395,7 @@ function LandingPage() {
 
         {/* ── Obiezioni tipiche ──────────────────────────────────── */}
         <section className="border-b border-zinc-200 bg-[var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-7 sm:py-24 lg:px-10 lg:py-24">
             <SectionHeader
               label="Domande"
               title="Domande tipiche prima di iniziare"
@@ -453,7 +453,7 @@ function LandingPage() {
 
         {/* ── Footer ──────────────────────────────────────────── */}
         <footer className="border-t border-zinc-200 bg-[var(--surface)]">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-zinc-500 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-7 text-sm text-zinc-500 sm:px-7 lg:px-10">
             <p>&copy; {new Date().getFullYear()} Agenda Legale</p>
             <div className="flex gap-4">
               <Link href="/guida" className="hover:text-[var(--navy)]">Guida</Link>
@@ -480,11 +480,11 @@ function SectionHeader(props: { label?: string; title: string; subtitle?: string
           {props.label}
         </p>
       )}
-      <h2 className="text-2xl font-bold text-[var(--navy)] sm:text-3xl">
+      <h2 className="text-3xl font-bold text-[var(--navy)] sm:text-4xl">
         {props.title}
       </h2>
       {props.subtitle && (
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-600 sm:text-base">
+        <p className="mx-auto mt-4 max-w-3xl text-base text-zinc-600 sm:text-lg">
           {props.subtitle}
         </p>
       )}
@@ -495,34 +495,34 @@ function SectionHeader(props: { label?: string; title: string; subtitle?: string
 
 function FeatureCard(props: { icon: string; title: string; description: string }) {
   return (
-    <div className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+    <div className="group flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm transition-shadow hover:shadow-md">
       <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--gold)]/10 text-xl" aria-hidden="true">
         {props.icon}
       </span>
-      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
+      <h3 className="text-base font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2.5 text-base leading-relaxed text-zinc-600">{props.description}</p>
     </div>
   );
 }
 
 function StepCard(props: { step: string; title: string; description: string }) {
   return (
-    <li className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-6 pt-8 shadow-sm">
+    <li className="relative flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-7 pt-9 shadow-sm">
       <div className="absolute -top-4 left-5 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--navy)] text-sm font-bold text-[var(--gold)] shadow-md">
         {props.step}
       </div>
-      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
+      <h3 className="text-base font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2.5 text-base leading-relaxed text-zinc-600">{props.description}</p>
     </li>
   );
 }
 
 function ValueCard(props: { accent: string; title: string; description: string }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm">
       <div className={`absolute left-0 top-0 h-full w-1 ${props.accent}`} />
-      <p className="pl-3 text-sm font-bold text-[var(--navy)]">{props.title}</p>
-      <p className="mt-2 pl-3 text-sm leading-relaxed text-zinc-600">{props.description}</p>
+      <p className="pl-3 text-base font-bold text-[var(--navy)]">{props.title}</p>
+      <p className="mt-2.5 pl-3 text-base leading-relaxed text-zinc-600">{props.description}</p>
     </div>
   );
 }
@@ -531,29 +531,29 @@ function AudienceCard(props: { icon: string; title: string; description: string 
   return (
     <div className="flex h-full flex-col items-center rounded-2xl border border-zinc-200 bg-[var(--surface)] p-7 text-center shadow-sm transition-shadow hover:shadow-md">
       <span className="mb-4 text-3xl" aria-hidden="true">{props.icon}</span>
-      <h3 className="text-sm font-bold text-[var(--navy)]">{props.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.description}</p>
+      <h3 className="text-base font-bold text-[var(--navy)]">{props.title}</h3>
+      <p className="mt-2.5 text-base leading-relaxed text-zinc-600">{props.description}</p>
     </div>
   );
 }
 
 function FaqMini(props: { question: string; answer: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <p className="text-sm font-bold text-[var(--navy)]">{props.question}</p>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{props.answer}</p>
+    <div className="rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm">
+      <p className="text-base font-bold text-[var(--navy)]">{props.question}</p>
+      <p className="mt-2.5 text-base leading-relaxed text-zinc-600">{props.answer}</p>
     </div>
   );
 }
 
 function HeroBenefit(props: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3.5 shadow-sm backdrop-blur-sm">
+    <div className="rounded-xl border border-zinc-200/80 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-sm">
       <div className="mb-1.5 flex items-center gap-2">
         <span className="text-base" aria-hidden="true">{props.icon}</span>
-        <p className="text-xs font-bold text-[var(--navy)] sm:text-sm">{props.title}</p>
+        <p className="text-sm font-bold text-[var(--navy)] sm:text-base">{props.title}</p>
       </div>
-      <p className="text-[11px] leading-snug text-zinc-500 sm:text-xs">{props.desc}</p>
+      <p className="text-xs leading-snug text-zinc-500 sm:text-sm">{props.desc}</p>
     </div>
   );
 }

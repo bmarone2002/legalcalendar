@@ -33,11 +33,12 @@
 }
 
 html, body { overflow-x: hidden; }
-html { font-size: 13px; }
+html { font-size: clamp(14px, 0.18vw + 13.5px, 16px); }
 body {
   background: #fff;
   color: #171717;
   font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
 }
 
 /* Premium legal theme – FullCalendar: navy/gold, clear surfaces */
