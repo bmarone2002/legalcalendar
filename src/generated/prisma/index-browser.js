@@ -235,6 +235,16 @@ exports.Prisma.CalendarShareScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.StripeWebhookEventScalarFieldEnum = {
+  id: 'id',
+  stripeEventId: 'stripeEventId',
+  eventType: 'eventType',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt',
+  status: 'status',
+  errorMessage: 'errorMessage'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -270,7 +280,8 @@ exports.Prisma.ModelName = {
   Setting: 'Setting',
   NotificationDevice: 'NotificationDevice',
   EventNotificationPreference: 'EventNotificationPreference',
-  CalendarShare: 'CalendarShare'
+  CalendarShare: 'CalendarShare',
+  StripeWebhookEvent: 'StripeWebhookEvent'
 };
 
 /**

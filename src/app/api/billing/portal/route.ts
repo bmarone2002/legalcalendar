@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateDbUser } from "@/lib/db/user";
 import { getStripeServerClient } from "@/lib/billing/stripe";
+import { checkRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
+import { getRequestId, withRequestIdHeaders } from "@/lib/server/request-context";
 
 function isNoSuchCustomerError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -11,7 +13,23 @@ function isNoSuchCustomerError(error: unknown): boolean {
 }
 
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
   try {
+    const decision = checkRateLimit({
+      key: getRateLimitKey(req, "billing-portal"),
+      limit: 20,
+      windowMs: 60_000,
+    });
+    if (!decision.allowed) {
+      return withRequestIdHeaders(NextResponse.json(
+        { success: false, error: "Troppe richieste. Riprova tra poco." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(decision.retryAfterSeconds) },
+        }
+      ), requestId);
+    }
+
     const user = await getOrCreateDbUser();
     const stripe = getStripeServerClient();
     const appUrl =
@@ -49,9 +67,12 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json({ success: true, data: { portalUrl: session.url } });
+    return withRequestIdHeaders(NextResponse.json({ success: true, data: { portalUrl: session.url } }), requestId);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Errore apertura portale abbonamento";
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: message }, { status: 400 }),
+      requestId
+    );
   }
 }

@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { resolveCalendarUser } from "@/lib/auth/calendar-access";
 import type { BackupFile, BackupEvent, BackupSubEvent } from "@/types/backup";
+import { checkRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
+import { getRequestId, withRequestIdHeaders } from "@/lib/server/request-context";
+
+const MAX_EVENTS_PER_RESTORE = 5000;
+const MAX_SUBEVENTS_PER_EVENT = 500;
+const MAX_RINVII_PER_EVENT = 200;
+const MAX_BACKUP_FILE_BYTES = 10 * 1024 * 1024;
 
 function parseBackup(json: unknown): BackupFile {
   if (!json || typeof json !== "object") {
@@ -26,7 +33,23 @@ function toDate(value: string, field: string): Date {
 }
 
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
   try {
+    const decision = checkRateLimit({
+      key: getRateLimitKey(req, "backup-restore"),
+      limit: 3,
+      windowMs: 10 * 60_000,
+    });
+    if (!decision.allowed) {
+      return withRequestIdHeaders(NextResponse.json(
+        { success: false, error: "Troppi tentativi di ripristino. Riprova più tardi." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(decision.retryAfterSeconds) },
+        }
+      ), requestId);
+    }
+
     const { userId } = await resolveCalendarUser(undefined, "FULL");
 
     const contentType = req.headers.get("content-type") ?? "";
@@ -41,6 +64,9 @@ export async function POST(req: Request) {
       if (!(file instanceof File)) {
         throw new Error("File di backup mancante.");
       }
+      if (file.size > MAX_BACKUP_FILE_BYTES) {
+        throw new Error("File di backup troppo grande (max 10MB).");
+      }
       const text = await file.text();
       const json = JSON.parse(text) as unknown;
       backup = parseBackup(json);
@@ -50,8 +76,17 @@ export async function POST(req: Request) {
 
     const events = backup.events ?? [];
 
-    if (events.length > 5000) {
+    if (events.length > MAX_EVENTS_PER_RESTORE) {
       throw new Error("Il file di backup contiene troppi eventi. Riduci il numero di eventi e riprova.");
+    }
+
+    for (const [index, event] of events.entries()) {
+      if ((event.subEvents?.length ?? 0) > MAX_SUBEVENTS_PER_EVENT) {
+        throw new Error(`Evento #${index + 1}: troppi sottoeventi (max ${MAX_SUBEVENTS_PER_EVENT}).`);
+      }
+      if ((event.rinvii?.length ?? 0) > MAX_RINVII_PER_EVENT) {
+        throw new Error(`Evento #${index + 1}: troppi rinvii (max ${MAX_RINVII_PER_EVENT}).`);
+      }
     }
 
     await prisma.$transaction(async (tx) => {
@@ -98,62 +133,58 @@ export async function POST(req: Request) {
         });
 
         if (eventData.subEvents && eventData.subEvents.length > 0) {
-          for (const s of eventData.subEvents) {
+          const subEventsToCreate = eventData.subEvents.map((s) => {
             const sub: BackupSubEvent = s;
-            await tx.subEvent.create({
-              data: {
-                parentEventId: createdEvent.id,
-                title: sub.title,
-                kind: sub.kind,
-                dueAt: sub.dueAt ? toDate(sub.dueAt, "subEvent.dueAt") : null,
-                isPlaceholder: (sub as { isPlaceholder?: boolean }).isPlaceholder ?? false,
-                status: sub.status,
-                priority: sub.priority,
-                ruleId: sub.ruleId,
-                ruleParams:
-                  sub.ruleParams != null ? JSON.stringify(sub.ruleParams) : null,
-                explanation: sub.explanation,
-                createdBy: sub.createdBy,
-                locked: sub.locked,
-              },
-            });
-          }
+            return {
+              parentEventId: createdEvent.id,
+              title: sub.title,
+              kind: sub.kind,
+              dueAt: sub.dueAt ? toDate(sub.dueAt, "subEvent.dueAt") : null,
+              isPlaceholder: (sub as { isPlaceholder?: boolean }).isPlaceholder ?? false,
+              status: sub.status,
+              priority: sub.priority,
+              ruleId: sub.ruleId,
+              ruleParams: sub.ruleParams != null ? JSON.stringify(sub.ruleParams) : null,
+              explanation: sub.explanation,
+              createdBy: sub.createdBy,
+              locked: sub.locked,
+            };
+          });
+          await tx.subEvent.createMany({ data: subEventsToCreate });
         }
 
         if (eventData.rinvii && eventData.rinvii.length > 0) {
-          for (const r of eventData.rinvii) {
-            await tx.rinvio.create({
-              data: {
-                parentEventId: createdEvent.id,
-                numero: r.numero,
-                dataUdienza: toDate(r.dataUdienza, "rinvio.dataUdienza"),
-                tipoUdienza: r.tipoUdienza,
-                tipoUdienzaCustom: r.tipoUdienzaCustom ?? null,
-                note: r.note ?? null,
-                adempimenti: JSON.stringify(
-                  Array.isArray(r.adempimenti) ? r.adempimenti : []
-                ),
-              },
-            });
-          }
+          const rinviiToCreate = eventData.rinvii.map((r) => ({
+            parentEventId: createdEvent.id,
+            numero: r.numero,
+            dataUdienza: toDate(r.dataUdienza, "rinvio.dataUdienza"),
+            tipoUdienza: r.tipoUdienza,
+            tipoUdienzaCustom: r.tipoUdienzaCustom ?? null,
+            note: r.note ?? null,
+            adempimenti: JSON.stringify(Array.isArray(r.adempimenti) ? r.adempimenti : []),
+          }));
+          await tx.rinvio.createMany({ data: rinviiToCreate });
         }
       }
-    });
+    }, { timeout: 30_000 });
 
-    return NextResponse.json(
+    return withRequestIdHeaders(NextResponse.json(
       {
         success: true,
         importedEvents: events.length,
       },
       { status: 200 }
-    );
+    ), requestId);
   } catch (error) {
     console.error("Errore ripristino backup:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Non è stato possibile ripristinare il backup.";
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: message }, { status: 400 }),
+      requestId
+    );
   }
 }
 

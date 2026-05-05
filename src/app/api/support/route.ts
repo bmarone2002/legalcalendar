@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { checkRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
+import { getRequestId, withRequestIdHeaders } from "@/lib/server/request-context";
 
 const supportSchema = z.object({
   email: z.string().trim().email("Email non valida"),
@@ -78,7 +80,23 @@ async function sendResendEmail(params: {
 }
 
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
   try {
+    const decision = checkRateLimit({
+      key: getRateLimitKey(req, "support-ticket"),
+      limit: 5,
+      windowMs: 5 * 60_000,
+    });
+    if (!decision.allowed) {
+      return withRequestIdHeaders(NextResponse.json(
+        { success: false, error: "Troppe richieste di supporto. Riprova tra qualche minuto." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(decision.retryAfterSeconds) },
+        }
+      ), requestId);
+    }
+
     const payload = supportSchema.parse(await req.json());
     const supportToEmail = process.env.SUPPORT_TO_EMAIL;
     const supportFromEmail = process.env.SUPPORT_FROM_EMAIL;
@@ -159,24 +177,24 @@ export async function POST(req: Request) {
       html: userHtml,
     });
 
-    return NextResponse.json({ success: true, ticketId });
+    return withRequestIdHeaders(NextResponse.json({ success: true, ticketId }), requestId);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return withRequestIdHeaders(NextResponse.json(
         {
           success: false,
           error: "Dati non validi",
           details: error.flatten(),
         },
         { status: 400 }
-      );
+      ), requestId);
     }
 
     console.error("Errore invio richiesta supporto:", error);
-    return NextResponse.json(
+    return withRequestIdHeaders(NextResponse.json(
       { success: false, error: "Non è stato possibile inviare la richiesta." },
       { status: 500 }
-    );
+    ), requestId);
   }
 }
 

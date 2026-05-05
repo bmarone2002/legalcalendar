@@ -53,6 +53,11 @@ export type EventNotificationPreference = $Result.DefaultSelection<Prisma.$Event
  * 
  */
 export type CalendarShare = $Result.DefaultSelection<Prisma.$CalendarSharePayload>
+/**
+ * Model StripeWebhookEvent
+ * 
+ */
+export type StripeWebhookEvent = $Result.DefaultSelection<Prisma.$StripeWebhookEventPayload>
 
 /**
  * Enums
@@ -288,6 +293,16 @@ export class PrismaClient<
     * ```
     */
   get calendarShare(): Prisma.CalendarShareDelegate<ExtArgs>;
+
+  /**
+   * `prisma.stripeWebhookEvent`: Exposes CRUD operations for the **StripeWebhookEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StripeWebhookEvents
+    * const stripeWebhookEvents = await prisma.stripeWebhookEvent.findMany()
+    * ```
+    */
+  get stripeWebhookEvent(): Prisma.StripeWebhookEventDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -736,7 +751,8 @@ export namespace Prisma {
     Setting: 'Setting',
     NotificationDevice: 'NotificationDevice',
     EventNotificationPreference: 'EventNotificationPreference',
-    CalendarShare: 'CalendarShare'
+    CalendarShare: 'CalendarShare',
+    StripeWebhookEvent: 'StripeWebhookEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -752,7 +768,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "event" | "subEvent" | "rinvio" | "setting" | "notificationDevice" | "eventNotificationPreference" | "calendarShare"
+      modelProps: "user" | "event" | "subEvent" | "rinvio" | "setting" | "notificationDevice" | "eventNotificationPreference" | "calendarShare" | "stripeWebhookEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1313,6 +1329,76 @@ export namespace Prisma {
           count: {
             args: Prisma.CalendarShareCountArgs<ExtArgs>
             result: $Utils.Optional<CalendarShareCountAggregateOutputType> | number
+          }
+        }
+      }
+      StripeWebhookEvent: {
+        payload: Prisma.$StripeWebhookEventPayload<ExtArgs>
+        fields: Prisma.StripeWebhookEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StripeWebhookEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StripeWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          findFirst: {
+            args: Prisma.StripeWebhookEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StripeWebhookEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          findMany: {
+            args: Prisma.StripeWebhookEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>[]
+          }
+          create: {
+            args: Prisma.StripeWebhookEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          createMany: {
+            args: Prisma.StripeWebhookEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StripeWebhookEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>[]
+          }
+          delete: {
+            args: Prisma.StripeWebhookEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          update: {
+            args: Prisma.StripeWebhookEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.StripeWebhookEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StripeWebhookEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.StripeWebhookEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StripeWebhookEventPayload>
+          }
+          aggregate: {
+            args: Prisma.StripeWebhookEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStripeWebhookEvent>
+          }
+          groupBy: {
+            args: Prisma.StripeWebhookEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StripeWebhookEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StripeWebhookEventCountArgs<ExtArgs>
+            result: $Utils.Optional<StripeWebhookEventCountAggregateOutputType> | number
           }
         }
       }
@@ -9850,6 +9936,908 @@ export namespace Prisma {
 
 
   /**
+   * Model StripeWebhookEvent
+   */
+
+  export type AggregateStripeWebhookEvent = {
+    _count: StripeWebhookEventCountAggregateOutputType | null
+    _min: StripeWebhookEventMinAggregateOutputType | null
+    _max: StripeWebhookEventMaxAggregateOutputType | null
+  }
+
+  export type StripeWebhookEventMinAggregateOutputType = {
+    id: string | null
+    stripeEventId: string | null
+    eventType: string | null
+    receivedAt: Date | null
+    processedAt: Date | null
+    status: string | null
+    errorMessage: string | null
+  }
+
+  export type StripeWebhookEventMaxAggregateOutputType = {
+    id: string | null
+    stripeEventId: string | null
+    eventType: string | null
+    receivedAt: Date | null
+    processedAt: Date | null
+    status: string | null
+    errorMessage: string | null
+  }
+
+  export type StripeWebhookEventCountAggregateOutputType = {
+    id: number
+    stripeEventId: number
+    eventType: number
+    receivedAt: number
+    processedAt: number
+    status: number
+    errorMessage: number
+    _all: number
+  }
+
+
+  export type StripeWebhookEventMinAggregateInputType = {
+    id?: true
+    stripeEventId?: true
+    eventType?: true
+    receivedAt?: true
+    processedAt?: true
+    status?: true
+    errorMessage?: true
+  }
+
+  export type StripeWebhookEventMaxAggregateInputType = {
+    id?: true
+    stripeEventId?: true
+    eventType?: true
+    receivedAt?: true
+    processedAt?: true
+    status?: true
+    errorMessage?: true
+  }
+
+  export type StripeWebhookEventCountAggregateInputType = {
+    id?: true
+    stripeEventId?: true
+    eventType?: true
+    receivedAt?: true
+    processedAt?: true
+    status?: true
+    errorMessage?: true
+    _all?: true
+  }
+
+  export type StripeWebhookEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StripeWebhookEvent to aggregate.
+     */
+    where?: StripeWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StripeWebhookEvents to fetch.
+     */
+    orderBy?: StripeWebhookEventOrderByWithRelationInput | StripeWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StripeWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StripeWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StripeWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StripeWebhookEvents
+    **/
+    _count?: true | StripeWebhookEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StripeWebhookEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StripeWebhookEventMaxAggregateInputType
+  }
+
+  export type GetStripeWebhookEventAggregateType<T extends StripeWebhookEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateStripeWebhookEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStripeWebhookEvent[P]>
+      : GetScalarType<T[P], AggregateStripeWebhookEvent[P]>
+  }
+
+
+
+
+  export type StripeWebhookEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StripeWebhookEventWhereInput
+    orderBy?: StripeWebhookEventOrderByWithAggregationInput | StripeWebhookEventOrderByWithAggregationInput[]
+    by: StripeWebhookEventScalarFieldEnum[] | StripeWebhookEventScalarFieldEnum
+    having?: StripeWebhookEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StripeWebhookEventCountAggregateInputType | true
+    _min?: StripeWebhookEventMinAggregateInputType
+    _max?: StripeWebhookEventMaxAggregateInputType
+  }
+
+  export type StripeWebhookEventGroupByOutputType = {
+    id: string
+    stripeEventId: string
+    eventType: string
+    receivedAt: Date
+    processedAt: Date
+    status: string
+    errorMessage: string | null
+    _count: StripeWebhookEventCountAggregateOutputType | null
+    _min: StripeWebhookEventMinAggregateOutputType | null
+    _max: StripeWebhookEventMaxAggregateOutputType | null
+  }
+
+  type GetStripeWebhookEventGroupByPayload<T extends StripeWebhookEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StripeWebhookEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StripeWebhookEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StripeWebhookEventGroupByOutputType[P]>
+            : GetScalarType<T[P], StripeWebhookEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StripeWebhookEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    stripeEventId?: boolean
+    eventType?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+    status?: boolean
+    errorMessage?: boolean
+  }, ExtArgs["result"]["stripeWebhookEvent"]>
+
+  export type StripeWebhookEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    stripeEventId?: boolean
+    eventType?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+    status?: boolean
+    errorMessage?: boolean
+  }, ExtArgs["result"]["stripeWebhookEvent"]>
+
+  export type StripeWebhookEventSelectScalar = {
+    id?: boolean
+    stripeEventId?: boolean
+    eventType?: boolean
+    receivedAt?: boolean
+    processedAt?: boolean
+    status?: boolean
+    errorMessage?: boolean
+  }
+
+
+  export type $StripeWebhookEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StripeWebhookEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      stripeEventId: string
+      eventType: string
+      receivedAt: Date
+      processedAt: Date
+      status: string
+      errorMessage: string | null
+    }, ExtArgs["result"]["stripeWebhookEvent"]>
+    composites: {}
+  }
+
+  type StripeWebhookEventGetPayload<S extends boolean | null | undefined | StripeWebhookEventDefaultArgs> = $Result.GetResult<Prisma.$StripeWebhookEventPayload, S>
+
+  type StripeWebhookEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<StripeWebhookEventFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: StripeWebhookEventCountAggregateInputType | true
+    }
+
+  export interface StripeWebhookEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StripeWebhookEvent'], meta: { name: 'StripeWebhookEvent' } }
+    /**
+     * Find zero or one StripeWebhookEvent that matches the filter.
+     * @param {StripeWebhookEventFindUniqueArgs} args - Arguments to find a StripeWebhookEvent
+     * @example
+     * // Get one StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StripeWebhookEventFindUniqueArgs>(args: SelectSubset<T, StripeWebhookEventFindUniqueArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one StripeWebhookEvent that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {StripeWebhookEventFindUniqueOrThrowArgs} args - Arguments to find a StripeWebhookEvent
+     * @example
+     * // Get one StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StripeWebhookEventFindUniqueOrThrowArgs>(args: SelectSubset<T, StripeWebhookEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first StripeWebhookEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventFindFirstArgs} args - Arguments to find a StripeWebhookEvent
+     * @example
+     * // Get one StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StripeWebhookEventFindFirstArgs>(args?: SelectSubset<T, StripeWebhookEventFindFirstArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first StripeWebhookEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventFindFirstOrThrowArgs} args - Arguments to find a StripeWebhookEvent
+     * @example
+     * // Get one StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StripeWebhookEventFindFirstOrThrowArgs>(args?: SelectSubset<T, StripeWebhookEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more StripeWebhookEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StripeWebhookEvents
+     * const stripeWebhookEvents = await prisma.stripeWebhookEvent.findMany()
+     * 
+     * // Get first 10 StripeWebhookEvents
+     * const stripeWebhookEvents = await prisma.stripeWebhookEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const stripeWebhookEventWithIdOnly = await prisma.stripeWebhookEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StripeWebhookEventFindManyArgs>(args?: SelectSubset<T, StripeWebhookEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a StripeWebhookEvent.
+     * @param {StripeWebhookEventCreateArgs} args - Arguments to create a StripeWebhookEvent.
+     * @example
+     * // Create one StripeWebhookEvent
+     * const StripeWebhookEvent = await prisma.stripeWebhookEvent.create({
+     *   data: {
+     *     // ... data to create a StripeWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends StripeWebhookEventCreateArgs>(args: SelectSubset<T, StripeWebhookEventCreateArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many StripeWebhookEvents.
+     * @param {StripeWebhookEventCreateManyArgs} args - Arguments to create many StripeWebhookEvents.
+     * @example
+     * // Create many StripeWebhookEvents
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StripeWebhookEventCreateManyArgs>(args?: SelectSubset<T, StripeWebhookEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StripeWebhookEvents and returns the data saved in the database.
+     * @param {StripeWebhookEventCreateManyAndReturnArgs} args - Arguments to create many StripeWebhookEvents.
+     * @example
+     * // Create many StripeWebhookEvents
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StripeWebhookEvents and only return the `id`
+     * const stripeWebhookEventWithIdOnly = await prisma.stripeWebhookEvent.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StripeWebhookEventCreateManyAndReturnArgs>(args?: SelectSubset<T, StripeWebhookEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a StripeWebhookEvent.
+     * @param {StripeWebhookEventDeleteArgs} args - Arguments to delete one StripeWebhookEvent.
+     * @example
+     * // Delete one StripeWebhookEvent
+     * const StripeWebhookEvent = await prisma.stripeWebhookEvent.delete({
+     *   where: {
+     *     // ... filter to delete one StripeWebhookEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StripeWebhookEventDeleteArgs>(args: SelectSubset<T, StripeWebhookEventDeleteArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one StripeWebhookEvent.
+     * @param {StripeWebhookEventUpdateArgs} args - Arguments to update one StripeWebhookEvent.
+     * @example
+     * // Update one StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StripeWebhookEventUpdateArgs>(args: SelectSubset<T, StripeWebhookEventUpdateArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more StripeWebhookEvents.
+     * @param {StripeWebhookEventDeleteManyArgs} args - Arguments to filter StripeWebhookEvents to delete.
+     * @example
+     * // Delete a few StripeWebhookEvents
+     * const { count } = await prisma.stripeWebhookEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StripeWebhookEventDeleteManyArgs>(args?: SelectSubset<T, StripeWebhookEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StripeWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StripeWebhookEvents
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StripeWebhookEventUpdateManyArgs>(args: SelectSubset<T, StripeWebhookEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one StripeWebhookEvent.
+     * @param {StripeWebhookEventUpsertArgs} args - Arguments to update or create a StripeWebhookEvent.
+     * @example
+     * // Update or create a StripeWebhookEvent
+     * const stripeWebhookEvent = await prisma.stripeWebhookEvent.upsert({
+     *   create: {
+     *     // ... data to create a StripeWebhookEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StripeWebhookEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StripeWebhookEventUpsertArgs>(args: SelectSubset<T, StripeWebhookEventUpsertArgs<ExtArgs>>): Prisma__StripeWebhookEventClient<$Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of StripeWebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventCountArgs} args - Arguments to filter StripeWebhookEvents to count.
+     * @example
+     * // Count the number of StripeWebhookEvents
+     * const count = await prisma.stripeWebhookEvent.count({
+     *   where: {
+     *     // ... the filter for the StripeWebhookEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends StripeWebhookEventCountArgs>(
+      args?: Subset<T, StripeWebhookEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StripeWebhookEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StripeWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StripeWebhookEventAggregateArgs>(args: Subset<T, StripeWebhookEventAggregateArgs>): Prisma.PrismaPromise<GetStripeWebhookEventAggregateType<T>>
+
+    /**
+     * Group by StripeWebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StripeWebhookEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StripeWebhookEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StripeWebhookEventGroupByArgs['orderBy'] }
+        : { orderBy?: StripeWebhookEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StripeWebhookEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStripeWebhookEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StripeWebhookEvent model
+   */
+  readonly fields: StripeWebhookEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StripeWebhookEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StripeWebhookEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StripeWebhookEvent model
+   */ 
+  interface StripeWebhookEventFieldRefs {
+    readonly id: FieldRef<"StripeWebhookEvent", 'String'>
+    readonly stripeEventId: FieldRef<"StripeWebhookEvent", 'String'>
+    readonly eventType: FieldRef<"StripeWebhookEvent", 'String'>
+    readonly receivedAt: FieldRef<"StripeWebhookEvent", 'DateTime'>
+    readonly processedAt: FieldRef<"StripeWebhookEvent", 'DateTime'>
+    readonly status: FieldRef<"StripeWebhookEvent", 'String'>
+    readonly errorMessage: FieldRef<"StripeWebhookEvent", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StripeWebhookEvent findUnique
+   */
+  export type StripeWebhookEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter, which StripeWebhookEvent to fetch.
+     */
+    where: StripeWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * StripeWebhookEvent findUniqueOrThrow
+   */
+  export type StripeWebhookEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter, which StripeWebhookEvent to fetch.
+     */
+    where: StripeWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * StripeWebhookEvent findFirst
+   */
+  export type StripeWebhookEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter, which StripeWebhookEvent to fetch.
+     */
+    where?: StripeWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StripeWebhookEvents to fetch.
+     */
+    orderBy?: StripeWebhookEventOrderByWithRelationInput | StripeWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StripeWebhookEvents.
+     */
+    cursor?: StripeWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StripeWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StripeWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StripeWebhookEvents.
+     */
+    distinct?: StripeWebhookEventScalarFieldEnum | StripeWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * StripeWebhookEvent findFirstOrThrow
+   */
+  export type StripeWebhookEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter, which StripeWebhookEvent to fetch.
+     */
+    where?: StripeWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StripeWebhookEvents to fetch.
+     */
+    orderBy?: StripeWebhookEventOrderByWithRelationInput | StripeWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StripeWebhookEvents.
+     */
+    cursor?: StripeWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StripeWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StripeWebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StripeWebhookEvents.
+     */
+    distinct?: StripeWebhookEventScalarFieldEnum | StripeWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * StripeWebhookEvent findMany
+   */
+  export type StripeWebhookEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter, which StripeWebhookEvents to fetch.
+     */
+    where?: StripeWebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StripeWebhookEvents to fetch.
+     */
+    orderBy?: StripeWebhookEventOrderByWithRelationInput | StripeWebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StripeWebhookEvents.
+     */
+    cursor?: StripeWebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StripeWebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StripeWebhookEvents.
+     */
+    skip?: number
+    distinct?: StripeWebhookEventScalarFieldEnum | StripeWebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * StripeWebhookEvent create
+   */
+  export type StripeWebhookEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * The data needed to create a StripeWebhookEvent.
+     */
+    data: XOR<StripeWebhookEventCreateInput, StripeWebhookEventUncheckedCreateInput>
+  }
+
+  /**
+   * StripeWebhookEvent createMany
+   */
+  export type StripeWebhookEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StripeWebhookEvents.
+     */
+    data: StripeWebhookEventCreateManyInput | StripeWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StripeWebhookEvent createManyAndReturn
+   */
+  export type StripeWebhookEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many StripeWebhookEvents.
+     */
+    data: StripeWebhookEventCreateManyInput | StripeWebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StripeWebhookEvent update
+   */
+  export type StripeWebhookEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * The data needed to update a StripeWebhookEvent.
+     */
+    data: XOR<StripeWebhookEventUpdateInput, StripeWebhookEventUncheckedUpdateInput>
+    /**
+     * Choose, which StripeWebhookEvent to update.
+     */
+    where: StripeWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * StripeWebhookEvent updateMany
+   */
+  export type StripeWebhookEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StripeWebhookEvents.
+     */
+    data: XOR<StripeWebhookEventUpdateManyMutationInput, StripeWebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which StripeWebhookEvents to update
+     */
+    where?: StripeWebhookEventWhereInput
+  }
+
+  /**
+   * StripeWebhookEvent upsert
+   */
+  export type StripeWebhookEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * The filter to search for the StripeWebhookEvent to update in case it exists.
+     */
+    where: StripeWebhookEventWhereUniqueInput
+    /**
+     * In case the StripeWebhookEvent found by the `where` argument doesn't exist, create a new StripeWebhookEvent with this data.
+     */
+    create: XOR<StripeWebhookEventCreateInput, StripeWebhookEventUncheckedCreateInput>
+    /**
+     * In case the StripeWebhookEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StripeWebhookEventUpdateInput, StripeWebhookEventUncheckedUpdateInput>
+  }
+
+  /**
+   * StripeWebhookEvent delete
+   */
+  export type StripeWebhookEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+    /**
+     * Filter which StripeWebhookEvent to delete.
+     */
+    where: StripeWebhookEventWhereUniqueInput
+  }
+
+  /**
+   * StripeWebhookEvent deleteMany
+   */
+  export type StripeWebhookEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StripeWebhookEvents to delete
+     */
+    where?: StripeWebhookEventWhereInput
+  }
+
+  /**
+   * StripeWebhookEvent without action
+   */
+  export type StripeWebhookEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StripeWebhookEvent
+     */
+    select?: StripeWebhookEventSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -9998,6 +10986,19 @@ export namespace Prisma {
   };
 
   export type CalendarShareScalarFieldEnum = (typeof CalendarShareScalarFieldEnum)[keyof typeof CalendarShareScalarFieldEnum]
+
+
+  export const StripeWebhookEventScalarFieldEnum: {
+    id: 'id',
+    stripeEventId: 'stripeEventId',
+    eventType: 'eventType',
+    receivedAt: 'receivedAt',
+    processedAt: 'processedAt',
+    status: 'status',
+    errorMessage: 'errorMessage'
+  };
+
+  export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -10834,6 +11835,68 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"CalendarShare"> | Date | string
   }
 
+  export type StripeWebhookEventWhereInput = {
+    AND?: StripeWebhookEventWhereInput | StripeWebhookEventWhereInput[]
+    OR?: StripeWebhookEventWhereInput[]
+    NOT?: StripeWebhookEventWhereInput | StripeWebhookEventWhereInput[]
+    id?: StringFilter<"StripeWebhookEvent"> | string
+    stripeEventId?: StringFilter<"StripeWebhookEvent"> | string
+    eventType?: StringFilter<"StripeWebhookEvent"> | string
+    receivedAt?: DateTimeFilter<"StripeWebhookEvent"> | Date | string
+    processedAt?: DateTimeFilter<"StripeWebhookEvent"> | Date | string
+    status?: StringFilter<"StripeWebhookEvent"> | string
+    errorMessage?: StringNullableFilter<"StripeWebhookEvent"> | string | null
+  }
+
+  export type StripeWebhookEventOrderByWithRelationInput = {
+    id?: SortOrder
+    stripeEventId?: SortOrder
+    eventType?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+    status?: SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+  }
+
+  export type StripeWebhookEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    stripeEventId?: string
+    AND?: StripeWebhookEventWhereInput | StripeWebhookEventWhereInput[]
+    OR?: StripeWebhookEventWhereInput[]
+    NOT?: StripeWebhookEventWhereInput | StripeWebhookEventWhereInput[]
+    eventType?: StringFilter<"StripeWebhookEvent"> | string
+    receivedAt?: DateTimeFilter<"StripeWebhookEvent"> | Date | string
+    processedAt?: DateTimeFilter<"StripeWebhookEvent"> | Date | string
+    status?: StringFilter<"StripeWebhookEvent"> | string
+    errorMessage?: StringNullableFilter<"StripeWebhookEvent"> | string | null
+  }, "id" | "stripeEventId">
+
+  export type StripeWebhookEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    stripeEventId?: SortOrder
+    eventType?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+    status?: SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    _count?: StripeWebhookEventCountOrderByAggregateInput
+    _max?: StripeWebhookEventMaxOrderByAggregateInput
+    _min?: StripeWebhookEventMinOrderByAggregateInput
+  }
+
+  export type StripeWebhookEventScalarWhereWithAggregatesInput = {
+    AND?: StripeWebhookEventScalarWhereWithAggregatesInput | StripeWebhookEventScalarWhereWithAggregatesInput[]
+    OR?: StripeWebhookEventScalarWhereWithAggregatesInput[]
+    NOT?: StripeWebhookEventScalarWhereWithAggregatesInput | StripeWebhookEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"StripeWebhookEvent"> | string
+    stripeEventId?: StringWithAggregatesFilter<"StripeWebhookEvent"> | string
+    eventType?: StringWithAggregatesFilter<"StripeWebhookEvent"> | string
+    receivedAt?: DateTimeWithAggregatesFilter<"StripeWebhookEvent"> | Date | string
+    processedAt?: DateTimeWithAggregatesFilter<"StripeWebhookEvent"> | Date | string
+    status?: StringWithAggregatesFilter<"StripeWebhookEvent"> | string
+    errorMessage?: StringNullableWithAggregatesFilter<"StripeWebhookEvent"> | string | null
+  }
+
   export type UserCreateInput = {
     id?: string
     clerkUserId: string
@@ -11646,6 +12709,76 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type StripeWebhookEventCreateInput = {
+    id?: string
+    stripeEventId: string
+    eventType: string
+    receivedAt?: Date | string
+    processedAt?: Date | string
+    status?: string
+    errorMessage?: string | null
+  }
+
+  export type StripeWebhookEventUncheckedCreateInput = {
+    id?: string
+    stripeEventId: string
+    eventType: string
+    receivedAt?: Date | string
+    processedAt?: Date | string
+    status?: string
+    errorMessage?: string | null
+  }
+
+  export type StripeWebhookEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeEventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type StripeWebhookEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeEventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type StripeWebhookEventCreateManyInput = {
+    id?: string
+    stripeEventId: string
+    eventType: string
+    receivedAt?: Date | string
+    processedAt?: Date | string
+    status?: string
+    errorMessage?: string | null
+  }
+
+  export type StripeWebhookEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeEventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type StripeWebhookEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeEventId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    receivedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    processedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -12309,6 +13442,36 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumSharePermissionFilter<$PrismaModel>
     _max?: NestedEnumSharePermissionFilter<$PrismaModel>
+  }
+
+  export type StripeWebhookEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    stripeEventId?: SortOrder
+    eventType?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+    status?: SortOrder
+    errorMessage?: SortOrder
+  }
+
+  export type StripeWebhookEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    stripeEventId?: SortOrder
+    eventType?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+    status?: SortOrder
+    errorMessage?: SortOrder
+  }
+
+  export type StripeWebhookEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    stripeEventId?: SortOrder
+    eventType?: SortOrder
+    receivedAt?: SortOrder
+    processedAt?: SortOrder
+    status?: SortOrder
+    errorMessage?: SortOrder
   }
 
   export type EventCreateNestedManyWithoutUserInput = {
@@ -14627,6 +15790,10 @@ export namespace Prisma {
      * @deprecated Use CalendarShareDefaultArgs instead
      */
     export type CalendarShareArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CalendarShareDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use StripeWebhookEventDefaultArgs instead
+     */
+    export type StripeWebhookEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StripeWebhookEventDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

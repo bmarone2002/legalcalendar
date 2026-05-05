@@ -3,10 +3,11 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getOrCreateDbUser } from "@/lib/db/user";
 import { getStripeServerClient } from "@/lib/billing/stripe";
+import { checkRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
+import { getRequestId, logApiEvent, withRequestIdHeaders } from "@/lib/server/request-context";
 
 const checkoutSchema = z.object({
   billingCycle: z.enum(["monthly", "yearly"]).default("monthly"),
-  trialDays: z.number().int().min(0).max(90).optional(),
 });
 
 function resolvePriceId(billingCycle: "monthly" | "yearly"): string {
@@ -86,8 +87,34 @@ function canUserStartTrial(user: Awaited<ReturnType<typeof getOrCreateDbUser>>):
   return user.subscriptionStatus === "free" && !user.trialEndsAt && !user.stripeSubscriptionId;
 }
 
+function resolveServerTrialDays(): number {
+  const configured = process.env.STRIPE_TRIAL_DAYS;
+  if (!configured) return 0;
+  const parsed = Number.parseInt(configured, 10);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 90) {
+    throw new Error("Variabile STRIPE_TRIAL_DAYS non valida (usa un intero tra 0 e 90)");
+  }
+  return parsed;
+}
+
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
   try {
+    const decision = checkRateLimit({
+      key: getRateLimitKey(req, "billing-checkout"),
+      limit: 15,
+      windowMs: 60_000,
+    });
+    if (!decision.allowed) {
+      return withRequestIdHeaders(NextResponse.json(
+        { success: false, error: "Troppe richieste. Riprova tra poco." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(decision.retryAfterSeconds) },
+        }
+      ), requestId);
+    }
+
     const payload = checkoutSchema.parse(await req.json().catch(() => ({})));
     const user = await getOrCreateDbUser();
     const stripe = getStripeServerClient();
@@ -116,8 +143,9 @@ export async function POST(req: Request) {
       throw new Error("Impossibile creare il cliente Stripe");
     }
 
-    const requestedTrialDays = payload.trialDays ?? 0;
-    const effectiveTrialDays = requestedTrialDays > 0 && canUserStartTrial(user) ? requestedTrialDays : undefined;
+    const configuredTrialDays = resolveServerTrialDays();
+    const effectiveTrialDays =
+      configuredTrialDays > 0 && canUserStartTrial(user) ? configuredTrialDays : undefined;
 
     const priceId = resolvePriceId(payload.billingCycle);
     const ensuredStripeCustomerId = stripeCustomerId;
@@ -154,12 +182,23 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({
+    logApiEvent("info", "billing.checkout.created", {
+      requestId,
+      userId: user.id,
+      billingCycle: payload.billingCycle,
+      hasTrial: Boolean(effectiveTrialDays),
+      stripeCustomerId,
+    });
+    return withRequestIdHeaders(NextResponse.json({
       success: true,
       data: { checkoutUrl: session.url, sessionId: session.id },
-    });
+    }), requestId);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Errore creazione checkout";
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    logApiEvent("error", "billing.checkout.failed", { requestId, message });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: message }, { status: 400 }),
+      requestId
+    );
   }
 }

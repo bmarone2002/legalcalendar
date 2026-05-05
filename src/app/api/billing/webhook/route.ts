@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { derivePlanFromPriceId, mapStripeStatus } from "@/lib/billing/subscription";
 import { getStripeServerClient } from "@/lib/billing/stripe";
+import { getRequestId, logApiEvent, withRequestIdHeaders } from "@/lib/server/request-context";
 
 export const runtime = "nodejs";
 
@@ -63,21 +64,54 @@ async function syncSubscription(subscription: any) {
   });
 }
 
+function isUniqueConstraintError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  return (error as { code?: string }).code === "P2002";
+}
+
 export async function POST(req: Request) {
+  const requestId = getRequestId(req);
   const signature = req.headers.get("stripe-signature");
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  let processedStripeEventId: string | null = null;
 
   if (!secret) {
-    return NextResponse.json({ success: false, error: "STRIPE_WEBHOOK_SECRET mancante" }, { status: 500 });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: "STRIPE_WEBHOOK_SECRET mancante" }, { status: 500 }),
+      requestId
+    );
   }
   if (!signature) {
-    return NextResponse.json({ success: false, error: "Header stripe-signature mancante" }, { status: 400 });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: "Header stripe-signature mancante" }, { status: 400 }),
+      requestId
+    );
   }
 
   try {
     const payload = await req.text();
     const stripe = getStripeServerClient();
     const event = stripe.webhooks.constructEvent(payload, signature, secret);
+    const stripeEventId = event.id as string;
+    const eventType = event.type;
+    processedStripeEventId = stripeEventId;
+
+    try {
+      await prisma.stripeWebhookEvent.create({
+        data: {
+          stripeEventId,
+          eventType,
+          status: "received",
+        },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        // Stripe retries webhook delivery: ignore already processed events.
+        logApiEvent("info", "billing.webhook.duplicate", { requestId, stripeEventId, eventType });
+        return withRequestIdHeaders(NextResponse.json({ success: true, duplicate: true }), requestId);
+      }
+      throw error;
+    }
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -116,9 +150,35 @@ export async function POST(req: Request) {
         break;
     }
 
-    return NextResponse.json({ success: true });
+    await prisma.stripeWebhookEvent.update({
+      where: { stripeEventId },
+      data: {
+        status: "processed",
+        processedAt: new Date(),
+        errorMessage: null,
+      },
+    });
+
+    logApiEvent("info", "billing.webhook.processed", {
+      requestId,
+      stripeEventId,
+      eventType,
+    });
+    return withRequestIdHeaders(NextResponse.json({ success: true }), requestId);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Errore webhook Stripe";
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    if (processedStripeEventId) {
+      await prisma.stripeWebhookEvent
+        .update({
+          where: { stripeEventId: processedStripeEventId },
+          data: { status: "failed", processedAt: new Date(), errorMessage: message },
+        })
+        .catch(() => null);
+    }
+    logApiEvent("error", "billing.webhook.failed", { requestId, message, stripeEventId: processedStripeEventId });
+    return withRequestIdHeaders(
+      NextResponse.json({ success: false, error: message }, { status: 400 }),
+      requestId
+    );
   }
 }
